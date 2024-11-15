@@ -14,7 +14,6 @@
 
 1. **Fork and Star the Repository**
    - Start by forking and starring this repository.
-   - When forking, ensure that the option "Copy the default branch only" is unchecked before forking the repository.
 
 2. **Navigate to Your Forked Repository**
    - Once the repository is forked, navigate to your forked repository.
@@ -36,6 +35,7 @@
      - `HEROKU_APP_NAME`
      - `HEROKU_EMAIL`
      - `HEROKU_API_KEY`
+     - `HEROKU_TEAM_NAME` optional for Team user.
    - Run the action workflow.
 
 5. **Finalize the Deployment**

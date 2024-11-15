@@ -12,7 +12,7 @@ on:
       HEROKU_EMAIL:
         description: "Heroku email address"
         required: true
-      HK_TEAM_NAME:
+      HEROKU_TEAM_NAME:
         description: "Heroku Team Name"
         required: false
       BOT_TOKEN:
@@ -36,16 +36,14 @@ jobs:
     steps:
       - name: Checkout deploy branch
         uses: actions/checkout@v2
-        with:
-          ref: "refs/heads/deploy"
 
       - name: Deploy to Heroku
-        uses: 5hojib/heroku-deploy-action@v1.0.1
+        uses: 5hojib/heroku-deploy-action@v2
         with:
           heroku_api_key: ${{inputs.HEROKU_API_KEY}}
           heroku_app_name: ${{inputs.HEROKU_APP_NAME}}
           heroku_email: ${{inputs.HEROKU_EMAIL}}
-          team: ${{ inputs.HK_TEAM_NAME != '' && format('team={0}', inputs.HK_TEAM_NAME) || '' }}
+          team: ${{ inputs.HEROKU_TEAM_NAME != '' && format('team={0}', inputs.HEROKU_TEAM_NAME) || '' }}
           usedocker: true
           docker_heroku_process_type: web
           stack: "container"
