@@ -30,12 +30,33 @@ on:
       TELEGRAM_HASH:
         description: "Telegram HASH from https://my.telegram.org/"
         required: true
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout deploy branch
         uses: actions/checkout@v2
+
+      - name: Delete unnecessary directories and files
+        run: |
+          # Directories to delete
+          for dir in bot qBittorrent web; do
+            if [ -d "./$dir" ]; then
+              echo "Deleting directory: $dir"
+              rm -rf ./$dir
+            else
+              echo "Directory not found: $dir"
+            fi
+          done
+
+          # Delete a2c.conf if it exists
+          if [ -f "./a2c.conf" ]; then
+            echo "Deleting file: a2c.conf"
+            rm -f ./a2c.conf
+          else
+            echo "File not found: a2c.conf"
+          fi
 
       - name: Deploy to Heroku
         uses: 5hojib/heroku-deploy-action@v2

@@ -1,59 +1,73 @@
-***
 ![](https://github.com/5hojib/5hojib/raw/main/images/Aeon-MLTB.gif)
-***
 
+---
+
+# Aeon Bot
+
+Aeon is a streamlined and feature-rich bot designed for efficient deployment and enhanced functionality.
+
+---
 
 ## Features
 
-- **Streamlined Code**: Unnecessary features and code have been removed for a more efficient and minimalistic bot.
-- **Heroku Deployment**: Fully configured for easy deployment on Heroku.
-- **Enhanced Functionality**: Includes additional features from various sources, improving the bot's overall capabilities.
+- **Minimalistic and Optimized**: Simplified by removing unnecessary code for better performance.
+- **Effortless Deployment**: Fully configured for quick and easy deployment to Heroku.
+- **Enhanced Capabilities**: Integrates features from multiple sources to provide a versatile bot experience.
 
+---
 
-## Heroku Deployment Instructions
+## Deployment Instructions (Heroku)
 
-1. **Fork and Star the Repository**
-   - Start by forking and starring this repository.
+Follow these steps to deploy Aeon to Heroku:
 
-2. **Navigate to Your Forked Repository**
-   - Once the repository is forked, navigate to your forked repository.
+### 1. Fork and Star the Repository
+- Click the **Fork** button at the top-right corner of this repository.
+- Give the repository a star to show your support.
 
-3. **Access the Settings**
-   - Go to the settings of your forked repository.
-   - Enable all actions in the settings.
+### 2. Navigate to Your Forked Repository
+- Access your forked version of this repository.
 
-4. **Run Action Workflow**
-   - Go to the **Actions** tab.
-   - Select the `Deploy to Heroku` action from the list of workflows.
-   - Click on **Run workflow**.
-   - Fill in the following variables in the form:
-     - `BOT_TOKEN`
-     - `OWNER_ID`
-     - `DATABASE_URL`
-     - `TELEGRAM_API`
-     - `TELEGRAM_HASH`
-     - `HEROKU_APP_NAME`
-     - `HEROKU_EMAIL`
-     - `HEROKU_API_KEY`
-     - `HEROKU_TEAM_NAME` optional for Team user.
-   - Run the action workflow.
+### 3. Enable GitHub Actions
+- Go to the **Settings** tab of your forked repository.
+- Enable **Actions** by selecting the appropriate option in the settings.
 
-5. **Finalize the Deployment**
-   - After the deployment is complete, finalize the remaining variables.
-   - Upload sensitive files like `token.pickle` using the `/botsettings` command.
+### 4. Run the Deployment Workflow
+1. Open the **Actions** tab.
+2. Select the `Deploy to Heroku` workflow from the available list.
+3. Click **Run workflow** and fill out the required inputs:
+   - **BOT_TOKEN**: Your Telegram bot token.
+   - **OWNER_ID**: Your Telegram ID.
+   - **DATABASE_URL**: MongoDB connection string.
+   - **TELEGRAM_API**: Telegram API ID (from [my.telegram.org](https://my.telegram.org/)).
+   - **TELEGRAM_HASH**: Telegram API hash (from [my.telegram.org](https://my.telegram.org/)).
+   - **HEROKU_APP_NAME**: Name of your Heroku app.
+   - **HEROKU_EMAIL**: Email address associated with your Heroku account.
+   - **HEROKU_API_KEY**: API key from your Heroku account.
+   - **HEROKU_TEAM_NAME** (Optional): Required only if deploying under a Heroku team account.
 
+4. Run the workflow and wait for it to complete.
+
+### 5. Finalize Setup
+- After deployment, configure any remaining variables in your Heroku dashboard.
+- Use the `/botsettings` command to upload sensitive files like `token.pickle` if needed.
+
+---
 
 ## Contributing
 
-Feel free to submit pull requests and open issues for any bugs or feature requests. Contributions are always welcome!
+We welcome contributions! Whether it's bug fixes, feature enhancements, or general improvements:
+- **Report issues**: Open an issue for bugs or suggestions.
+- **Submit pull requests**: Share your contributions with the community.
 
+---
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License. Refer to the [LICENSE](LICENSE) file for details.
 
+---
 
 ## Acknowledgements
 
-- Thanks to the original developers of the Mirror-Leech-Telegram-Bot.
-- Contributions and feature integrations from various repositories.
+- Special thanks to the original developers of the [Mirror-Leech-Telegram-Bot](https://github.com/anasty17/mirror-leech-telegram-bot).
+- Gratitude to contributors from various repositories whose features have been integrated into Aeon.
