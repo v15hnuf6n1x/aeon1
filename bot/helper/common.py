@@ -117,10 +117,8 @@ class TaskConfig:
     def getTokenPath(self, dest):
         if dest.startswith("mtp:"):
             return f"tokens/{self.userId}.pickle"
-        if (
-            dest.startswith("sa:")
-            or config_dict["USE_SA"]
-            and not dest.startswith("tp:")
+        if dest.startswith("sa:") or (
+            config_dict["USE_SA"] and not dest.startswith("tp:")
         ):
             return "accounts"
         return "token.pickle"
@@ -139,11 +137,8 @@ class TaskConfig:
                 self.privateLink = True
             if not await aiopath.exists(config_path):
                 raise ValueError(f"Rclone Config: {config_path} not Exists!")
-        elif (
-            status == "dl"
-            and is_gdrive_link(path)
-            or status == "up"
-            and is_gdrive_id(path)
+        elif (status == "dl" and is_gdrive_link(path)) or (
+            status == "up" and is_gdrive_id(path)
         ):
             token_path = self.getTokenPath(path)
             if token_path.startswith("tokens/") and status == "up":
@@ -154,10 +149,8 @@ class TaskConfig:
     async def beforeStart(self):
         self.metadata = self.metadata or self.userDict.get("metadata", False)
         self.nameSub = self.nameSub or self.userDict.get("name_sub", False)
-        self.asDoc = (
-            self.userDict.get("as_doc", False)
-            or config_dict["AS_DOCUMENT"]
-            and "as_doc" not in self.userDict
+        self.asDoc = self.userDict.get("as_doc", False) or (
+            config_dict["AS_DOCUMENT"] and "as_doc" not in self.userDict
         )
 
         if is_telegram_link(self.thumb):
@@ -192,9 +185,8 @@ class TaskConfig:
             self.upDest = self.userDict["upload_paths"][self.upDest]
 
         if not self.is_leech:
-            self.stopDuplicate = (
-                self.userDict.get("stop_duplicate")
-                or "stop_duplicate" not in self.userDict
+            self.stopDuplicate = self.userDict.get("stop_duplicate") or (
+                "stop_duplicate" not in self.userDict
                 and config_dict["STOP_DUPLICATE"]
             )
             default_upload = (
@@ -378,10 +370,8 @@ class TaskConfig:
                     walk, dl_path, topdown=False
                 ):
                     for file_ in files:
-                        if (
-                            is_first_archive_split(file_)
-                            or is_archive(file_)
-                            and not file_.endswith(".rar")
+                        if is_first_archive_split(file_) or (
+                            is_archive(file_) and not file_.endswith(".rar")
                         ):
                             f_path = ospath.join(dirpath, file_)
                             t_path = (
@@ -736,10 +726,8 @@ class TaskConfig:
                 and vext
                 and not m_path.endswith(f".{vext}")
                 and (
-                    vstatus == "+"
-                    and m_path.endswith(tuple(fvext))
-                    or vstatus == "-"
-                    and not m_path.endswith(tuple(fvext))
+                    (vstatus == "+" and m_path.endswith(tuple(fvext)))
+                    or (vstatus == "-" and not m_path.endswith(tuple(fvext)))
                     or not vstatus
                 )
             ):
@@ -759,10 +747,8 @@ class TaskConfig:
                 and not is_video
                 and not m_path.endswith(f".{aext}")
                 and (
-                    astatus == "+"
-                    and m_path.endswith(tuple(faext))
-                    or astatus == "-"
-                    and not m_path.endswith(tuple(faext))
+                    (astatus == "+" and m_path.endswith(tuple(faext)))
+                    or (astatus == "-" and not m_path.endswith(tuple(faext)))
                     or not astatus
                 )
             ):

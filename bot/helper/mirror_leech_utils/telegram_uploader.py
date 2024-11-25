@@ -261,7 +261,9 @@ class TgUploader:
                         match = re_match(
                             r".+(?=\.0*\d+$)|.+(?=\.part\d+\..+$)", f_path
                         )
-                        if not match or match and match.group(0) not in group_lists:
+                        if not match or (
+                            match and match.group(0) not in group_lists
+                        ):
                             for key, value in list(self._media_dict.items()):
                                 for subkey, msgs in list(value.items()):
                                     if len(msgs) > 1:

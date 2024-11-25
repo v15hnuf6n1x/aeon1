@@ -200,11 +200,8 @@ class gdriveList(GoogleDriveHelper):
             buttons.callback("Choose Current Path", "gdq cur", position="footer")
         if self.list_status == "gdu":
             buttons.callback("Set as Default Path", "gdq def", position="footer")
-        if (
-            len(self.parents) > 1
-            and len(self.drives) > 1
-            or self._token_user
-            and self._token_owner
+        if (len(self.parents) > 1 and len(self.drives) > 1) or (
+            self._token_user and self._token_owner
         ):
             buttons.callback("Back", "gdq back pa", position="footer")
         if len(self.parents) > 1:
@@ -309,12 +306,9 @@ class gdriveList(GoogleDriveHelper):
 
     async def choose_token(self):
         if (
-            self._token_user
-            and self._token_owner
-            or self._sa_owner
-            and self._token_owner
-            or self._sa_owner
-            and self._token_user
+            (self._token_user and self._token_owner)
+            or (self._sa_owner and self._token_owner)
+            or (self._sa_owner and self._token_user)
         ):
             msg = "Choose Token:" + (
                 "\nTransfer Type: Download"

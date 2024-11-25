@@ -77,7 +77,7 @@ async def removeSudo(client, message):
         id_ = (
             reply_to.from_user.id if reply_to.from_user else reply_to.sender_chat.id
         )
-    if id_ and id_ not in user_data or user_data[id_].get("is_sudo"):
+    if (id_ and id_ not in user_data) or user_data[id_].get("is_sudo"):
         update_user_ldata(id_, "is_sudo", False)
         await Database().update_user_data(id_)
         msg = "Demoted"

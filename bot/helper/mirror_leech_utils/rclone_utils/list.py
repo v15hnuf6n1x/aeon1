@@ -197,7 +197,11 @@ class RcloneList:
             buttons.callback("Choose Current Path", "rcq cur", position="footer")
         if self.list_status == "rcu":
             buttons.callback("Set as Default Path", "rcq def", position="footer")
-        if self.path or len(self._sections) > 1 or self._rc_user and self._rc_owner:
+        if (
+            self.path
+            or len(self._sections) > 1
+            or (self._rc_user and self._rc_owner)
+        ):
             buttons.callback("Back", "rcq back pa", position="footer")
         if self.path:
             buttons.callback("Back To Root", "rcq root", position="footer")

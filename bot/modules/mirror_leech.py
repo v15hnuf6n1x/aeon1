@@ -270,18 +270,18 @@ class Mirror(TaskListener):
             self.isQbit = True
 
         if (
-            not self.link
-            and file_ is None
-            or is_telegram_link(self.link)
-            and reply_to is None
-            or file_ is None
-            and not is_url(self.link)
-            and not is_magnet(self.link)
-            and not is_mega_link(self.link)
-            and not await aiopath.exists(self.link)
-            and not is_rclone_path(self.link)
-            and not is_gdrive_id(self.link)
-            and not is_gdrive_link(self.link)
+            (not self.link and file_ is None)
+            or (is_telegram_link(self.link) and reply_to is None)
+            or (
+                file_ is None
+                and not is_url(self.link)
+                and not is_magnet(self.link)
+                and not is_mega_link(self.link)
+                and not await aiopath.exists(self.link)
+                and not is_rclone_path(self.link)
+                and not is_gdrive_id(self.link)
+                and not is_gdrive_link(self.link)
+            )
         ):
             x = await send_message(
                 self.message, COMMAND_USAGE["mirror"][0], COMMAND_USAGE["mirror"][1]

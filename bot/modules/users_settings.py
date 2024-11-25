@@ -317,10 +317,8 @@ async def edit_user_settings(client, query):
             session_string = "Exists"
         else:
             session_string = "Not exists"
-        if (
-            user_dict.get("as_doc", False)
-            or "as_doc" not in user_dict
-            and config_dict["AS_DOCUMENT"]
+        if user_dict.get("as_doc", False) or (
+            "as_doc" not in user_dict and config_dict["AS_DOCUMENT"]
         ):
             ltype = "DOCUMENT"
             buttons.callback("Send As Media", f"userset {user_id} as_doc false")
@@ -365,10 +363,8 @@ async def edit_user_settings(client, query):
         buttons.callback("token.pickle", f"userset {user_id} token")
         buttons.callback("Default Gdrive ID", f"userset {user_id} gdid")
         buttons.callback("Index URL", f"userset {user_id} index")
-        if (
-            user_dict.get("stop_duplicate", False)
-            or "stop_duplicate" not in user_dict
-            and config_dict["STOP_DUPLICATE"]
+        if user_dict.get("stop_duplicate", False) or (
+            "stop_duplicate" not in user_dict and config_dict["STOP_DUPLICATE"]
         ):
             buttons.callback(
                 "Disable Stop Duplicate", f"userset {user_id} stop_duplicate false"
@@ -565,10 +561,8 @@ Check all yt-dlp api options from this <a href='https://github.com/yt-dlp/yt-dlp
     elif data[2] == "ex_ex":
         await query.answer()
         buttons = ButtonMaker()
-        if (
-            user_dict.get("excluded_extensions", False)
-            or "excluded_extensions" not in user_dict
-            and GLOBAL_EXTENSION_FILTER
+        if user_dict.get("excluded_extensions", False) or (
+            "excluded_extensions" not in user_dict and GLOBAL_EXTENSION_FILTER
         ):
             buttons.callback(
                 "Remove Excluded Extensions",

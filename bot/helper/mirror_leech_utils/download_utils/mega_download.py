@@ -66,10 +66,8 @@ class MegaAppListener(MegaListener):
             self._name = self.node.getName()
             LOGGER.info(f"Node Name: {self.node.getName()}")
 
-        if (
-            request_type not in MegaAppListener._NO_EVENT_ON
-            or self.node
-            and "cloud drive" not in self._name.lower()
+        if request_type not in MegaAppListener._NO_EVENT_ON or (
+            self.node and "cloud drive" not in self._name.lower()
         ):
             self.continue_event.set()
 

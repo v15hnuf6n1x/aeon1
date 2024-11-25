@@ -112,11 +112,15 @@ def arg_parser(items, arg_base):
         if part in arg_base:
             if arg_start == -1:
                 arg_start = i
-            if (
-                i + 1 == t
-                and part in bool_arg_set
-                or part in ["-s", "-j", "-f", "-fd", "-fu", "-sync", "-ml"]
-            ):
+            if (i + 1 == t and part in bool_arg_set) or part in [
+                "-s",
+                "-j",
+                "-f",
+                "-fd",
+                "-fu",
+                "-sync",
+                "-ml",
+            ]:
                 arg_base[part] = True
             else:
                 sub_list = []

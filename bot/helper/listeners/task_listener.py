@@ -72,8 +72,7 @@ class TaskListener(TaskConfig):
         if self.same_dir and self.mid in self.same_dir["tasks"]:
             while not (
                 self.same_dir["total"] in [1, 0]
-                or self.same_dir["total"] > 1
-                and len(self.same_dir["tasks"]) > 1
+                or (self.same_dir["total"] > 1 and len(self.same_dir["tasks"]) > 1)
             ):
                 await sleep(0.5)
 
@@ -281,7 +280,7 @@ class TaskListener(TaskConfig):
             if mime_type == "Folder":
                 msg += f"\n<b>SubFolders: </b>{folders}"
                 msg += f"\n<b>Files: </b>{files}"
-            if link or rclonePath and not self.privateLink:
+            if link or (rclonePath and not self.privateLink):
                 buttons = ButtonMaker()
                 if link:
                     buttons.url("Cloud Link", link)
