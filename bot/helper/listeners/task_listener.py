@@ -153,6 +153,11 @@ class TaskListener(TaskConfig):
             if self.isCancelled:
                 return
 
+        if self.watermark:
+            up_path = await self.proceedWatermark(up_path, gid)
+            if self.isCancelled:
+                return
+
         if self.screenShots:
             up_path = await self.generateScreenshots(up_path)
             if self.isCancelled:
