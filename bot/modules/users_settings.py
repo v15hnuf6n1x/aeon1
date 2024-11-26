@@ -63,6 +63,7 @@ async def get_user_settings(from_user):
         )
         or "None",
         "meta_msg": user_dict.get("metadata", "None") or "None",
+        "wm_msg": user_dict.get("watermark", "None") or "None",
         "ns_msg": "Added" if user_dict.get("name_sub", False) else "None",
         "ytopt": user_dict.get("yt_opt", config_dict.get("YT_DLP_OPTIONS", "None"))
         or "None",
@@ -73,7 +74,8 @@ async def get_user_settings(from_user):
         ("Rclone", f"userset {user_id} rclone"),
         ("Gdrive Tools", f"userset {user_id} gdrive"),
         ("Excluded Extensions", f"userset {user_id} ex_ex"),
-        ("Metadata key", f"userset {user_id} metadata_key"),
+        ("Metadata word", f"userset {user_id} metadata_key"),
+        ("Watermark word", f"userset {user_id} watermark_key"),
         ("Name Substitute", f"userset {user_id} name_substitute"),
         ("YT-DLP Options", f"userset {user_id} yto"),
         ("Reset All", f"userset {user_id} reset") if user_dict else None,
@@ -95,6 +97,7 @@ async def get_user_settings(from_user):
 **Gdrive Token:** {settings['tokenmsg']}
 **Name Substitution:** `{settings['ns_msg']}`
 **Metadata Title:** `{settings['meta_msg']}`
+**Watermark word:** `{settings['wm_msg']}`
 **Excluded extension:** `{settings['ex_ex']}`
 **YT-DLP Options:** `{escape(settings['ytopt'])}`
 """
@@ -280,6 +283,7 @@ async def edit_user_settings(client, query):
         "excluded_extensions",
         "name_sub",
         "metadata",
+        "watermark",
         "user_dump",
         "session_string",
     ]:
@@ -616,6 +620,20 @@ Example-2: \(text\) | \[test\] : test | \\text\\ : text : s
         )
         await edit_message(message, emsg, buttons.menu(1), MARKDOWN=True)
         pfunc = partial(set_option, pre_event=query, option="metadata")
+        await event_handler(client, query, pfunc)
+    elif data[2] == "watermark_key":
+        await query.answer()
+        buttons = ButtonMaker()
+        if user_dict.get("watermark", False):
+            buttons.callback("Remove watermark word", f"userset {user_id} watermark")
+        buttons.callback("Back", f"userset {user_id} back")
+        buttons.callback("Close", f"userset {user_id} close")
+        emsg = "Guide later."
+        emsg += (
+            f"Your Current Value is {user_dict.get('watermark') or 'not added yet!'}"
+        )
+        await edit_message(message, emsg, buttons.menu(1), MARKDOWN=True)
+        pfunc = partial(set_option, pre_event=query, option="watermark")
         await event_handler(client, query, pfunc)
     elif data[2] in ["gd", "rc"]:
         await query.answer()

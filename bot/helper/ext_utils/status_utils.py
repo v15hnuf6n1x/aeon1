@@ -42,6 +42,7 @@ class MirrorStatus:
     STATUS_SAMVID = "Generating sample video"
     STATUS_CONVERTING = "Converting format"
     STATUS_METADATA = "Metadata modifying"
+    STATUS_WATERMARK = "Adding watermark"
 
 
 async def getTaskByGid(gid: str):
@@ -189,6 +190,7 @@ async def get_readable_message(sid, is_user, page_no=1, status="All", page_step=
             MirrorStatus.STATUS_CONVERTING,
             MirrorStatus.STATUS_QUEUEUP,
             MirrorStatus.STATUS_METADATA,
+            MirrorStatus.STATUS_WATERMARK,
         ]:
             progress = (
                 await task.progress()

@@ -51,7 +51,7 @@ from bot.helper.ext_utils.media_utils import (
     createSampleVideo,
     get_document_type,
 )
-from bot.helper.aeon_utils.metadata_editor import change_metadata
+from bot.helper.aeon_utils.metadata_editor import change_metadata, add_watermark
 from bot.helper.telegram_helper.message_utils import (
     send_message,
     sendStatusMessage,
@@ -62,6 +62,7 @@ from bot.helper.mirror_leech_utils.rclone_utils.list import RcloneList
 from bot.helper.mirror_leech_utils.status_utils.zip_status import ZipStatus
 from bot.helper.mirror_leech_utils.status_utils.split_status import SplitStatus
 from bot.helper.mirror_leech_utils.status_utils.extract_status import ExtractStatus
+from bot.helper.mirror_leech_utils.status_utils.watermark_status import WatermarkStatus
 from bot.helper.mirror_leech_utils.status_utils.metadata_status import MetadataStatus
 from bot.helper.mirror_leech_utils.status_utils.sample_video_status import (
     SampleVideoStatus,
@@ -87,6 +88,7 @@ class TaskConfig:
         self.newDir = ""
         self.nameSub = ""
         self.metadata = ""
+        self.watermark = ""
         self.multi = 0
         self.size = 0
         self.is_leech = False
@@ -148,6 +150,7 @@ class TaskConfig:
 
     async def beforeStart(self):
         self.metadata = self.metadata or self.userDict.get("metadata", False)
+        self.watermark = self.watermark or self.userDict.get("watermark", False)
         self.nameSub = self.nameSub or self.userDict.get("name_sub", False)
         self.asDoc = self.userDict.get("as_doc", False) or (
             config_dict["AS_DOCUMENT"] and "as_doc" not in self.userDict
@@ -605,6 +608,35 @@ class TaskConfig:
                             cpu_eater_lock.release()
                             return ""
                         await change_metadata(f_path, key)
+            if checked:
+                cpu_eater_lock.release()
+        return up_dir
+
+    async def proceedWatermark(self, up_dir, gid):
+        key = self.watermark
+        async with task_dict_lock:
+            task_dict[self.mid] = WatermarkStatus(self, gid)
+        checked = False
+        if await aiopath.isfile(up_dir):
+            if is_mkv(up_dir):
+                checked = True
+                await cpu_eater_lock.acquire()
+                await add_watermark(up_dir, key)
+                cpu_eater_lock.release()
+        else:
+            for dirpath, _, files in await sync_to_async(
+                walk, up_dir, topdown=False
+            ):
+                for file_ in files:
+                    f_path = ospath.join(dirpath, file_)
+                    if is_mkv(f_path):
+                        if not checked:
+                            checked = True
+                            await cpu_eater_lock.acquire()
+                        if self.isCancelled:
+                            cpu_eater_lock.release()
+                            return ""
+                        await add_watermark(f_path, key)
             if checked:
                 cpu_eater_lock.release()
         return up_dir

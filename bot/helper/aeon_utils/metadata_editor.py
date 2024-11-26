@@ -43,7 +43,7 @@ async def change_metadata(file, key):
             languages[stream_index] = stream["tags"]["language"]
 
     cmd = [
-        "xtra",
+        "ffmpeg",
         "-y",
         "-i",
         file,
@@ -136,6 +136,33 @@ async def change_metadata(file, key):
     return
 
 
+async def add_watermark(file, key):
+    temp_file = f"{file}.temp.mkv"
+
+    cmd = [
+        "ffmpeg",
+        "-y",
+        "-i",
+        file,
+        "-vf",
+        f"drawtext=text='{key}':fontfile=rizz.otf:fontsize=20:fontcolor=white:x=10:y=10",
+        temp_file,
+    ]
+
+    process = await create_subprocess_exec(*cmd, stderr=PIPE, stdout=PIPE)
+    stdout, stderr = await process.communicate()
+
+    if process.returncode != 0:
+        err = stderr.decode().strip()
+        LOGGER.error(err)
+        LOGGER.error(f"Error adding watermark to file: {file}")
+        return
+
+    os.replace(temp_file, file)
+    LOGGER.info(f"Watermark added successfully to file: {file}")
+    return
+
+
 async def add_attachment(file, attachment_path):
     LOGGER.info(f"Adding photo attachment to file: {file}")
 
@@ -149,7 +176,7 @@ async def add_attachment(file, attachment_path):
         mime_type = "image/png"
 
     cmd = [
-        "xtra",
+        "ffmpeg",
         "-y",
         "-i",
         file,

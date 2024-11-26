@@ -118,6 +118,7 @@ class Mirror(TaskListener):
             "-cv": "",
             "-ns": "",
             "-md": "",
+            "-wm": "",
         }
 
         arg_parser(input_list[1:], args)
@@ -138,6 +139,7 @@ class Mirror(TaskListener):
         self.convertVideo = args["-cv"]
         self.nameSub = args["-ns"]
         self.metadata = args["-md"]
+        self.watermark = args["-wm"]
 
         headers = args["-h"]
         is_bulk = args["-b"]

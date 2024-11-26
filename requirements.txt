@@ -32,6 +32,7 @@ pycountry
 python-dotenv
 pyshorteners
 python-magic
+pytz
 qbittorrent-api
 requests
 speedtest-cli
