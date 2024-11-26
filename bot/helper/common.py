@@ -51,7 +51,7 @@ from bot.helper.ext_utils.media_utils import (
     createSampleVideo,
     get_document_type,
 )
-from bot.helper.aeon_utils.metadata_editor import change_metadata, add_watermark
+from bot.helper.aeon_utils.metadata_editor import add_watermark, change_metadata
 from bot.helper.telegram_helper.message_utils import (
     send_message,
     sendStatusMessage,
@@ -62,8 +62,10 @@ from bot.helper.mirror_leech_utils.rclone_utils.list import RcloneList
 from bot.helper.mirror_leech_utils.status_utils.zip_status import ZipStatus
 from bot.helper.mirror_leech_utils.status_utils.split_status import SplitStatus
 from bot.helper.mirror_leech_utils.status_utils.extract_status import ExtractStatus
-from bot.helper.mirror_leech_utils.status_utils.watermark_status import WatermarkStatus
 from bot.helper.mirror_leech_utils.status_utils.metadata_status import MetadataStatus
+from bot.helper.mirror_leech_utils.status_utils.watermark_status import (
+    WatermarkStatus,
+)
 from bot.helper.mirror_leech_utils.status_utils.sample_video_status import (
     SampleVideoStatus,
 )
