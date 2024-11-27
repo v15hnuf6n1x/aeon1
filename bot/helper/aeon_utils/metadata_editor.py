@@ -138,6 +138,7 @@ async def change_metadata(file, key):
 
 async def add_watermark(file, key):
     temp_file = f"{file}.temp.mkv"
+    font_path = "/rizz.otf"
 
     cmd = [
         "xtra",
@@ -145,7 +146,7 @@ async def add_watermark(file, key):
         "-i",
         file,
         "-vf",
-        f"drawtext=text='{key}':fontfile=rizz.otf:fontsize=20:fontcolor=white:x=10:y=10",
+        f"drawtext=text='{key}':fontfile={font_path}:fontsize=20:fontcolor=white:x=10:y=10",
         temp_file,
     ]
 
