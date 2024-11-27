@@ -43,7 +43,7 @@ async def change_metadata(file, key):
             languages[stream_index] = stream["tags"]["language"]
 
     cmd = [
-        "ffmpeg",
+        "xtra",
         "-y",
         "-i",
         file,
@@ -140,7 +140,7 @@ async def add_watermark(file, key):
     temp_file = f"{file}.temp.mkv"
 
     cmd = [
-        "ffmpeg",
+        "xtra",
         "-y",
         "-i",
         file,
@@ -176,7 +176,7 @@ async def add_attachment(file, attachment_path):
         mime_type = "image/png"
 
     cmd = [
-        "ffmpeg",
+        "xtra",
         "-y",
         "-i",
         file,
