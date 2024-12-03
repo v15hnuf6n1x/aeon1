@@ -1,3 +1,4 @@
+# ruff: noqa: F401
 import contextlib
 from os import execl as osexecl
 from sys import executable
@@ -52,7 +53,24 @@ from .helper.telegram_helper.message_utils import (
     send_message,
 )
 from .helper.mirror_leech_utils.rclone_utils.serve import rclone_serve_booter
-
+from .modules import (
+    authorize,
+    cancel_task,
+    clone,
+    exec,
+    file_selector,
+    gd_count,
+    gd_delete,
+    gd_search,
+    mirror_leech,
+    status,
+    ytdlp,
+    shell,
+    users_settings,
+    bot_settings,
+    help,
+    force_start,
+)
 
 @new_task
 async def stats(_, message):
