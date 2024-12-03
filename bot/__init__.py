@@ -14,13 +14,16 @@ from logging import (
     basicConfig,
 )
 from logging import (
-    info as log_info,
-)
-from logging import (
-    error as log_error,
-)
-from logging import (
-    warning as log_warning,
+    INFO,
+    ERROR,
+    Formatter,
+    FileHandler,
+    StreamHandler,
+    info,
+    error,
+    warning,
+    getLogger,
+    basicConfig,
 )
 from subprocess import Popen, run, check_output
 
@@ -54,11 +57,22 @@ botStartTime = time()
 bot_loop = new_event_loop()
 set_event_loop(bot_loop)
 
-basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[FileHandler("log.txt"), StreamHandler()],
-    level=INFO,
+class CustomFormatter(Formatter):
+    def format(self, record):
+        return super().format(record).replace(record.levelname, record.levelname[:1])
+
+
+formatter = CustomFormatter(
+    "[%(asctime)s] [%(levelname)s] - %(message)s", datefmt="%d-%b-%y %I:%M:%S %p"
 )
+
+file_handler = FileHandler("log.txt")
+file_handler.setFormatter(formatter)
+
+stream_handler = StreamHandler()
+stream_handler.setFormatter(formatter)
+
+basicConfig(handlers=[file_handler, stream_handler], level=INFO)
 
 LOGGER = getLogger(__name__)
 
@@ -81,7 +95,7 @@ multi_tags = set()
 
 try:
     if bool(environ.get("_____REMOVE_THIS_LINE_____")):
-        log_error("The README.md file there to be read! Exiting now!")
+        error("The README.md file there to be read! Exiting now!")
         bot_loop.stop()
         exit(1)
 except:
@@ -99,7 +113,7 @@ rss_dict = {}
 
 BOT_TOKEN = environ.get("BOT_TOKEN", "")
 if len(BOT_TOKEN) == 0:
-    log_error("BOT_TOKEN variable is missing! Exiting now")
+    error("BOT_TOKEN variable is missing! Exiting now")
     bot_loop.stop()
     exit(1)
 
@@ -151,18 +165,10 @@ if DATABASE_URL:
 else:
     config_dict = {}
 
-if not ospath.exists(".netrc"):
-    with open(".netrc", "w"):
-        pass
-run(
-    "chmod 600 .netrc && cp .netrc /root/.netrc && chmod +x aria-nox-nzb.sh && ./aria-nox-nzb.sh",
-    shell=True,
-    check=False,
-)
 
 OWNER_ID = environ.get("OWNER_ID", "")
 if len(OWNER_ID) == 0:
-    log_error("OWNER_ID variable is missing! Exiting now")
+    error("OWNER_ID variable is missing! Exiting now")
     bot_loop.stop()
     exit(1)
 else:
@@ -170,7 +176,7 @@ else:
 
 TELEGRAM_API = environ.get("TELEGRAM_API", "")
 if len(TELEGRAM_API) == 0:
-    log_error("TELEGRAM_API variable is missing! Exiting now")
+    error("TELEGRAM_API variable is missing! Exiting now")
     bot_loop.stop()
     exit(1)
 else:
@@ -178,13 +184,13 @@ else:
 
 TELEGRAM_HASH = environ.get("TELEGRAM_HASH", "")
 if len(TELEGRAM_HASH) == 0:
-    log_error("TELEGRAM_HASH variable is missing! Exiting now")
+    error("TELEGRAM_HASH variable is missing! Exiting now")
     bot_loop.stop()
     exit(1)
 
 USER_SESSION_STRING = environ.get("USER_SESSION_STRING", "")
 if len(USER_SESSION_STRING) != 0:
-    log_info("Creating client from USER_SESSION_STRING")
+    info("Creating client from USER_SESSION_STRING")
     try:
         user = TgClient(
             "user",
@@ -196,7 +202,7 @@ if len(USER_SESSION_STRING) != 0:
         ).start()
         IS_PREMIUM_USER = user.me.is_premium
     except:
-        log_error("Failed to start client from USER_SESSION_STRING")
+        error("Failed to start client from USER_SESSION_STRING")
         IS_PREMIUM_USER = False
         user = ""
 else:
@@ -277,7 +283,7 @@ else:
     try:
         SEARCH_PLUGINS = eval(SEARCH_PLUGINS)
     except:
-        log_error(f"Wrong USENET_SERVERS format: {SEARCH_PLUGINS}")
+        error(f"Wrong USENET_SERVERS format: {SEARCH_PLUGINS}")
         SEARCH_PLUGINS = ""
 
 MAX_SPLIT_SIZE = 4194304000 if IS_PREMIUM_USER else 2097152000
@@ -363,7 +369,7 @@ BASE_URL_PORT = 80 if len(BASE_URL_PORT) == 0 else int(BASE_URL_PORT)
 
 BASE_URL = environ.get("BASE_URL", "").rstrip("/")
 if len(BASE_URL) == 0:
-    log_warning("BASE_URL not provided!")
+    warning("BASE_URL not provided!")
     BASE_URL = ""
 
 UPSTREAM_REPO = environ.get("UPSTREAM_REPO", "")
@@ -402,7 +408,7 @@ FFMPEG_CMDS = environ.get("FFMPEG_CMDS", "")
 try:
     FFMPEG_CMDS = [] if len(FFMPEG_CMDS) == 0 else eval(FFMPEG_CMDS)
 except:
-    log_error(f"Wrong FFMPEG_CMDS format: {FFMPEG_CMDS}")
+    error(f"Wrong FFMPEG_CMDS format: {FFMPEG_CMDS}")
     FFMPEG_CMDS = []
 
 config_dict = {
@@ -456,7 +462,6 @@ config_dict = {
     "USER_TRANSMISSION": USER_TRANSMISSION,
     "UPSTREAM_REPO": UPSTREAM_REPO,
     "UPSTREAM_BRANCH": UPSTREAM_BRANCH,
-    "USENET_SERVERS": USENET_SERVERS,
     "USER_SESSION_STRING": USER_SESSION_STRING,
     "USE_SERVICE_ACCOUNTS": USE_SERVICE_ACCOUNTS,
     "WEB_PINCODE": WEB_PINCODE,
@@ -589,7 +594,7 @@ else:
     xnox_client.app_set_preferences(qb_opt)
 
 
-log_info("Creating client from BOT_TOKEN")
+info("Creating client from BOT_TOKEN")
 bot = TgClient(
     "bot",
     TELEGRAM_API,
