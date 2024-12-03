@@ -3,10 +3,9 @@ from os import walk, makedirs
 from re import IGNORECASE, escape
 from re import split as re_split
 from re import search as re_search
-from sys import exit as sexit
+from sys import exit
 from shutil import rmtree
-from contextlib import suppress
-from subprocess import run
+from subprocess import run as srun
 
 from magic import Magic
 from aioshutil import rmtree as aiormtree
@@ -14,8 +13,8 @@ from aiofiles.os import path as aiopath
 from aiofiles.os import rmdir, remove, listdir
 
 from bot import LOGGER, DOWNLOAD_DIR, aria2, xnox_client
-from bot.helper.ext_utils.bot_utils import cmd_exec, sync_to_async
 
+from .bot_utils import cmd_exec, sync_to_async
 from .exceptions import NotSupportedExtractionArchive
 
 ARCH_EXT = [
@@ -56,6 +55,7 @@ ARCH_EXT = [
     ".udf",
     ".vhd",
     ".xar",
+    ".zst",
     ".cbz",
 ]
 
@@ -90,6 +90,7 @@ async def clean_target(path):
 
 async def clean_download(path):
     if await aiopath.exists(path):
+        LOGGER.info(f"Cleaning Download: {path}")
         try:
             await aiormtree(path, ignore_errors=True)
         except Exception as e:
@@ -99,8 +100,11 @@ async def clean_download(path):
 def clean_all():
     aria2.remove_all(True)
     xnox_client.torrents_delete(torrent_hashes="all")
-    with suppress(Exception):
+    try:
+        LOGGER.info("Cleaning Download Directory")
         rmtree(DOWNLOAD_DIR, ignore_errors=True)
+    except:
+        pass
     makedirs(DOWNLOAD_DIR, exist_ok=True)
 
 
@@ -108,11 +112,14 @@ def exit_clean_up(signal, frame):
     try:
         LOGGER.info("Please wait, while we clean up and stop the running downloads")
         clean_all()
-        run(["pkill", "-9", "-f", "gunicorn|xria|xnox|xtra|xone"], check=False)
-        sexit(0)
+        srun(
+            ["pkill", "-9", "-f", "gunicorn|aria2c|qbittorrent-nox|ffmpeg|java"],
+            check=False,
+        )
+        exit(0)
     except KeyboardInterrupt:
         LOGGER.warning("Force Exiting before the cleanup finishes!")
-        sexit(1)
+        exit(1)
 
 
 async def clean_unwanted(path, custom_list=None):
@@ -128,7 +135,7 @@ async def clean_unwanted(path, custom_list=None):
                 or (filee.endswith(".parts") and filee.startswith("."))
             ):
                 await remove(f_path)
-        if dirpath.endswith((".unwanted", "splited_files_joya", "copied_joya")):
+        if dirpath.endswith((".unwanted", "splited_files", "copied_files")):
             await aiormtree(dirpath, ignore_errors=True)
     for dirpath, _, files in await sync_to_async(walk, path, topdown=False):
         if not await listdir(dirpath):

@@ -1,5 +1,5 @@
 from asyncio import sleep
-from secrets import token_hex
+from secrets import token_urlsafe
 
 from telegraph.aio import Telegraph
 from telegraph.exceptions import RetryAfterError
@@ -14,9 +14,10 @@ class TelegraphHelper:
         self._author_url = author_url
 
     async def create_account(self):
+        LOGGER.info("Creating Telegraph Account")
         try:
             await self._telegraph.create_account(
-                short_name=token_hex(4),
+                short_name=token_urlsafe(8),
                 author_name=self._author_name,
                 author_url=self._author_url,
             )
@@ -73,9 +74,14 @@ class TelegraphHelper:
                     nxt_page += 1
             await self.edit_page(
                 path=path[prev_page],
-                title="Torrent Search",
+                title="Mirror-leech-bot Torrent Search",
                 content=content,
             )
 
 
-telegraph = TelegraphHelper("Aeon", "https://t.me/ProjectAeon")
+telegraph = TelegraphHelper(
+    "Mirror-Leech-Telegram-Bot",
+    "https://github.com/anasty17/mirror-leech-telegram-bot",
+)
+
+print(__name__)

@@ -1,22 +1,20 @@
 from time import time
 from asyncio import Lock, sleep
-from contextlib import suppress
 
-from pyrogram.errors import FloodWait
+from pyrogram.errors import FloodWait, FloodPremiumWait
 
 from bot import (
     LOGGER,
     bot,
+    user,
     task_dict,
-    non_queued_dl,
     task_dict_lock,
-    queue_dict_lock,
 )
 from bot.helper.ext_utils.task_manager import (
     check_running_tasks,
     stop_duplicate_check,
 )
-from bot.helper.telegram_helper.message_utils import sendStatusMessage
+from bot.helper.telegram_helper.message_utils import send_status_message
 from bot.helper.mirror_leech_utils.status_utils.queue_status import QueueStatus
 from bot.helper.mirror_leech_utils.status_utils.telegram_status import TelegramStatus
 
@@ -51,22 +49,26 @@ class TelegramDownloadHelper:
         if not from_queue:
             await self._listener.on_download_start()
             if self._listener.multi <= 1:
-                await sendStatusMessage(self._listener.message)
+                await send_status_message(self._listener.message)
+            LOGGER.info(f"Download from Telegram: {self._listener.name}")
         else:
             LOGGER.info(
                 f"Start Queued Download from Telegram: {self._listener.name}"
             )
 
     async def _onDownloadProgress(self, current, total):
-        if self._listener.isCancelled:
-            self.session.stop_transmission()
+        if self._listener.is_cancelled:
+            if self.session == "user":
+                user.stop_transmission()
+            else:
+                bot.stop_transmission()
         self._processed_bytes = current
 
-    async def _onDownloadError(self, error):
+    async def _on_download_error(self, error):
         async with global_lock:
-            with suppress(Exception):
+            if self._id in GLOBAL_GID:
                 GLOBAL_GID.remove(self._id)
-        await self._listener.onDownloadError(error)
+        await self._listener.on_download_error(error)
 
     async def _on_download_complete(self):
         await self._listener.on_download_complete()
@@ -78,27 +80,35 @@ class TelegramDownloadHelper:
             download = await message.download(
                 file_name=path, progress=self._onDownloadProgress
             )
-            if self._listener.isCancelled:
-                await self._onDownloadError("Cancelled by user!")
+            if self._listener.is_cancelled:
+                await self._on_download_error("Cancelled by user!")
                 return
-        except FloodWait as f:
+        except (FloodWait, FloodPremiumWait) as f:
             LOGGER.warning(str(f))
             await sleep(f.value)
         except Exception as e:
             LOGGER.error(str(e))
-            await self._onDownloadError(str(e))
+            await self._on_download_error(str(e))
             return
         if download is not None:
             await self._on_download_complete()
-        elif not self._listener.isCancelled:
-            await self._onDownloadError("Internal error occurred")
+        elif not self._listener.is_cancelled:
+            await self._on_download_error("Internal error occurred")
 
     async def add_download(self, message, path, session):
-        self.session = session if session else bot
-        if self.session != bot:
-            message = await self.session.get_messages(
+        self.session = session
+        if (
+            self.session not in ["user", "bot"]
+            and self._listener.user_transmission
+            and self._listener.is_super_chat
+        ):
+            self.session = "user"
+            message = await user.get_messages(
                 chat_id=message.chat.id, message_ids=message.id
             )
+        elif self.session != "user":
+            self.session = "bot"
+
         media = (
             message.document
             or message.photo
@@ -127,35 +137,37 @@ class TelegramDownloadHelper:
 
                 msg, button = await stop_duplicate_check(self._listener)
                 if msg:
-                    await self._listener.onDownloadError(msg, button)
+                    await self._listener.on_download_error(msg, button)
                     return
 
                 add_to_queue, event = await check_running_tasks(self._listener)
                 if add_to_queue:
+                    LOGGER.info(f"Added to Queue/Download: {self._listener.name}")
                     async with task_dict_lock:
                         task_dict[self._listener.mid] = QueueStatus(
                             self._listener, gid, "dl"
                         )
                     await self._listener.on_download_start()
                     if self._listener.multi <= 1:
-                        await sendStatusMessage(self._listener.message)
+                        await send_status_message(self._listener.message)
                     await event.wait()
-                    if self._listener.isCancelled:
+                    if self._listener.is_cancelled:
+                        async with global_lock:
+                            if self._id in GLOBAL_GID:
+                                GLOBAL_GID.remove(self._id)
                         return
-                    async with queue_dict_lock:
-                        non_queued_dl.add(self._listener.mid)
 
                 await self._on_download_start(gid, add_to_queue)
                 await self._download(message, path)
             else:
-                await self._onDownloadError("File already being downloaded!")
+                await self._on_download_error("File already being downloaded!")
         else:
-            await self._onDownloadError(
+            await self._on_download_error(
                 "No document in the replied message! Use SuperGroup incase you are trying to download with User session!"
             )
 
     async def cancel_task(self):
-        self._listener.isCancelled = True
+        self._listener.is_cancelled = True
         LOGGER.info(
             f"Cancelling download on user request: name: {self._listener.name} id: {self._id}"
         )

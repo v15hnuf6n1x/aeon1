@@ -5,14 +5,13 @@ from bot.helper.ext_utils.status_utils import (
 )
 
 
-class GdriveStatus:
+class GoogleDriveStatus:
     def __init__(self, listener, obj, gid, status):
         self.listener = listener
         self._obj = obj
         self._size = self.listener.size
         self._gid = gid
         self._status = status
-        self.message = listener.message
 
     def processed_bytes(self):
         return get_readable_file_size(self._obj.processed_bytes)
@@ -22,10 +21,10 @@ class GdriveStatus:
 
     def status(self):
         if self._status == "up":
-            return MirrorStatus.STATUS_UPLOADING_GD
+            return MirrorStatus.STATUS_UPLOADING
         if self._status == "dl":
-            return MirrorStatus.STATUS_DOWNLOADING_GD
-        return MirrorStatus.STATUS_CLONING_GD
+            return MirrorStatus.STATUS_DOWNLOADING
+        return MirrorStatus.STATUS_CLONING
 
     def name(self):
         return self.listener.name
@@ -36,7 +35,7 @@ class GdriveStatus:
     def progress_raw(self):
         try:
             return self._obj.processed_bytes / self._size * 100
-        except Exception:
+        except:
             return 0
 
     def progress(self):
@@ -49,7 +48,7 @@ class GdriveStatus:
         try:
             seconds = (self._size - self._obj.processed_bytes) / self._obj.speed
             return get_readable_time(seconds)
-        except Exception:
+        except:
             return "-"
 
     def task(self):

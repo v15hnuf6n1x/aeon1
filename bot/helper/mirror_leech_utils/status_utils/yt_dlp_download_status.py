@@ -6,13 +6,12 @@ from bot.helper.ext_utils.status_utils import (
 )
 
 
-class YtDlpDownloadStatus:
+class YtDlpStatus:
     def __init__(self, listener, obj, gid):
         self._obj = obj
         self._gid = gid
         self.listener = listener
         self._proccessed_bytes = 0
-        self.message = listener.message
 
     def gid(self):
         return self._gid
@@ -30,7 +29,7 @@ class YtDlpDownloadStatus:
         return get_readable_file_size(self._obj.size)
 
     def status(self):
-        return MirrorStatus.STATUS_DOWNLOADING_YT
+        return MirrorStatus.STATUS_DOWNLOADING
 
     def name(self):
         return self.listener.name
@@ -50,7 +49,7 @@ class YtDlpDownloadStatus:
                 self._obj.size - self._proccessed_bytes
             ) / self._obj.download_speed
             return get_readable_time(seconds)
-        except Exception:
+        except:
             return "-"
 
     def task(self):

@@ -1,6 +1,6 @@
 from json import loads
 from time import time
-from asyncio import Event, gather, wait_for, wrap_future
+from asyncio import Event, gather, wait_for
 from functools import partial
 from configparser import ConfigParser
 
@@ -10,13 +10,8 @@ from pyrogram.filters import user, regex
 from pyrogram.handlers import CallbackQueryHandler
 
 from bot import LOGGER, config_dict
-from bot.helper.ext_utils.bot_utils import (
-    cmd_exec,
-    new_task,
-    new_thread,
-    update_user_ldata,
-)
-from bot.helper.ext_utils.db_handler import Database
+from bot.helper.ext_utils.bot_utils import cmd_exec, new_task, update_user_ldata
+from bot.helper.ext_utils.db_handler import database
 from bot.helper.ext_utils.status_utils import (
     get_readable_time,
     get_readable_file_size,
@@ -39,7 +34,7 @@ async def path_updates(_, query, obj):
     if data[1] == "cancel":
         obj.remote = "Task has been cancelled!"
         obj.path = ""
-        obj.listener.isCancelled = True
+        obj.listener.is_cancelled = True
         obj.event.set()
         await delete_message(message)
         return
@@ -52,17 +47,44 @@ async def path_updates(_, query, obj):
     elif data[1] == "nex":
         obj.iter_start += LIST_LIMIT * obj.page_step
         await obj.get_path_buttons()
+    elif data[1] == "select":
+        obj.select = not obj.select
+        await obj.get_path_buttons()
     elif data[1] == "back":
         if data[2] == "re":
             await obj.list_config()
         else:
             await obj.back_from_path()
     elif data[1] == "re":
+        # some remotes has space
         data = query.data.split(maxsplit=2)
         obj.remote = data[2]
         await obj.get_path()
+    elif data[1] == "clear":
+        obj.selected_pathes = set()
+        await obj.get_path_buttons()
+    elif data[1] == "ds":
+        obj.path = f"rclone_select_{time()}.txt"
+        async with aiopen(obj.path, "w") as txt_file:
+            for f in obj.selected_pathes:
+                await txt_file.write(f"{f}\n")
+        await delete_message(message)
+        obj.event.set()
     elif data[1] == "pa":
         index = int(data[3])
+        if obj.select:
+            path = obj.path + (
+                f"/{obj.path_list[index]['Path']}"
+                if obj.path
+                else obj.path_list[index]["Path"]
+            )
+            if path in obj.selected_pathes:
+                obj.selected_pathes.remove(path)
+            else:
+                obj.selected_pathes.add(path)
+            await obj.get_path_buttons()
+            obj.query_proc = False
+            return
         obj.path += (
             f"/{obj.path_list[index]['Path']}"
             if obj.path
@@ -75,6 +97,7 @@ async def path_updates(_, query, obj):
             obj.event.set()
     elif data[1] == "ps":
         if obj.page_step == int(data[2]):
+            obj.query_proc = False
             return
         obj.page_step = int(data[2])
         await obj.get_path_buttons()
@@ -93,10 +116,11 @@ async def path_updates(_, query, obj):
             if obj.config_path == "rclone.conf"
             else f"mrcc:{obj.remote}{obj.path}"
         )
-        if path != obj.listener.userDict.get("rclone_path"):
-            update_user_ldata(obj.listener.userId, "rclone_path", path)
+        if path != obj.listener.user_dict.get("rclone_path"):
+            update_user_ldata(obj.listener.user_id, "rclone_path", path)
             await obj.get_path_buttons()
-            await Database().update_user_data(obj.listener.userId)
+            if config_dict["DATABASE_URL"]:
+                await database.update_user_data(obj.listener.user_id)
     elif data[1] == "owner":
         obj.config_path = "rclone.conf"
         obj.path = ""
@@ -123,35 +147,36 @@ class RcloneList:
         self.query_proc = False
         self.item_type = "--dirs-only"
         self.event = Event()
-        self.user_rcc_path = f"rclone/{self.listener.userId}.conf"
+        self.user_rcc_path = f"rclone/{self.listener.user_id}.conf"
         self.config_path = ""
         self.path = ""
         self.list_status = ""
         self.path_list = []
         self.iter_start = 0
         self.page_step = 1
+        self.select = False
+        self.selected_pathes = set()
 
-    @new_thread
     async def _event_handler(self):
         pfunc = partial(path_updates, obj=self)
         handler = self.listener.client.add_handler(
             CallbackQueryHandler(
-                pfunc, filters=regex("^rcq") & user(self.listener.userId)
+                pfunc, filters=regex("^rcq") & user(self.listener.user_id)
             ),
             group=-1,
         )
         try:
             await wait_for(self.event.wait(), timeout=self._timeout)
-        except Exception:
+        except:
             self.path = ""
             self.remote = "Timed Out. Task has been cancelled!"
-            self.listener.isCancelled = True
+            self.listener.is_cancelled = True
             self.event.set()
         finally:
             self.listener.client.remove_handler(*handler)
 
     async def _send_list_message(self, msg, button):
-        if not self.listener.isCancelled:
+        if not self.listener.is_cancelled:
             if self._reply_to is None:
                 self._reply_to = await send_message(
                     self.listener.message, msg, button
@@ -172,41 +197,54 @@ class RcloneList:
             self.path_list[self.iter_start : LIST_LIMIT + self.iter_start]
         ):
             orig_index = index + self.iter_start
+            name = idict["Path"]
+            if name in self.selected_pathes or any(
+                p.endswith(f"/{name}") for p in self.selected_pathes
+            ):
+                name = f"✅ {name}"
             if idict["IsDir"]:
                 ptype = "fo"
-                name = idict["Path"]
             else:
                 ptype = "fi"
-                name = f"[{get_readable_file_size(idict['Size'])}] {idict['Path']}"
-            buttons.callback(name, f"rcq pa {ptype} {orig_index}")
+                name = f"[{get_readable_file_size(idict['Size'])}] {name}"
+            buttons.data_button(name, f"rcq pa {ptype} {orig_index}")
         if items_no > LIST_LIMIT:
             for i in [1, 2, 4, 6, 10, 30, 50, 100]:
-                buttons.callback(i, f"rcq ps {i}", position="header")
-            buttons.callback("Previous", "rcq pre", position="footer")
-            buttons.callback("Next", "rcq nex", position="footer")
+                buttons.data_button(i, f"rcq ps {i}", position="header")
+            buttons.data_button("Previous", "rcq pre", position="footer")
+            buttons.data_button("Next", "rcq nex", position="footer")
         if self.list_status == "rcd":
             if self.item_type == "--dirs-only":
-                buttons.callback(
+                buttons.data_button(
                     "Files", "rcq itype --files-only", position="footer"
                 )
             else:
-                buttons.callback(
+                buttons.data_button(
                     "Folders", "rcq itype --dirs-only", position="footer"
                 )
         if self.list_status == "rcu" or len(self.path_list) > 0:
-            buttons.callback("Choose Current Path", "rcq cur", position="footer")
+            buttons.data_button("Choose Current Path", "rcq cur", position="footer")
+        if self.list_status == "rcd":
+            buttons.data_button(
+                f"Select: {'Enabled' if self.select else 'Disabled'}",
+                "rcq select",
+                position="footer",
+            )
+        if len(self.selected_pathes) > 1:
+            buttons.data_button("Done With Selection", "rcq ds", position="footer")
+            buttons.data_button("Clear Selection", "rcq clear", position="footer")
         if self.list_status == "rcu":
-            buttons.callback("Set as Default Path", "rcq def", position="footer")
+            buttons.data_button("Set as Default Path", "rcq def", position="footer")
         if (
             self.path
             or len(self._sections) > 1
             or (self._rc_user and self._rc_owner)
         ):
-            buttons.callback("Back", "rcq back pa", position="footer")
+            buttons.data_button("Back", "rcq back pa", position="footer")
         if self.path:
-            buttons.callback("Back To Root", "rcq root", position="footer")
-        buttons.callback("Cancel", "rcq cancel", position="footer")
-        button = buttons.menu(f_cols=2)
+            buttons.data_button("Back To Root", "rcq root", position="footer")
+        buttons.data_button("Cancel", "rcq cancel", position="footer")
+        button = buttons.build_menu(f_cols=2)
         msg = "Choose Path:" + (
             "\nTransfer Type: <i>Download</i>"
             if self.list_status == "rcd"
@@ -241,7 +279,7 @@ class RcloneList:
             self.config_path,
             f"{self.remote}{self.path}",
         ]
-        if self.listener.isCancelled:
+        if self.listener.is_cancelled:
             return None
         res, err, code = await cmd_exec(cmd)
         if code not in [0, -9]:
@@ -291,11 +329,11 @@ class RcloneList:
             msg += f"\nTimeout: {get_readable_time(self._timeout - (time() - self._time))}"
             buttons = ButtonMaker()
             for remote in self._sections:
-                buttons.callback(remote, f"rcq re {remote}:")
+                buttons.data_button(remote, f"rcq re {remote}:")
             if self._rc_user and self._rc_owner:
-                buttons.callback("Back", "rcq back re", position="footer")
-            buttons.callback("Cancel", "rcq cancel", position="footer")
-            button = buttons.menu(2)
+                buttons.data_button("Back", "rcq back re", position="footer")
+            buttons.data_button("Cancel", "rcq cancel", position="footer")
+            button = buttons.build_menu(2)
             await self._send_list_message(msg, button)
 
     async def list_config(self):
@@ -307,10 +345,10 @@ class RcloneList:
             )
             msg += f"\nTimeout: {get_readable_time(self._timeout - (time() - self._time))}"
             buttons = ButtonMaker()
-            buttons.callback("Owner Config", "rcq owner")
-            buttons.callback("My Config", "rcq user")
-            buttons.callback("Cancel", "rcq cancel")
-            button = buttons.menu(2)
+            buttons.data_button("Owner Config", "rcq owner")
+            buttons.data_button("My Config", "rcq user")
+            buttons.data_button("Cancel", "rcq cancel")
+            button = buttons.build_menu(2)
             await self._send_list_message(msg, button)
         else:
             self.config_path = (
@@ -330,7 +368,6 @@ class RcloneList:
 
     async def get_rclone_path(self, status, config_path=None):
         self.list_status = status
-        future = self._event_handler()
         if config_path is None:
             self._rc_user, self._rc_owner = await gather(
                 aiopath.exists(self.user_rcc_path), aiopath.exists("rclone.conf")
@@ -342,8 +379,8 @@ class RcloneList:
         else:
             self.config_path = config_path
             await self.list_remotes()
-        await wrap_future(future)
+        await self._event_handler()
         await delete_message(self._reply_to)
-        if self.config_path != "rclone.conf" and not self.listener.isCancelled:
+        if self.config_path != "rclone.conf" and not self.listener.is_cancelled:
             return f"mrcc:{self.remote}{self.path}"
         return f"{self.remote}{self.path}"

@@ -1,13 +1,11 @@
-from secrets import token_hex
+from secrets import token_urlsafe
 
 from bot import (
     LOGGER,
     task_dict,
     aria2_options,
     aria2c_global,
-    non_queued_dl,
     task_dict_lock,
-    queue_dict_lock,
 )
 from bot.helper.ext_utils.bot_utils import sync_to_async
 from bot.helper.ext_utils.task_manager import (
@@ -15,7 +13,7 @@ from bot.helper.ext_utils.task_manager import (
     stop_duplicate_check,
 )
 from bot.helper.listeners.direct_listener import DirectListener
-from bot.helper.telegram_helper.message_utils import sendStatusMessage
+from bot.helper.telegram_helper.message_utils import send_status_message
 from bot.helper.mirror_leech_utils.status_utils.queue_status import QueueStatus
 from bot.helper.mirror_leech_utils.status_utils.direct_status import DirectStatus
 
@@ -23,7 +21,7 @@ from bot.helper.mirror_leech_utils.status_utils.direct_status import DirectStatu
 async def add_direct_download(listener, path):
     details = listener.link
     if not (contents := details.get("contents")):
-        await listener.onDownloadError("There is nothing to download!")
+        await listener.on_download_error("There is nothing to download!")
         return
     listener.size = details["total_size"]
 
@@ -33,10 +31,10 @@ async def add_direct_download(listener, path):
 
     msg, button = await stop_duplicate_check(listener)
     if msg:
-        await listener.onDownloadError(msg, button)
+        await listener.on_download_error(msg, button)
         return
 
-    gid = token_hex(4)
+    gid = token_urlsafe(10)
     add_to_queue, event = await check_running_tasks(listener)
     if add_to_queue:
         LOGGER.info(f"Added to Queue/Download: {listener.name}")
@@ -44,12 +42,10 @@ async def add_direct_download(listener, path):
             task_dict[listener.mid] = QueueStatus(listener, gid, "dl")
         await listener.on_download_start()
         if listener.multi <= 1:
-            await sendStatusMessage(listener.message)
+            await send_status_message(listener.message)
         await event.wait()
-        if listener.isCancelled:
+        if listener.is_cancelled:
             return
-        async with queue_dict_lock:
-            non_queued_dl.add(listener.mid)
 
     a2c_opt = {**aria2_options}
     [a2c_opt.pop(k) for k in aria2c_global if k in aria2_options]
@@ -68,6 +64,6 @@ async def add_direct_download(listener, path):
         LOGGER.info(f"Download from Direct Download: {listener.name}")
         await listener.on_download_start()
         if listener.multi <= 1:
-            await sendStatusMessage(listener.message)
+            await send_status_message(listener.message)
 
     await sync_to_async(directListener.download, contents)

@@ -1,8 +1,13 @@
+from os import environ
 from re import findall as re_findall
 
 from anytree import NodeMixin
 
-DOWNLOAD_DIR = "/usr/src/app/downloads/"
+DOWNLOAD_DIR = environ.get("DOWNLOAD_DIR", "")
+if len(DOWNLOAD_DIR) == 0:
+    DOWNLOAD_DIR = "/usr/src/app/downloads/"
+elif not DOWNLOAD_DIR.endswith("/"):
+    DOWNLOAD_DIR += "/"
 
 
 class TorNode(NodeMixin):
@@ -45,7 +50,7 @@ def get_folders(path):
 
 def make_tree(res, tool=False):
     if tool == "qbit":
-        parent = TorNode("Torrent")
+        parent = TorNode("QBITTORRENT")
         for i in res:
             folders = qb_get_folders(i.name)
             if len(folders) > 1:
@@ -81,7 +86,7 @@ def make_tree(res, tool=False):
                     progress=round(i.progress * 100, 5),
                 )
     elif tool == "aria":
-        parent = TorNode("Torrent")
+        parent = TorNode("ARIA2")
         for i in res:
             folders = get_folders(i["path"])
             priority = 1
@@ -142,6 +147,14 @@ def make_tree(res, tool=False):
             )
 
     return create_list(parent, ["", 0])
+
+
+"""
+def print_tree(parent):
+    for pre, _, node in RenderTree(parent):
+        treestr = u"%s%s" % (pre, node.name)
+        print(treestr.ljust(8), node.is_folder, node.is_file)
+"""
 
 
 def create_list(par, msg):

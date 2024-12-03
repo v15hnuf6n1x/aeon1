@@ -8,7 +8,6 @@ class QueueStatus:
         self._size = self.listener.size
         self._gid = gid
         self._status = status
-        self.message = listener.message
 
     def gid(self):
         return self._gid
@@ -40,13 +39,13 @@ class QueueStatus:
         return self
 
     async def cancel_task(self):
-        self.listener.isCancelled = True
+        self.listener.is_cancelled = True
         LOGGER.info(f"Cancelling Queue{self._status}: {self.listener.name}")
         if self._status == "dl":
-            await self.listener.onDownloadError(
+            await self.listener.on_download_error(
                 "task have been removed from queue/download"
             )
         else:
-            await self.listener.onUploadError(
+            await self.listener.on_upload_error(
                 "task have been removed from queue/upload"
             )

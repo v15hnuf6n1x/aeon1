@@ -7,7 +7,6 @@ class RcloneStatus:
         self._gid = gid
         self._status = status
         self.listener = listener
-        self.message = listener.message
 
     def gid(self):
         return self._gid
@@ -29,10 +28,10 @@ class RcloneStatus:
 
     def status(self):
         if self._status == "dl":
-            return MirrorStatus.STATUS_DOWNLOADING_RC
+            return MirrorStatus.STATUS_DOWNLOADING
         if self._status == "up":
-            return MirrorStatus.STATUS_UPLOADING_RC
-        return MirrorStatus.STATUS_CLONING_RC
+            return MirrorStatus.STATUS_UPLOADING
+        return MirrorStatus.STATUS_CLONING
 
     def processed_bytes(self):
         return self._obj.transferred_size

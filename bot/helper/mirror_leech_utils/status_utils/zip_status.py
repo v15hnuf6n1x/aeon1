@@ -16,7 +16,6 @@ class ZipStatus:
         self._gid = gid
         self._start_time = time()
         self._proccessed_bytes = 0
-        self.message = listener.message
 
     def gid(self):
         return self._gid
@@ -28,7 +27,7 @@ class ZipStatus:
         await self.processed_raw()
         try:
             return self._proccessed_bytes / self._size * 100
-        except Exception:
+        except:
             return 0
 
     async def progress(self):
@@ -47,15 +46,15 @@ class ZipStatus:
         try:
             seconds = (self._size - self._proccessed_bytes) / self.speed_raw()
             return get_readable_time(seconds)
-        except Exception:
+        except:
             return "-"
 
     def status(self):
         return MirrorStatus.STATUS_ARCHIVING
 
     async def processed_raw(self):
-        if self.listener.newDir:
-            self._proccessed_bytes = await get_path_size(self.listener.newDir)
+        if self.listener.new_dir:
+            self._proccessed_bytes = await get_path_size(self.listener.new_dir)
         else:
             self._proccessed_bytes = (
                 await get_path_size(self.listener.dir) - self._size
@@ -69,11 +68,11 @@ class ZipStatus:
 
     async def cancel_task(self):
         LOGGER.info(f"Cancelling Archive: {self.listener.name}")
-        self.listener.isCancelled = True
+        self.listener.is_cancelled = True
         async with subprocess_lock:
             if (
                 self.listener.suproc is not None
                 and self.listener.suproc.returncode is None
             ):
                 self.listener.suproc.kill()
-        await self.listener.onUploadError("archiving stopped by user!")
+        await self.listener.on_upload_error("archiving stopped by user!")

@@ -10,7 +10,6 @@ class DirectStatus:
         self._gid = gid
         self._obj = obj
         self.listener = listener
-        self.message = listener.message
 
     def gid(self):
         return self._gid
@@ -18,7 +17,7 @@ class DirectStatus:
     def progress_raw(self):
         try:
             return self._obj.processed_bytes / self.listener.size * 100
-        except Exception:
+        except:
             return 0
 
     def progress(self):
@@ -39,13 +38,13 @@ class DirectStatus:
                 self.listener.size - self._obj.processed_bytes
             ) / self._obj.speed
             return get_readable_time(seconds)
-        except Exception:
+        except:
             return "-"
 
     def status(self):
         if self._obj.download_task and self._obj.download_task.is_waiting:
             return MirrorStatus.STATUS_QUEUEDL
-        return MirrorStatus.STATUS_DOWNLOADING_A
+        return MirrorStatus.STATUS_DOWNLOADING
 
     def processed_bytes(self):
         return get_readable_file_size(self._obj.processed_bytes)

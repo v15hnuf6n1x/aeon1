@@ -1,39 +1,42 @@
-from bot import config_dict
-
-i = config_dict["CMD_SUFFIX"]
+from bot import CMD_SUFFIX
 
 
 class _BotCommands:
     def __init__(self):
-        self.StartCommand: str = "start"
-        self.MirrorCommand: list[str] = [f"mirror{i}", f"m{i}"]
-        self.YtdlCommand: list[str] = [f"ytdl{i}", f"y{i}"]
-        self.LeechCommand: list[str] = [f"leech{i}", f"l{i}"]
-        self.YtdlLeechCommand: list[str] = [f"ytdlleech{i}", f"yl{i}"]
-        self.CloneCommand: list[str] = [f"clone{i}", f"c{i}"]
-        self.CountCommand: str = f"count{i}"
-        self.DeleteCommand: str = f"del{i}"
-        self.CancelAllCommand: str = f"stopall{i}"
-        self.ListCommand: str = f"list{i}"
-        self.SearchCommand: str = f"search{i}"
-        self.StatusCommand: list[str] = [f"status{i}", "statusall"]
-        self.UsersCommand: str = f"users{i}"
-        self.AuthorizeCommand: str = f"authorize{i}"
-        self.UnAuthorizeCommand: str = f"unauthorize{i}"
-        self.AddSudoCommand: str = f"addsudo{i}"
-        self.RmSudoCommand: str = f"rmsudo{i}"
-        self.PingCommand: str = f"ping{i}"
-        self.RestartCommand: list[str] = [f"restart{i}", "restartall"]
-        self.StatsCommand: list[str] = [f"stats{i}", "statsall"]
-        self.HelpCommand: str = f"help{i}"
-        self.LogCommand: str = f"log{i}"
-        self.ShellCommand: str = f"shell{i}"
-        self.AExecCommand: str = f"aexec{i}"
-        self.ExecCommand: str = f"exec{i}"
-        self.BotSetCommand: str = f"botsettings{i}"
-        self.UserSetCommand: str = f"settings{i}"
-        self.MediaInfoCommand: str = f"mediainfo{i}"
-        self.BroadcastCommand: list[str] = [f"broadcast{i}", "broadcastall"]
+        self.StartCommand = f"start{CMD_SUFFIX}"
+        self.MirrorCommand = [f"mirror{CMD_SUFFIX}", f"m{CMD_SUFFIX}"]
+        self.QbMirrorCommand = [f"qbmirror{CMD_SUFFIX}", f"qm{CMD_SUFFIX}"]
+        self.YtdlCommand = [f"ytdl{CMD_SUFFIX}", f"y{CMD_SUFFIX}"]
+        self.LeechCommand = [f"leech{CMD_SUFFIX}", f"l{CMD_SUFFIX}"]
+        self.QbLeechCommand = [f"qbleech{CMD_SUFFIX}", f"ql{CMD_SUFFIX}"]
+        self.YtdlLeechCommand = [f"ytdlleech{CMD_SUFFIX}", f"yl{CMD_SUFFIX}"]
+        self.CloneCommand = f"clone{CMD_SUFFIX}"
+        self.CountCommand = f"count{CMD_SUFFIX}"
+        self.DeleteCommand = f"del{CMD_SUFFIX}"
+        self.CancelTaskCommand = [f"cancel{CMD_SUFFIX}", f"c{CMD_SUFFIX}"]
+        self.CancelAllCommand = f"cancelall{CMD_SUFFIX}"
+        self.ForceStartCommand = [f"forcestart{CMD_SUFFIX}", f"fs{CMD_SUFFIX}"]
+        self.ListCommand = f"list{CMD_SUFFIX}"
+        self.SearchCommand = f"search{CMD_SUFFIX}"
+        self.StatusCommand = f"status{CMD_SUFFIX}"
+        self.UsersCommand = f"users{CMD_SUFFIX}"
+        self.AuthorizeCommand = f"authorize{CMD_SUFFIX}"
+        self.UnAuthorizeCommand = f"unauthorize{CMD_SUFFIX}"
+        self.AddSudoCommand = f"addsudo{CMD_SUFFIX}"
+        self.RmSudoCommand = f"rmsudo{CMD_SUFFIX}"
+        self.PingCommand = f"ping{CMD_SUFFIX}"
+        self.RestartCommand = f"restart{CMD_SUFFIX}"
+        self.StatsCommand = f"stats{CMD_SUFFIX}"
+        self.HelpCommand = f"help{CMD_SUFFIX}"
+        self.LogCommand = f"log{CMD_SUFFIX}"
+        self.ShellCommand = f"shell{CMD_SUFFIX}"
+        self.AExecCommand = f"aexec{CMD_SUFFIX}"
+        self.ExecCommand = f"exec{CMD_SUFFIX}"
+        self.ClearLocalsCommand = f"clearlocals{CMD_SUFFIX}"
+        self.BotSetCommand = [f"bsetting{CMD_SUFFIX}", f"bs{CMD_SUFFIX}"]
+        self.UserSetCommand = [f"usetting{CMD_SUFFIX}", f"us{CMD_SUFFIX}"]
+        self.SelectCommand = f"sel{CMD_SUFFIX}"
+        self.RssCommand = f"rss{CMD_SUFFIX}"
 
 
 BotCommands = _BotCommands()

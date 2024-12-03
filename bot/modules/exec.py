@@ -1,66 +1,60 @@
 from io import BytesIO, StringIO
-from os import path, chdir, getcwd
-from re import match
+from os import path as ospath
+from os import chdir, getcwd
 from textwrap import indent
 from traceback import format_exc
 from contextlib import suppress, redirect_stdout
 
 from aiofiles import open as aiopen
 from pyrogram.filters import command
-from pyrogram.handlers import MessageHandler, EditedMessageHandler
+from pyrogram.handlers import MessageHandler
 
-from bot import LOGGER, bot, user
-from bot.helper.ext_utils.bot_utils import new_task
+from bot import LOGGER, bot
+from bot.helper.ext_utils.bot_utils import new_task, sync_to_async
 from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.bot_commands import BotCommands
-from bot.helper.telegram_helper.message_utils import sendFile, send_message
+from bot.helper.telegram_helper.message_utils import send_file, send_message
+
+namespaces = {}
 
 
-def create_execution_environment(message):
-    return {
-        "__builtins__": globals()["__builtins__"],
-        "bot": bot,
-        "message": message,
-        "user": user,
-    }
+def namespace_of(message):
+    if message.chat.id not in namespaces:
+        namespaces[message.chat.id] = {
+            "__builtins__": globals()["__builtins__"],
+            "bot": bot,
+            "message": message,
+            "user": message.from_user or message.sender_chat,
+            "chat": message.chat,
+        }
+
+    return namespaces[message.chat.id]
 
 
 def log_input(message):
     LOGGER.info(
-        f"INPUT: {message.text} (User ID={message.from_user.id} | Chat ID={message.chat.id})"
+        f"IN: {message.text} (user={message.from_user.id if message.from_user else message.sender_chat.id}, chat={message.chat.id})"
     )
 
 
-async def send_response(msg, message):
+async def send(msg, message):
     if len(str(msg)) > 2000:
         with BytesIO(str.encode(msg)) as out_file:
             out_file.name = "output.txt"
-            await sendFile(message, out_file)
+            await send_file(message, out_file)
     else:
-        LOGGER.info(f"OUTPUT: '{msg}'")
-        if not msg or msg == "\n":
-            msg = "MessageEmpty"
-        elif not bool(match(r"<(spoiler|b|i|code|s|u)>", msg)):
-            msg = f"<pre>{msg}</pre>"
-        await send_message(message, msg)
+        LOGGER.info(f"OUT: '{msg}'")
+        await send_message(message, f"<code>{msg}</code>")
 
 
 @new_task
-async def evaluate(client, message):
-    content = message.text.split(maxsplit=1)
-    if len(content) == 1:
-        await send_response("No command to execute.", message)
-    else:
-        await send_response(await execute_code(eval, message), message)
+async def aioexecute(_, message):
+    await send(await do("aexec", message), message)
 
 
 @new_task
-async def execute(client, message):
-    content = message.text.split(maxsplit=1)
-    if len(content) == 1:
-        await send_response("No command to execute.", message)
-    else:
-        await send_response(await execute_code(exec, message), message)
+async def execute(_, message):
+    await send(await do("exec", message), message)
 
 
 def cleanup_code(code):
@@ -69,58 +63,78 @@ def cleanup_code(code):
     return code.strip("` \n")
 
 
-async def execute_code(func, message):
+async def do(func, message):
     log_input(message)
     content = message.text.split(maxsplit=1)[-1]
-    code = cleanup_code(content)
-    env = create_execution_environment(message)
+    body = cleanup_code(content)
+    env = namespace_of(message)
 
     chdir(getcwd())
-    async with aiopen(path.join(getcwd(), "bot/modules/temp.txt"), "w") as temp_file:
-        await temp_file.write(code)
+    async with aiopen(ospath.join(getcwd(), "bot/modules/temp.txt"), "w") as temp:
+        await temp.write(body)
 
     stdout = StringIO()
-    to_compile = f'async def func():\n{indent(code, "  ")}'
 
     try:
-        exec(to_compile, env)
+        if func == "exec":
+            exec(f"def func():\n{indent(body, '  ')}", env)
+        else:
+            exec(f"async def func():\n{indent(body, '  ')}", env)
     except Exception as e:
         return f"{e.__class__.__name__}: {e}"
 
-    func = env["func"]
+    rfunc = env["func"]
 
     try:
         with redirect_stdout(stdout):
-            func_return = await func()
-    except Exception:
-        return f"{stdout.getvalue()}{format_exc()}"
+            func_return = (
+                await sync_to_async(rfunc) if func == "exec" else await rfunc()
+            )
+    except:
+        value = stdout.getvalue()
+        return f"{value}{format_exc()}"
     else:
-        result = stdout.getvalue()
-        if func_return is not None:
-            result += str(func_return)
-        elif not result:
-            with suppress(Exception):
-                result = repr(eval(code, env))
-        return result
+        value = stdout.getvalue()
+        result = None
+        if func_return is None:
+            if value:
+                result = f"{value}"
+            else:
+                with suppress(Exception):
+                    result = f"{await sync_to_async(eval, body, env)!r}"
+        else:
+            result = f"{value}{func_return}"
+        if result:
+            return result
+
+
+@new_task
+async def clear(_, message):
+    log_input(message)
+    global namespaces
+    if message.chat.id in namespaces:
+        del namespaces[message.chat.id]
+    await send("Locals Cleared.", message)
 
 
 bot.add_handler(
     MessageHandler(
-        evaluate, filters=command(BotCommands.AExecCommand) & CustomFilters.owner
+        aioexecute,
+        filters=command(BotCommands.AExecCommand, )
+        & CustomFilters.owner,
     )
 )
 bot.add_handler(
     MessageHandler(
-        execute, filters=command(BotCommands.ExecCommand) & CustomFilters.owner
+        execute,
+        filters=command(BotCommands.ExecCommand, )
+        & CustomFilters.owner,
     )
 )
 bot.add_handler(
-    EditedMessageHandler(
-        evaluate, filters=command(BotCommands.AExecCommand) & CustomFilters.owner
-    )
-)
-bot.add_handler(
-    EditedMessageHandler(
-        execute, filters=command(BotCommands.ExecCommand) & CustomFilters.owner
+    MessageHandler(
+        clear,
+        filters=command(BotCommands.ClearLocalsCommand, )
+        & CustomFilters.owner,
     )
 )

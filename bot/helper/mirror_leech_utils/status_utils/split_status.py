@@ -7,7 +7,6 @@ class SplitStatus:
         self.listener = listener
         self._gid = gid
         self._size = self.listener.size
-        self.message = listener.message
 
     def gid(self):
         return self._gid
@@ -26,11 +25,11 @@ class SplitStatus:
 
     async def cancel_task(self):
         LOGGER.info(f"Cancelling Split: {self.listener.name}")
-        self.listener.isCancelled = True
+        self.listener.is_cancelled = True
         async with subprocess_lock:
             if (
                 self.listener.suproc is not None
                 and self.listener.suproc.returncode is None
             ):
                 self.listener.suproc.kill()
-        await self.listener.onUploadError("splitting stopped by user!")
+        await self.listener.on_upload_error("splitting stopped by user!")

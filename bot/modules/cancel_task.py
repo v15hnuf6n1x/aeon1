@@ -6,7 +6,11 @@ from pyrogram.handlers import MessageHandler, CallbackQueryHandler
 from bot import OWNER_ID, bot, task_dict, user_data, multi_tags, task_dict_lock
 from bot.helper.telegram_helper import button_build
 from bot.helper.ext_utils.bot_utils import new_task
-from bot.helper.ext_utils.status_utils import MirrorStatus, getAllTasks, getTaskByGid
+from bot.helper.ext_utils.status_utils import (
+    MirrorStatus,
+    get_all_tasks,
+    get_task_by_gid,
+)
 from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.message_utils import (
@@ -17,35 +21,42 @@ from bot.helper.telegram_helper.message_utils import (
 )
 
 
+@new_task
 async def cancel_task(_, message):
     user_id = message.from_user.id if message.from_user else message.sender_chat.id
-    msg = message.text.split("_", maxsplit=1)
-    await delete_message(message)
+    msg = message.text.split()
     if len(msg) > 1:
-        gid = msg[1].split("@", maxsplit=1)
-        gid = gid[0]
+        gid = msg[1]
         if len(gid) == 4:
             multi_tags.discard(gid)
             return
-        task = await getTaskByGid(gid)
+        task = await get_task_by_gid(gid)
         if task is None:
-            await delete_message(message)
+            await send_message(message, f"GID: <code>{gid}</code> Not Found.")
             return
     elif reply_to_id := message.reply_to_message_id:
         async with task_dict_lock:
             task = task_dict.get(reply_to_id)
         if task is None:
+            await send_message(message, "This is not an active task!")
             return
     elif len(msg) == 1:
+        msg = (
+            "Reply to an active Command message which was used to start the download"
+            f" or send <code>/{BotCommands.CancelTaskCommand[0]} GID</code> to cancel it!"
+        )
+        await send_message(message, msg)
         return
-    if user_id not in (OWNER_ID, task.listener.userId) and (
+    if user_id not in (OWNER_ID, task.listener.user_id) and (
         user_id not in user_data or not user_data[user_id].get("is_sudo")
     ):
+        await send_message(message, "This task is not for you!")
         return
     obj = task.task()
     await obj.cancel_task()
 
 
+@new_task
 async def cancel_multi(_, query):
     data = query.data.split()
     user_id = query.from_user.id
@@ -62,8 +73,8 @@ async def cancel_multi(_, query):
     await delete_message(query.message)
 
 
-async def cancel_all(status, userId):
-    matches = await getAllTasks(status.strip(), userId)
+async def cancel_all(status, user_id):
+    matches = await get_all_tasks(status.strip(), user_id)
     if not matches:
         return False
     for task in matches:
@@ -73,52 +84,66 @@ async def cancel_all(status, userId):
     return True
 
 
-def create_cancel_buttons(isSudo, userId=""):
+def create_cancel_buttons(is_sudo, user_id=""):
     buttons = button_build.ButtonMaker()
-    buttons.callback(
-        "Downloading", f"canall ms {MirrorStatus.STATUS_DOWNLOADING} {userId}"
+    buttons.data_button(
+        "Downloading", f"canall ms {MirrorStatus.STATUS_DOWNLOADING} {user_id}"
     )
-    buttons.callback(
-        "Uploading", f"canall ms {MirrorStatus.STATUS_UPLOADING} {userId}"
+    buttons.data_button(
+        "Uploading", f"canall ms {MirrorStatus.STATUS_UPLOADING} {user_id}"
     )
-    buttons.callback("Seeding", f"canall ms {MirrorStatus.STATUS_SEEDING} {userId}")
-    buttons.callback(
-        "Spltting", f"canall ms {MirrorStatus.STATUS_SPLITTING} {userId}"
+    buttons.data_button(
+        "Seeding", f"canall ms {MirrorStatus.STATUS_SEEDING} {user_id}"
     )
-    buttons.callback("Cloning", f"canall ms {MirrorStatus.STATUS_CLONING} {userId}")
-    buttons.callback(
-        "Extracting", f"canall ms {MirrorStatus.STATUS_EXTRACTING} {userId}"
+    buttons.data_button(
+        "Spltting", f"canall ms {MirrorStatus.STATUS_SPLITTING} {user_id}"
     )
-    buttons.callback(
-        "Archiving", f"canall ms {MirrorStatus.STATUS_ARCHIVING} {userId}"
+    buttons.data_button(
+        "Cloning", f"canall ms {MirrorStatus.STATUS_CLONING} {user_id}"
     )
-    buttons.callback("QueuedDl", f"canall ms {MirrorStatus.STATUS_QUEUEDL} {userId}")
-    buttons.callback("QueuedUp", f"canall ms {MirrorStatus.STATUS_QUEUEUP} {userId}")
-    buttons.callback(
-        "SampleVideo", f"canall ms {MirrorStatus.STATUS_SAMVID} {userId}"
+    buttons.data_button(
+        "Extracting", f"canall ms {MirrorStatus.STATUS_EXTRACTING} {user_id}"
     )
-    buttons.callback(
-        "ConvertMedia", f"canall ms {MirrorStatus.STATUS_CONVERTING} {userId}"
+    buttons.data_button(
+        "Archiving", f"canall ms {MirrorStatus.STATUS_ARCHIVING} {user_id}"
     )
-    buttons.callback("Paused", f"canall ms {MirrorStatus.STATUS_PAUSED} {userId}")
-    buttons.callback("All", f"canall ms All {userId}")
-    if isSudo:
-        if userId:
-            buttons.callback("All Added Tasks", f"canall bot ms {userId}")
+    buttons.data_button(
+        "QueuedDl", f"canall ms {MirrorStatus.STATUS_QUEUEDL} {user_id}"
+    )
+    buttons.data_button(
+        "QueuedUp", f"canall ms {MirrorStatus.STATUS_QUEUEUP} {user_id}"
+    )
+    buttons.data_button(
+        "SampleVideo", f"canall ms {MirrorStatus.STATUS_SAMVID} {user_id}"
+    )
+    buttons.data_button(
+        "ConvertMedia", f"canall ms {MirrorStatus.STATUS_CONVERTING} {user_id}"
+    )
+    buttons.data_button(
+        "FFmpeg", f"canall ms {MirrorStatus.STATUS_FFMPEG} {user_id}"
+    )
+    buttons.data_button(
+        "Paused", f"canall ms {MirrorStatus.STATUS_PAUSED} {user_id}"
+    )
+    buttons.data_button("All", f"canall ms All {user_id}")
+    if is_sudo:
+        if user_id:
+            buttons.data_button("All Added Tasks", f"canall bot ms {user_id}")
         else:
-            buttons.callback("My Tasks", f"canall user ms {userId}")
-    buttons.callback("Close", f"canall close ms {userId}")
-    return buttons.menu(2)
+            buttons.data_button("My Tasks", f"canall user ms {user_id}")
+    buttons.data_button("Close", f"canall close ms {user_id}")
+    return buttons.build_menu(2)
 
 
+@new_task
 async def cancell_all_buttons(_, message):
     async with task_dict_lock:
         count = len(task_dict)
     if count == 0:
         await send_message(message, "No active tasks!")
         return
-    isSudo = await CustomFilters.sudo("", message)
-    button = create_cancel_buttons(isSudo, message.from_user.id)
+    is_sudo = await CustomFilters.sudo("", message)
+    button = create_cancel_buttons(is_sudo, message.from_user.id)
     can_msg = await send_message(message, "Choose tasks to cancel!", button)
     await auto_delete_message(message, can_msg)
 
@@ -128,9 +153,9 @@ async def cancel_all_update(_, query):
     data = query.data.split()
     message = query.message
     reply_to = message.reply_to_message
-    userId = int(data[3]) if len(data) > 3 else ""
-    isSudo = await CustomFilters.sudo("", query)
-    if not isSudo and userId and userId != query.from_user.id:
+    user_id = int(data[3]) if len(data) > 3 else ""
+    is_sudo = await CustomFilters.sudo("", query)
+    if not is_sudo and user_id and user_id != query.from_user.id:
         await query.answer("Not Yours!", show_alert=True)
     else:
         await query.answer()
@@ -138,27 +163,27 @@ async def cancel_all_update(_, query):
         await delete_message(reply_to)
         await delete_message(message)
     elif data[1] == "back":
-        button = create_cancel_buttons(isSudo, userId)
+        button = create_cancel_buttons(is_sudo, user_id)
         await edit_message(message, "Choose tasks to cancel!", button)
     elif data[1] == "bot":
-        button = create_cancel_buttons(isSudo, "")
+        button = create_cancel_buttons(is_sudo, "")
         await edit_message(message, "Choose tasks to cancel!", button)
     elif data[1] == "user":
-        button = create_cancel_buttons(isSudo, query.from_user.id)
+        button = create_cancel_buttons(is_sudo, query.from_user.id)
         await edit_message(message, "Choose tasks to cancel!", button)
     elif data[1] == "ms":
         buttons = button_build.ButtonMaker()
-        buttons.callback("Yes!", f"canall {data[2]} confirm {userId}")
-        buttons.callback("Back", f"canall back confirm {userId}")
-        buttons.callback("Close", f"canall close confirm {userId}")
-        button = buttons.menu(2)
+        buttons.data_button("Yes!", f"canall {data[2]} confirm {user_id}")
+        buttons.data_button("Back", f"canall back confirm {user_id}")
+        buttons.data_button("Close", f"canall close confirm {user_id}")
+        button = buttons.build_menu(2)
         await edit_message(
             message, f"Are you sure you want to cancel all {data[2]} tasks", button
         )
     else:
-        button = create_cancel_buttons(isSudo, userId)
+        button = create_cancel_buttons(is_sudo, user_id)
         await edit_message(message, "Choose tasks to cancel.", button)
-        res = await cancel_all(data[1], userId)
+        res = await cancel_all(data[1], user_id)
         if not res:
             await send_message(reply_to, f"No matching tasks for {data[1]}!")
 
@@ -166,13 +191,15 @@ async def cancel_all_update(_, query):
 bot.add_handler(
     MessageHandler(
         cancel_task,
-        filters=regex(r"^/stop(_\w+)?(?!all)") & CustomFilters.authorized,
+        filters=command(BotCommands.CancelTaskCommand, )
+        & CustomFilters.authorized,
     )
 )
 bot.add_handler(
     MessageHandler(
         cancell_all_buttons,
-        filters=command(BotCommands.CancelAllCommand) & CustomFilters.authorized,
+        filters=command(BotCommands.CancelAllCommand, )
+        & CustomFilters.authorized,
     )
 )
 bot.add_handler(CallbackQueryHandler(cancel_all_update, filters=regex("^canall")))

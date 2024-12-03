@@ -50,13 +50,13 @@ class GoogleDriveHelper:
         self.total_time = 0
         self.status = None
         self.update_interval = 3
-        self.use_sa = config_dict["USE_SA"]
+        self.use_sa = config_dict["USE_SERVICE_ACCOUNTS"]
 
     @property
     def speed(self):
         try:
             return self.proc_bytes / self.total_time
-        except Exception:
+        except:
             return 0
 
     @property
@@ -97,7 +97,7 @@ class GoogleDriveHelper:
         authorized_http.http.disable_ssl_certificate_validation = True
         return build("drive", "v3", http=authorized_http, cache_discovery=False)
 
-    def switchServiceAccount(self):
+    def switch_service_account(self):
         if self.sa_index == self.sa_number - 1:
             self.sa_index = 0
         else:
@@ -106,7 +106,7 @@ class GoogleDriveHelper:
         LOGGER.info(f"Switching to {self.sa_index} index")
         self.service = self.authorize()
 
-    def getIdFromUrl(self, link, user_id=""):
+    def get_id_from_url(self, link, user_id=""):
         if user_id and link.startswith("mtp:"):
             self.use_sa = False
             self.token_path = f"tokens/{user_id}.pickle"
@@ -151,7 +151,7 @@ class GoogleDriveHelper:
         stop=stop_after_attempt(3),
         retry=retry_if_exception_type(Exception),
     )
-    def getFileMetadata(self, file_id):
+    def get_file_metadata(self, file_id):
         return (
             self.service.files()
             .get(
@@ -167,7 +167,7 @@ class GoogleDriveHelper:
         stop=stop_after_attempt(3),
         retry=retry_if_exception_type(Exception),
     )
-    def getFilesByFolderId(self, folder_id, item_type=""):
+    def get_files_by_folder_id(self, folder_id, item_type=""):
         page_token = None
         files = []
         if not item_type:
@@ -205,7 +205,7 @@ class GoogleDriveHelper:
     def create_directory(self, directory_name, dest_id):
         file_metadata = {
             "name": directory_name,
-            "description": "Uploaded by @ProjectAeon",
+            "description": "Uploaded by Mirror-leech-telegram-bot",
             "mimeType": self.G_DRIVE_DIR_MIME_TYPE,
         }
         if dest_id is not None:
@@ -250,17 +250,17 @@ class GoogleDriveHelper:
     """
 
     async def cancel_task(self):
-        self.listener.isCancelled = True
+        self.listener.is_cancelled = True
         if self.is_downloading:
             LOGGER.info(f"Cancelling Download: {self.listener.name}")
-            await self.listener.onDownloadError("Download stopped by user!")
+            await self.listener.on_download_error("Download stopped by user!")
         elif self.is_cloning:
             LOGGER.info(f"Cancelling Clone: {self.listener.name}")
-            await self.listener.onUploadError(
+            await self.listener.on_upload_error(
                 "your clone has been stopped and cloned data has been deleted!"
             )
         elif self.is_uploading:
             LOGGER.info(f"Cancelling Upload: {self.listener.name}")
-            await self.listener.onUploadError(
+            await self.listener.on_upload_error(
                 "your upload has been stopped and uploaded data has been deleted!"
             )

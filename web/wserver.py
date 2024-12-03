@@ -1,5 +1,5 @@
 from time import sleep
-from asyncio import get_event_loop
+from asyncio import new_event_loop, set_event_loop, get_running_loop
 from logging import INFO, FileHandler, StreamHandler, getLogger, basicConfig
 
 from flask import Flask, request
@@ -12,7 +12,11 @@ from web.nodes import make_tree
 
 app = Flask(__name__)
 
-web_loop = get_event_loop()
+try:
+    web_loop = get_running_loop()
+except RuntimeError:
+    web_loop = new_event_loop()
+    set_event_loop(web_loop)
 
 xnox_client = qbClient(
     host="localhost",
@@ -158,7 +162,7 @@ span{
 
 span.active{
     transform: rotate(90deg);
-    -ms-transform: rotate(90deg); /* for IE  */
+    -ms-transform: rotate(90deg);	 /* for IE  */
     -webkit-transform: rotate(90deg);/* for browsers supporting webkit (such as chrome, firefox, safari etc.). */
     display: inline-block;
 }

@@ -11,30 +11,30 @@ from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.button_build import ButtonMaker
 from bot.helper.telegram_helper.message_utils import edit_message, send_message
-from bot.helper.mirror_leech_utils.gdrive_utils.search import gdSearch
+from bot.helper.mirror_leech_utils.gdrive_utils.search import GoogleDriveSearch
 
 
 async def list_buttons(user_id, is_recursive=True, user_token=False):
     buttons = ButtonMaker()
-    buttons.callback(
+    buttons.data_button(
         "Folders", f"list_types {user_id} folders {is_recursive} {user_token}"
     )
-    buttons.callback(
+    buttons.data_button(
         "Files", f"list_types {user_id} files {is_recursive} {user_token}"
     )
-    buttons.callback(
+    buttons.data_button(
         "Both", f"list_types {user_id} both {is_recursive} {user_token}"
     )
-    buttons.callback(
+    buttons.data_button(
         f"Recursive: {is_recursive}",
         f"list_types {user_id} rec {is_recursive} {user_token}",
     )
-    buttons.callback(
+    buttons.data_button(
         f"User Token: {user_token}",
         f"list_types {user_id} ut {is_recursive} {user_token}",
     )
-    buttons.callback("Cancel", f"list_types {user_id} cancel")
-    return buttons.menu(2)
+    buttons.data_button("Cancel", f"list_types {user_id} cancel")
+    return buttons.build_menu(2)
 
 
 async def _list_drive(key, message, item_type, is_recursive, user_token, user_id):
@@ -46,7 +46,7 @@ async def _list_drive(key, message, item_type, is_recursive, user_token, user_id
     else:
         target_id = ""
     telegraph_content, contents_no = await sync_to_async(
-        gdSearch(is_recursive=is_recursive, itemType=item_type).drive_list,
+        GoogleDriveSearch(is_recursive=is_recursive, item_type=item_type).drive_list,
         key,
         target_id,
         user_id,
@@ -93,6 +93,7 @@ async def select_type(_, query):
     return None
 
 
+@new_task
 async def gdrive_search(_, message):
     if len(message.text.split()) == 1:
         return await send_message(message, "Send a search key along with command")
@@ -105,7 +106,8 @@ async def gdrive_search(_, message):
 bot.add_handler(
     MessageHandler(
         gdrive_search,
-        filters=command(BotCommands.ListCommand) & CustomFilters.authorized,
+        filters=command(BotCommands.ListCommand, )
+        & CustomFilters.authorized,
     )
 )
 bot.add_handler(CallbackQueryHandler(select_type, filters=regex("^list_types")))

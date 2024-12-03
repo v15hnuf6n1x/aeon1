@@ -1,6 +1,6 @@
 from asyncio import sleep, gather
 
-from bot import LOGGER, QbTorrents, xnox_client, qb_listener_lock
+from bot import LOGGER, qb_torrents, qb_listener_lock, xnox_client
 from bot.helper.ext_utils.bot_utils import sync_to_async
 from bot.helper.ext_utils.status_utils import (
     MirrorStatus,
@@ -24,7 +24,6 @@ class QbittorrentStatus:
         self.seeding = seeding
         self.listener = listener
         self._info = None
-        self.message = listener.message
 
     def update(self):
         self._info = get_download(f"{self.listener.mid}", self._info)
@@ -62,7 +61,7 @@ class QbittorrentStatus:
             return MirrorStatus.STATUS_CHECKING
         if state in ["stalledUP", "uploading"] and self.seeding:
             return MirrorStatus.STATUS_SEEDING
-        return MirrorStatus.STATUS_DOWNLOADING_Q
+        return MirrorStatus.STATUS_DOWNLOADING
 
     def seeders_num(self):
         return self._info.num_seeds
@@ -92,7 +91,7 @@ class QbittorrentStatus:
         return self._info.hash
 
     async def cancel_task(self):
-        self.listener.isCancelled = True
+        self.listener.is_cancelled = True
         await sync_to_async(self.update)
         await sync_to_async(
             xnox_client.torrents_pause, torrent_hashes=self._info.hash
@@ -106,7 +105,7 @@ class QbittorrentStatus:
                 msg = "Download stopped by user!"
             await sleep(0.3)
             await gather(
-                self.listener.onDownloadError(msg),
+                self.listener.on_download_error(msg),
                 sync_to_async(
                     xnox_client.torrents_delete,
                     torrent_hashes=self._info.hash,
@@ -117,5 +116,5 @@ class QbittorrentStatus:
                 ),
             )
             async with qb_listener_lock:
-                if self._info.tags in QbTorrents:
-                    del QbTorrents[self._info.tags]
+                if self._info.tags in qb_torrents:
+                    del qb_torrents[self._info.tags]

@@ -1,5 +1,5 @@
 from time import time
-from asyncio import Event, gather, wait_for, wrap_future
+from asyncio import Event, gather, wait_for
 from logging import getLogger
 from functools import partial
 
@@ -10,8 +10,8 @@ from pyrogram.filters import user, regex
 from pyrogram.handlers import CallbackQueryHandler
 
 from bot import config_dict
-from bot.helper.ext_utils.bot_utils import new_task, new_thread, update_user_ldata
-from bot.helper.ext_utils.db_handler import Database
+from bot.helper.ext_utils.bot_utils import new_task, update_user_ldata
+from bot.helper.ext_utils.db_handler import database
 from bot.helper.ext_utils.status_utils import (
     get_readable_time,
     get_readable_file_size,
@@ -36,7 +36,7 @@ async def id_updates(_, query, obj):
     data = query.data.split()
     if data[1] == "cancel":
         obj.id = "Task has been cancelled!"
-        obj.listener.isCancelled = True
+        obj.listener.is_cancelled = True
         obj.event.set()
         await delete_message(message)
         return
@@ -72,6 +72,7 @@ async def id_updates(_, query, obj):
             obj.event.set()
     elif data[1] == "ps":
         if obj.page_step == int(data[2]):
+            obj.query_proc = False
             return
         obj.page_step = int(data[2])
         await obj.get_items_buttons()
@@ -90,10 +91,11 @@ async def id_updates(_, query, obj):
             id_ = f"sa:{obj.id}" if obj.use_sa else f"tp:{obj.id}"
         else:
             id_ = f"mtp:{obj.id}"
-        if id_ != obj.listener.userDict.get("gdrive_id"):
-            update_user_ldata(obj.listener.userId, "gdrive_id", id_)
+        if id_ != obj.listener.user_dict.get("gdrive_id"):
+            update_user_ldata(obj.listener.user_id, "gdrive_id", id_)
             await obj.get_items_buttons()
-            await Database().update_user_data(obj.listener.userId)
+            if config_dict["DATABASE_URL"]:
+                await database.update_user_data(obj.listener.user_id)
     elif data[1] == "owner":
         obj.token_path = "token.pickle"
         obj.use_sa = False
@@ -115,7 +117,7 @@ async def id_updates(_, query, obj):
     obj.query_proc = False
 
 
-class gdriveList(GoogleDriveHelper):
+class GoogleDriveList(GoogleDriveHelper):
     def __init__(self, listener):
         self.listener = listener
         self._token_user = False
@@ -128,7 +130,7 @@ class gdriveList(GoogleDriveHelper):
         self.query_proc = False
         self.item_type = "folders"
         self.event = Event()
-        self.user_token_path = f"tokens/{self.listener.userId}.pickle"
+        self.user_token_path = f"tokens/{self.listener.user_id}.pickle"
         self.id = ""
         self.parents = []
         self.list_status = ""
@@ -137,26 +139,25 @@ class gdriveList(GoogleDriveHelper):
         self.page_step = 1
         super().__init__()
 
-    @new_thread
     async def _event_handler(self):
         pfunc = partial(id_updates, obj=self)
         handler = self.listener.client.add_handler(
             CallbackQueryHandler(
-                pfunc, filters=regex("^gdq") & user(self.listener.userId)
+                pfunc, filters=regex("^gdq") & user(self.listener.user_id)
             ),
             group=-1,
         )
         try:
             await wait_for(self.event.wait(), timeout=self._timeout)
-        except Exception:
+        except:
             self.id = "Timed Out. Task has been cancelled!"
-            self.listener.isCancelled = True
+            self.listener.is_cancelled = True
             self.event.set()
         finally:
             self.listener.client.remove_handler(*handler)
 
     async def _send_list_message(self, msg, button):
-        if not self.listener.isCancelled:
+        if not self.listener.is_cancelled:
             if self._reply_to is None:
                 self._reply_to = await send_message(
                     self.listener.message, msg, button
@@ -185,29 +186,31 @@ class gdriveList(GoogleDriveHelper):
                 name = (
                     f"[{get_readable_file_size(float(item['size']))}] {item['name']}"
                 )
-            buttons.callback(name, f"gdq pa {ptype} {orig_index}")
+            buttons.data_button(name, f"gdq pa {ptype} {orig_index}")
         if items_no > LIST_LIMIT:
             for i in [1, 2, 4, 6, 10, 30, 50, 100]:
-                buttons.callback(i, f"gdq ps {i}", position="header")
-            buttons.callback("Previous", "gdq pre", position="footer")
-            buttons.callback("Next", "gdq nex", position="footer")
+                buttons.data_button(i, f"gdq ps {i}", position="header")
+            buttons.data_button("Previous", "gdq pre", position="footer")
+            buttons.data_button("Next", "gdq nex", position="footer")
         if self.list_status == "gdd":
             if self.item_type == "folders":
-                buttons.callback("Files", "gdq itype files", position="footer")
+                buttons.data_button("Files", "gdq itype files", position="footer")
             else:
-                buttons.callback("Folders", "gdq itype folders", position="footer")
+                buttons.data_button(
+                    "Folders", "gdq itype folders", position="footer"
+                )
         if self.list_status == "gdu" or len(self.items_list) > 0:
-            buttons.callback("Choose Current Path", "gdq cur", position="footer")
+            buttons.data_button("Choose Current Path", "gdq cur", position="footer")
         if self.list_status == "gdu":
-            buttons.callback("Set as Default Path", "gdq def", position="footer")
+            buttons.data_button("Set as Default Path", "gdq def", position="footer")
         if (len(self.parents) > 1 and len(self.drives) > 1) or (
             self._token_user and self._token_owner
         ):
-            buttons.callback("Back", "gdq back pa", position="footer")
+            buttons.data_button("Back", "gdq back pa", position="footer")
         if len(self.parents) > 1:
-            buttons.callback("Back To Root", "gdq root", position="footer")
-        buttons.callback("Cancel", "gdq cancel", position="footer")
-        button = buttons.menu(f_cols=2)
+            buttons.data_button("Back To Root", "gdq root", position="footer")
+        buttons.data_button("Cancel", "gdq cancel", position="footer")
+        button = buttons.build_menu(f_cols=2)
         msg = "Choose Path:" + (
             "\nTransfer Type: <i>Download</i>"
             if self.list_status == "gdd"
@@ -215,7 +218,7 @@ class gdriveList(GoogleDriveHelper):
         )
         if self.list_status == "gdu":
             default_id = (
-                self.listener.userDict.get("gdrive_id") or config_dict["GDRIVE_ID"]
+                self.listener.user_dict.get("gdrive_id") or config_dict["GDRIVE_ID"]
             )
             msg += f"\nDefault Gdrive ID: {default_id}" if default_id else ""
         msg += f"\n\nItems: {items_no}"
@@ -235,8 +238,8 @@ class gdriveList(GoogleDriveHelper):
         elif self.list_status == "gdu":
             self.item_type == "folders"
         try:
-            files = self.getFilesByFolderId(self.id, self.item_type)
-            if self.listener.isCancelled:
+            files = self.get_files_by_folder_id(self.id, self.item_type)
+            if self.listener.is_cancelled:
                 return None
         except Exception as err:
             if isinstance(err, RetryError):
@@ -272,9 +275,9 @@ class gdriveList(GoogleDriveHelper):
             msg = "Service accounts Doesn't have access to any drive!"
             buttons = ButtonMaker()
             if self._token_user and self._token_owner:
-                buttons.callback("Back", "gdq back dr", position="footer")
-            buttons.callback("Cancel", "gdq cancel", position="footer")
-            button = buttons.menu(2)
+                buttons.data_button("Back", "gdq back dr", position="footer")
+            buttons.data_button("Cancel", "gdq cancel", position="footer")
+            button = buttons.build_menu(2)
             await self._send_list_message(msg, button)
         elif self.use_sa and len(drives) == 1:
             self.id = drives[0]["id"]
@@ -293,15 +296,15 @@ class gdriveList(GoogleDriveHelper):
             self.drives.clear()
             self.parents.clear()
             if not self.use_sa:
-                buttons.callback("root", "gdq dr 0")
+                buttons.data_button("root", "gdq dr 0")
                 self.drives = [{"id": "root", "name": "root"}]
             for index, item in enumerate(drives, start=1):
                 self.drives.append({"id": item["id"], "name": item["name"]})
-                buttons.callback(item["name"], f"gdq dr {index}")
+                buttons.data_button(item["name"], f"gdq dr {index}")
             if self._token_user and self._token_owner:
-                buttons.callback("Back", "gdq back dr", position="footer")
-            buttons.callback("Cancel", "gdq cancel", position="footer")
-            button = buttons.menu(2)
+                buttons.data_button("Back", "gdq back dr", position="footer")
+            buttons.data_button("Cancel", "gdq cancel", position="footer")
+            button = buttons.build_menu(2)
             await self._send_list_message(msg, button)
 
     async def choose_token(self):
@@ -318,13 +321,13 @@ class gdriveList(GoogleDriveHelper):
             msg += f"\nTimeout: {get_readable_time(self._timeout - (time() - self._time))}"
             buttons = ButtonMaker()
             if self._token_owner:
-                buttons.callback("Owner Token", "gdq owner")
+                buttons.data_button("Owner Token", "gdq owner")
             if self._sa_owner:
-                buttons.callback("Service Accounts", "gdq sa")
+                buttons.data_button("Service Accounts", "gdq sa")
             if self._token_user:
-                buttons.callback("My Token", "gdq user")
-            buttons.callback("Cancel", "gdq cancel")
-            button = buttons.menu(2)
+                buttons.data_button("My Token", "gdq user")
+            buttons.data_button("Cancel", "gdq cancel")
+            button = buttons.build_menu(2)
             await self._send_list_message(msg, button)
         else:
             if self._token_owner:
@@ -351,7 +354,6 @@ class gdriveList(GoogleDriveHelper):
 
     async def get_target_id(self, status, token_path=None):
         self.list_status = status
-        future = self._event_handler()
         if token_path is None:
             self._token_user, self._token_owner, self._sa_owner = await gather(
                 aiopath.exists(self.user_token_path),
@@ -366,10 +368,10 @@ class gdriveList(GoogleDriveHelper):
             self.token_path = token_path
             self.use_sa = self.token_path == "accounts"
             await self.list_drives()
-        await wrap_future(future)
+        await self._event_handler()
         if self._reply_to:
             await delete_message(self._reply_to)
-        if not self.listener.isCancelled:
+        if not self.listener.is_cancelled:
             if self.token_path == self.user_token_path:
                 return f"mtp:{self.id}"
             return f"sa:{self.id}" if self.use_sa else f"tp:{self.id}"

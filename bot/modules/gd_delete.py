@@ -10,7 +10,7 @@ from bot.helper.telegram_helper.message_utils import (
     send_message,
     auto_delete_message,
 )
-from bot.helper.mirror_leech_utils.gdrive_utils.delete import gdDelete
+from bot.helper.mirror_leech_utils.gdrive_utils.delete import GoogleDriveDelete
 
 
 @new_task
@@ -25,7 +25,7 @@ async def deletefile(_, message):
         link = ""
     if is_gdrive_link(link):
         LOGGER.info(link)
-        msg = await sync_to_async(gdDelete().deletefile, link, user.id)
+        msg = await sync_to_async(GoogleDriveDelete().deletefile, link, user.id)
     else:
         msg = "Send Gdrive link along with command or by replying to the link by command"
     reply_message = await send_message(message, msg)
@@ -35,6 +35,7 @@ async def deletefile(_, message):
 bot.add_handler(
     MessageHandler(
         deletefile,
-        filters=command(BotCommands.DeleteCommand) & CustomFilters.authorized,
+        filters=command(BotCommands.DeleteCommand, )
+        & CustomFilters.authorized,
     )
 )

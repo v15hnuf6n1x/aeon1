@@ -3,19 +3,19 @@ from aiofiles.os import remove
 
 from bot import (
     LOGGER,
-    TORRENT_TIMEOUT,
     aria2,
     task_dict,
     config_dict,
     aria2_options,
     aria2c_global,
-    non_queued_dl,
     task_dict_lock,
-    queue_dict_lock,
 )
 from bot.helper.ext_utils.bot_utils import sync_to_async, bt_selection_buttons
 from bot.helper.ext_utils.task_manager import check_running_tasks
-from bot.helper.telegram_helper.message_utils import send_message, sendStatusMessage
+from bot.helper.telegram_helper.message_utils import (
+    send_message,
+    send_status_message,
+)
 from bot.helper.mirror_leech_utils.status_utils.aria2_status import Aria2Status
 
 
@@ -31,7 +31,8 @@ async def add_aria2c_download(listener, dpath, header, ratio, seed_time):
         a2c_opt["seed-ratio"] = ratio
     if seed_time:
         a2c_opt["seed-time"] = seed_time
-    a2c_opt["bt-stop-timeout"] = f"{TORRENT_TIMEOUT}"
+    if TORRENT_TIMEOUT := config_dict["TORRENT_TIMEOUT"]:
+        a2c_opt["bt-stop-timeout"] = f"{TORRENT_TIMEOUT}"
 
     add_to_queue, event = await check_running_tasks(listener)
     if add_to_queue:
@@ -44,14 +45,14 @@ async def add_aria2c_download(listener, dpath, header, ratio, seed_time):
         download = (await sync_to_async(aria2.add, listener.link, a2c_opt))[0]
     except Exception as e:
         LOGGER.info(f"Aria2c Download Error: {e}")
-        await listener.onDownloadError(f"{e}")
+        await listener.on_download_error(f"{e}")
         return
     if await aiopath.exists(listener.link):
         await remove(listener.link)
     if download.error_message:
         error = str(download.error_message).replace("<", " ").replace(">", " ")
         LOGGER.info(f"Aria2c Download Error: {error}")
-        await listener.onDownloadError(error)
+        await listener.on_download_error(error)
         return
 
     gid = download.gid
@@ -61,7 +62,7 @@ async def add_aria2c_download(listener, dpath, header, ratio, seed_time):
     if add_to_queue:
         LOGGER.info(f"Added to Queue/Download: {name}. Gid: {gid}")
         if (not listener.select or not download.is_torrent) and listener.multi <= 1:
-            await sendStatusMessage(listener.message)
+            await send_status_message(listener.message)
     else:
         LOGGER.info(f"Aria2Download started: {name}. Gid: {gid}")
 
@@ -72,7 +73,7 @@ async def add_aria2c_download(listener, dpath, header, ratio, seed_time):
         and (not listener.select or not config_dict["BASE_URL"])
         and listener.multi <= 1
     ):
-        await sendStatusMessage(listener.message)
+        await send_status_message(listener.message)
     elif listener.select and download.is_torrent and not download.is_metadata:
         if not add_to_queue:
             await sync_to_async(aria2.client.force_pause, gid)
@@ -82,10 +83,8 @@ async def add_aria2c_download(listener, dpath, header, ratio, seed_time):
 
     if add_to_queue:
         await event.wait()
-        if listener.isCancelled:
+        if listener.is_cancelled:
             return
-        async with queue_dict_lock:
-            non_queued_dl.add(listener.mid)
         async with task_dict_lock:
             task = task_dict[listener.mid]
             task.queued = False
