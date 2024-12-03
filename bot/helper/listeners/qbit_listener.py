@@ -11,9 +11,9 @@ from bot import (
     task_dict,
     config_dict,
     qb_torrents,
+    xnox_client,
     task_dict_lock,
     qb_listener_lock,
-    xnox_client,
 )
 from bot.helper.ext_utils.bot_utils import new_task, sync_to_async
 from bot.helper.ext_utils.files_utils import clean_unwanted
@@ -72,9 +72,7 @@ async def _on_download_complete(tor):
     tag = tor.tags
     if task := await get_task_by_gid(ext_hash[:12]):
         if not task.listener.seed:
-            await sync_to_async(
-                xnox_client.torrents_pause, torrent_hashes=ext_hash
-            )
+            await sync_to_async(xnox_client.torrents_pause, torrent_hashes=ext_hash)
         if task.listener.select:
             await clean_unwanted(task.listener.dir)
             path = tor.content_path.rsplit("/", 1)[0]

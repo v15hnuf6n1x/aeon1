@@ -516,8 +516,8 @@ if ospath.exists("accounts.zip"):
     remove("accounts.zip")
 if not ospath.exists("accounts"):
     config_dict["USE_SERVICE_ACCOUNTS"] = False
-    
-    
+
+
 alive = Popen(["python3", "alive.py"])
 sleep(0.5)
 
@@ -535,6 +535,7 @@ xnox_client = QbClient(
         "pool_block": True,
     },
 )
+
 
 def aria2c_init():
     try:

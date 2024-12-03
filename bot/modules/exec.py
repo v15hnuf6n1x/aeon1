@@ -120,21 +120,27 @@ async def clear(_, message):
 bot.add_handler(
     MessageHandler(
         aioexecute,
-        filters=command(BotCommands.AExecCommand, )
+        filters=command(
+            BotCommands.AExecCommand,
+        )
         & CustomFilters.owner,
     )
 )
 bot.add_handler(
     MessageHandler(
         execute,
-        filters=command(BotCommands.ExecCommand, )
+        filters=command(
+            BotCommands.ExecCommand,
+        )
         & CustomFilters.owner,
     )
 )
 bot.add_handler(
     MessageHandler(
         clear,
-        filters=command(BotCommands.ClearLocalsCommand, )
+        filters=command(
+            BotCommands.ClearLocalsCommand,
+        )
         & CustomFilters.owner,
     )
 )

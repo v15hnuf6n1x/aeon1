@@ -497,14 +497,18 @@ async def ytdl_leech(client, message):
 bot.add_handler(
     MessageHandler(
         ytdl,
-        filters=command(BotCommands.YtdlCommand, )
+        filters=command(
+            BotCommands.YtdlCommand,
+        )
         & CustomFilters.authorized,
     )
 )
 bot.add_handler(
     MessageHandler(
         ytdl_leech,
-        filters=command(BotCommands.YtdlLeechCommand, )
+        filters=command(
+            BotCommands.YtdlLeechCommand,
+        )
         & CustomFilters.authorized,
     )
 )

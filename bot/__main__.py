@@ -252,41 +252,54 @@ async def main():
 
     bot.add_handler(
         MessageHandler(
-            start, filters=command(BotCommands.StartCommand, )
+            start,
+            filters=command(
+                BotCommands.StartCommand,
+            ),
         )
     )
     bot.add_handler(
         MessageHandler(
             log,
-            filters=command(BotCommands.LogCommand, )
+            filters=command(
+                BotCommands.LogCommand,
+            )
             & CustomFilters.sudo,
         )
     )
     bot.add_handler(
         MessageHandler(
             restart,
-            filters=command(BotCommands.RestartCommand, )
+            filters=command(
+                BotCommands.RestartCommand,
+            )
             & CustomFilters.sudo,
         )
     )
     bot.add_handler(
         MessageHandler(
             ping,
-            filters=command(BotCommands.PingCommand, )
+            filters=command(
+                BotCommands.PingCommand,
+            )
             & CustomFilters.authorized,
         )
     )
     bot.add_handler(
         MessageHandler(
             bot_help,
-            filters=command(BotCommands.HelpCommand, )
+            filters=command(
+                BotCommands.HelpCommand,
+            )
             & CustomFilters.authorized,
         )
     )
     bot.add_handler(
         MessageHandler(
             stats,
-            filters=command(BotCommands.StatsCommand, )
+            filters=command(
+                BotCommands.StatsCommand,
+            )
             & CustomFilters.authorized,
         )
     )

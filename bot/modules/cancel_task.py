@@ -191,14 +191,18 @@ async def cancel_all_update(_, query):
 bot.add_handler(
     MessageHandler(
         cancel_task,
-        filters=command(BotCommands.CancelTaskCommand, )
+        filters=command(
+            BotCommands.CancelTaskCommand,
+        )
         & CustomFilters.authorized,
     )
 )
 bot.add_handler(
     MessageHandler(
         cancell_all_buttons,
-        filters=command(BotCommands.CancelAllCommand, )
+        filters=command(
+            BotCommands.CancelAllCommand,
+        )
         & CustomFilters.authorized,
     )
 )

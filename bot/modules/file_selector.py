@@ -13,8 +13,8 @@ from bot import (
     task_dict,
     user_data,
     config_dict,
-    task_dict_lock,
     xnox_client,
+    task_dict_lock,
 )
 from bot.helper.ext_utils.bot_utils import (
     new_task,
@@ -84,9 +84,7 @@ async def select(_, message):
             if task.listener.is_qbit:
                 await sync_to_async(task.update)
                 id_ = task.hash()
-                await sync_to_async(
-                    xnox_client.torrents_pause, torrent_hashes=id_
-                )
+                await sync_to_async(xnox_client.torrents_pause, torrent_hashes=id_)
             else:
                 await sync_to_async(task.update)
                 try:
@@ -125,9 +123,7 @@ async def get_confirm(_, query):
         if hasattr(task, "seeding"):
             if task.listener.is_qbit:
                 tor_info = (
-                    await sync_to_async(
-                        xnox_client.torrents_info, torrent_hash=id_
-                    )
+                    await sync_to_async(xnox_client.torrents_info, torrent_hash=id_)
                 )[0]
                 path = tor_info.content_path.rsplit("/", 1)[0]
                 res = await sync_to_async(
@@ -167,7 +163,9 @@ async def get_confirm(_, query):
 bot.add_handler(
     MessageHandler(
         select,
-        filters=command(BotCommands.SelectCommand, )
+        filters=command(
+            BotCommands.SelectCommand,
+        )
         & CustomFilters.authorized,
     )
 )

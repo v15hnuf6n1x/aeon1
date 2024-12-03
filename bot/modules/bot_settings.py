@@ -30,11 +30,7 @@ from bot import (
     index_urls,
     config_dict,
     drives_names,
-    qbit_options,
     aria2_options,
-    aria2c_global,
-    get_qb_options,
-    xnox_client,
     global_extension_filter,
 )
 from bot.helper.ext_utils.bot_utils import SetInterval, new_task, sync_to_async
@@ -229,7 +225,6 @@ async def edit_variable(_, message, pre_message, key):
         await rclone_serve_booter()
     elif key == "RSS_DELAY":
         add_job()
-
 
 
 @new_task
@@ -858,7 +853,9 @@ async def load_config():
 bot.add_handler(
     MessageHandler(
         bot_settings,
-        filters=command(BotCommands.BotSetCommand, )
+        filters=command(
+            BotCommands.BotSetCommand,
+        )
         & CustomFilters.sudo,
     )
 )

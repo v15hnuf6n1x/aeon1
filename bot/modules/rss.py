@@ -816,7 +816,9 @@ scheduler.start()
 bot.add_handler(
     MessageHandler(
         get_rss_menu,
-        filters=command(BotCommands.RssCommand, )
+        filters=command(
+            BotCommands.RssCommand,
+        )
         & CustomFilters.authorized,
     )
 )

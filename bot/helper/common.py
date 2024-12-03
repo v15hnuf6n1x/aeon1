@@ -186,9 +186,7 @@ class TaskConfig:
             else ["aria2", "!qB"]
         )
         if self.link not in ["rcl", "gdl"]:
-            if is_rclone_path(self.link) or is_gdrive_link(
-                self.link
-            ):
+            if is_rclone_path(self.link) or is_gdrive_link(self.link):
                 await self.is_token_exists(self.link, "dl")
         elif self.link == "rcl":
             if not self.is_ytdlp:
@@ -1109,7 +1107,7 @@ class TaskConfig:
     async def proceed_ffmpeg(self, dl_path, gid):
         checked = False
         for ffmpeg_cmd in self.ffmpeg_cmds:
-            cmd = ["xtra"] + ffmpeg_cmd
+            cmd = ["xtra", *ffmpeg_cmd]
             if "-del" in cmd:
                 cmd.remove("-del")
                 delete_files = True

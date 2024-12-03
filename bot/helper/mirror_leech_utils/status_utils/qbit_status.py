@@ -1,6 +1,6 @@
 from asyncio import sleep, gather
 
-from bot import LOGGER, qb_torrents, qb_listener_lock, xnox_client
+from bot import LOGGER, qb_torrents, xnox_client, qb_listener_lock
 from bot.helper.ext_utils.bot_utils import sync_to_async
 from bot.helper.ext_utils.status_utils import (
     MirrorStatus,

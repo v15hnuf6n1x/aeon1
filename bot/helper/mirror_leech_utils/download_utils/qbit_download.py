@@ -7,8 +7,8 @@ from bot import (
     LOGGER,
     task_dict,
     config_dict,
-    task_dict_lock,
     xnox_client,
+    task_dict_lock,
 )
 from bot.helper.ext_utils.bot_utils import sync_to_async, bt_selection_buttons
 from bot.helper.ext_utils.task_manager import check_running_tasks
@@ -140,9 +140,7 @@ async def add_qb_torrent(listener, path, ratio, seed_time):
                 LOGGER.info(
                     f"Start Queued Download from Qbittorrent: {tor_info.name} - Hash: {ext_hash}"
                 )
-            await sync_to_async(
-                xnox_client.torrents_resume, torrent_hashes=ext_hash
-            )
+            await sync_to_async(xnox_client.torrents_resume, torrent_hashes=ext_hash)
 
     except Exception as e:
         await listener.on_download_error(f"{e}")
