@@ -8,14 +8,6 @@ from asyncio import Lock, new_event_loop, set_event_loop
 from logging import (
     INFO,
     ERROR,
-    FileHandler,
-    StreamHandler,
-    getLogger,
-    basicConfig,
-)
-from logging import (
-    INFO,
-    ERROR,
     Formatter,
     FileHandler,
     StreamHandler,
@@ -56,6 +48,7 @@ botStartTime = time()
 
 bot_loop = new_event_loop()
 set_event_loop(bot_loop)
+
 
 class CustomFormatter(Formatter):
     def format(self, record):
