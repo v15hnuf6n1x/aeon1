@@ -517,7 +517,6 @@ if not ospath.exists("accounts"):
 
 
 alive = Popen(["python3", "alive.py"])
-sleep(0.5)
 
 aria2 = API(ariaClient(host="http://localhost", port=6800, secret=""))
 
@@ -534,25 +533,6 @@ xnox_client = QbClient(
     },
 )
 
-
-def aria2c_init():
-    try:
-        link = "https://linuxmint.com/torrents/lmde-5-cinnamon-64bit.iso.torrent"
-        dire = "/usr/src/app/downloads/".rstrip("/")
-        aria2.add_uris([link], {"dir": dire})
-        sleep(3)
-        downloads = aria2.get_downloads()
-        sleep(10)
-        aria2.remove(downloads, force=True, files=True, clean=True)
-    except Exception as e:
-        error(f"Aria2c initializing error: {e}")
-
-
-Thread(target=aria2c_init).start()
-sleep(1.5)
-
-Thread(target=aria2c_init).start()
-sleep(1.5)
 
 aria2c_global = [
     "bt-max-open-files",
