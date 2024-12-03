@@ -518,7 +518,7 @@ if not ospath.exists("accounts"):
 
 alive = Popen(["python3", "alive.py"])
 
-aria2 = API(ariaClient(host="http://localhost", port=6800, secret=""))
+aria2 = ariaAPI(ariaClient(host="http://localhost", port=6800, secret=""))
 
 
 xnox_client = QbClient(
