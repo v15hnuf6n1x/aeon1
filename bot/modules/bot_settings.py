@@ -34,7 +34,7 @@ from bot import (
     global_extension_filter,
 )
 from bot.helper.ext_utils.bot_utils import SetInterval, new_task, sync_to_async
-from bot.helper.ext_utils.db_handler import database
+from bot.helper.ext_utils.db_handler import Database
 from bot.helper.ext_utils.task_manager import start_from_queued
 from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.bot_commands import BotCommands
@@ -147,7 +147,7 @@ async def edit_variable(_, message, pre_message, key):
     elif value.lower() == "false":
         value = False
         if key == "INCOMPLETE_TASK_NOTIFIER" and config_dict["DATABASE_URL"]:
-            await database.trunc_table("tasks")
+            await Database.trunc_table("tasks")
     elif key == "DOWNLOAD_DIR":
         if not value.endswith("/"):
             value += "/"
@@ -209,9 +209,9 @@ async def edit_variable(_, message, pre_message, key):
     await update_buttons(pre_message, "var")
     await delete_message(message)
     if key == "DATABASE_URL":
-        await database.connect()
+        await Database.connect()
     if config_dict["DATABASE_URL"]:
-        await database.update_config({key: value})
+        await Database.update_config({key: value})
     if key in ["SEARCH_PLUGINS", "SEARCH_API_LINK"]:
         await initiate_search_tools()
     elif key in ["QUEUE_ALL", "QUEUE_DOWNLOAD", "QUEUE_UPLOAD"]:
@@ -241,7 +241,7 @@ async def update_private_file(_, message, pre_message):
                 await rmtree("rclone_sa", ignore_errors=True)
             config_dict["USE_SERVICE_ACCOUNTS"] = False
             if config_dict["DATABASE_URL"]:
-                await database.update_config({"USE_SERVICE_ACCOUNTS": False})
+                await Database.update_config({"USE_SERVICE_ACCOUNTS": False})
         elif file_name in [".netrc", "netrc"]:
             await (await create_subprocess_exec("touch", ".netrc")).wait()
             await (await create_subprocess_exec("chmod", "600", ".netrc")).wait()
@@ -306,7 +306,7 @@ async def update_private_file(_, message, pre_message):
         await rclone_serve_booter()
     await update_buttons(pre_message)
     if config_dict["DATABASE_URL"]:
-        await database.update_private_file(file_name)
+        await Database.update_private_file(file_name)
     if await aiopath.exists("accounts.zip"):
         await remove("accounts.zip")
 
@@ -383,7 +383,7 @@ async def edit_bot_settings(client, query):
                         LOGGER.error(e)
             aria2_options["bt-stop-timeout"] = "0"
             if config_dict["DATABASE_URL"]:
-                await database.update_aria2("bt-stop-timeout", "0")
+                await Database.update_aria2("bt-stop-timeout", "0")
         elif data[2] == "BASE_URL":
             await (
                 await create_subprocess_exec("pkill", "-9", "-f", "gunicorn")
@@ -406,13 +406,13 @@ async def edit_bot_settings(client, query):
             if drives_names and drives_names[0] == "Main":
                 index_urls[0] = ""
         elif data[2] == "INCOMPLETE_TASK_NOTIFIER" and config_dict["DATABASE_URL"]:
-            await database.trunc_table("tasks")
+            await Database.trunc_table("tasks")
         config_dict[data[2]] = value
         await update_buttons(message, "var")
         if data[2] == "DATABASE_URL":
-            await database.disconnect()
+            await Database.disconnect()
         if config_dict["DATABASE_URL"]:
-            await database.update_config({data[2]: value})
+            await Database.update_config({data[2]: value})
         if data[2] in ["SEARCH_PLUGINS", "SEARCH_API_LINK"]:
             await initiate_search_tools()
         elif data[2] in ["QUEUE_ALL", "QUEUE_DOWNLOAD", "QUEUE_UPLOAD"]:
@@ -651,7 +651,7 @@ async def load_config():
                     LOGGER.error(e)
         aria2_options["bt-stop-timeout"] = "0"
         if config_dict["DATABASE_URL"]:
-            await database.update_aria2("bt-stop-timeout", "0")
+            await Database.update_aria2("bt-stop-timeout", "0")
         TORRENT_TIMEOUT = ""
     else:
         for download in downloads:
@@ -666,7 +666,7 @@ async def load_config():
                     LOGGER.error(e)
         aria2_options["bt-stop-timeout"] = TORRENT_TIMEOUT
         if config_dict["DATABASE_URL"]:
-            await database.update_aria2("bt-stop-timeout", TORRENT_TIMEOUT)
+            await Database.update_aria2("bt-stop-timeout", TORRENT_TIMEOUT)
         TORRENT_TIMEOUT = int(TORRENT_TIMEOUT)
 
     QUEUE_ALL = environ.get("QUEUE_ALL", "")
@@ -681,7 +681,7 @@ async def load_config():
     INCOMPLETE_TASK_NOTIFIER = environ.get("INCOMPLETE_TASK_NOTIFIER", "")
     INCOMPLETE_TASK_NOTIFIER = INCOMPLETE_TASK_NOTIFIER.lower() == "true"
     if not INCOMPLETE_TASK_NOTIFIER and config_dict["DATABASE_URL"]:
-        await database.trunc_table("tasks")
+        await Database.trunc_table("tasks")
 
     STOP_DUPLICATE = environ.get("STOP_DUPLICATE", "")
     STOP_DUPLICATE = STOP_DUPLICATE.lower() == "true"
@@ -841,10 +841,10 @@ async def load_config():
     )
 
     if config_dict["DATABASE_URL"]:
-        await database.connect()
-        await database.update_config(config_dict)
+        await Database.connect()
+        await Database.update_config(config_dict)
     else:
-        await database.disconnect()
+        await Database.disconnect()
     await gather(initiate_search_tools(), start_from_queued(), rclone_serve_booter())
     add_job()
 

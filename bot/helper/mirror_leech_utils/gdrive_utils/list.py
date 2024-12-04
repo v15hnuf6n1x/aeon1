@@ -11,7 +11,7 @@ from pyrogram.handlers import CallbackQueryHandler
 
 from bot import config_dict
 from bot.helper.ext_utils.bot_utils import new_task, update_user_ldata
-from bot.helper.ext_utils.db_handler import database
+from bot.helper.ext_utils.db_handler import Database
 from bot.helper.ext_utils.status_utils import (
     get_readable_time,
     get_readable_file_size,
@@ -95,7 +95,7 @@ async def id_updates(_, query, obj):
             update_user_ldata(obj.listener.user_id, "gdrive_id", id_)
             await obj.get_items_buttons()
             if config_dict["DATABASE_URL"]:
-                await database.update_user_data(obj.listener.user_id)
+                await Database.update_user_data(obj.listener.user_id)
     elif data[1] == "owner":
         obj.token_path = "token.pickle"
         obj.use_sa = False

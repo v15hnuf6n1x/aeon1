@@ -12,7 +12,7 @@ from apscheduler.triggers.interval import IntervalTrigger
 
 from bot import LOGGER, bot, rss_dict, scheduler, config_dict
 from bot.helper.ext_utils.bot_utils import new_task, arg_parser
-from bot.helper.ext_utils.db_handler import database
+from bot.helper.ext_utils.db_handler import Database
 from bot.helper.ext_utils.exceptions import RssShutdownException
 from bot.helper.ext_utils.help_messages import RSS_HELP_MESSAGE
 from bot.helper.telegram_helper.filters import CustomFilters
@@ -189,7 +189,7 @@ async def rss_sub(_, message, pre_event):
             await send_message(message, str(e))
     if msg:
         if config_dict["DATABASE_URL"] and rss_dict[user_id]:
-            await database.rss_update(user_id)
+            await Database.rss_update(user_id)
         await send_message(message, msg)
         is_sudo = await CustomFilters.sudo("", message)
         if scheduler.state == 2:
@@ -251,14 +251,14 @@ async def rss_update(_, message, pre_event, state):
             and config_dict["DATABASE_URL"]
             and user_id != message.from_user.id
         ):
-            await database.rss_update(user_id)
+            await Database.rss_update(user_id)
         if not rss_dict[user_id]:
             async with rss_dict_lock:
                 del rss_dict[user_id]
             if config_dict["DATABASE_URL"]:
-                await database.rss_delete(user_id)
+                await Database.rss_delete(user_id)
                 if not rss_dict:
-                    await database.trunc_table("rss")
+                    await Database.trunc_table("rss")
     if updated:
         LOGGER.info(f"Rss link with Title(s): {updated} has been {state}d!")
         await send_message(
@@ -266,7 +266,7 @@ async def rss_update(_, message, pre_event, state):
             f"Rss links with Title(s): <code>{updated}</code> has been {state}d!",
         )
         if config_dict["DATABASE_URL"] and rss_dict.get(user_id):
-            await database.rss_update(user_id)
+            await Database.rss_update(user_id)
     await update_rss_menu(pre_event)
 
 
@@ -426,7 +426,7 @@ async def rss_edit(_, message, pre_event):
                         exf_lists.append(y)
                 rss_dict[user_id][title]["exf"] = exf_lists
     if config_dict["DATABASE_URL"] and updated:
-        await database.rss_update(user_id)
+        await Database.rss_update(user_id)
     await update_rss_menu(pre_event)
 
 
@@ -439,7 +439,7 @@ async def rss_delete(_, message, pre_event):
         async with rss_dict_lock:
             del rss_dict[user]
         if config_dict["DATABASE_URL"]:
-            await database.rss_delete(user)
+            await Database.rss_delete(user)
     await update_rss_menu(pre_event)
 
 
@@ -574,14 +574,14 @@ Timeout: 60 sec. Argument -c for command and arguments
             async with rss_dict_lock:
                 del rss_dict[int(data[2])]
             if config_dict["DATABASE_URL"]:
-                await database.rss_delete(int(data[2]))
+                await Database.rss_delete(int(data[2]))
             await update_rss_menu(query)
         elif data[1].endswith("pause"):
             async with rss_dict_lock:
                 for title in list(rss_dict[int(data[2])].keys()):
                     rss_dict[int(data[2])][title]["paused"] = True
             if config_dict["DATABASE_URL"]:
-                await database.rss_update(int(data[2]))
+                await Database.rss_update(int(data[2]))
         elif data[1].endswith("resume"):
             async with rss_dict_lock:
                 for title in list(rss_dict[int(data[2])].keys()):
@@ -589,7 +589,7 @@ Timeout: 60 sec. Argument -c for command and arguments
             if scheduler.state == 2:
                 scheduler.resume()
             if config_dict["DATABASE_URL"]:
-                await database.rss_update(int(data[2]))
+                await Database.rss_update(int(data[2]))
         await update_rss_menu(query)
     elif data[1].startswith("all"):
         if len(rss_dict) == 0:
@@ -600,7 +600,7 @@ Timeout: 60 sec. Argument -c for command and arguments
             async with rss_dict_lock:
                 rss_dict.clear()
             if config_dict["DATABASE_URL"]:
-                await database.trunc_table("rss")
+                await Database.trunc_table("rss")
             await update_rss_menu(query)
         elif data[1].endswith("pause"):
             async with rss_dict_lock:
@@ -610,7 +610,7 @@ Timeout: 60 sec. Argument -c for command and arguments
             if scheduler.running:
                 scheduler.pause()
             if config_dict["DATABASE_URL"]:
-                await database.rss_update_all()
+                await Database.rss_update_all()
         elif data[1].endswith("resume"):
             async with rss_dict_lock:
                 for user in list(rss_dict.keys()):
@@ -622,7 +622,7 @@ Timeout: 60 sec. Argument -c for command and arguments
                 add_job()
                 scheduler.start()
             if config_dict["DATABASE_URL"]:
-                await database.rss_update_all()
+                await Database.rss_update_all()
     elif data[1] == "deluser":
         if len(rss_dict) == 0:
             await query.answer(text="No subscriptions!", show_alert=True)
@@ -784,7 +784,7 @@ async def rss_monitor():
                     rss_dict[user][title].update(
                         {"last_feed": last_link, "last_title": last_title}
                     )
-                await database.rss_update(user)
+                await Database.rss_update(user)
                 LOGGER.info(f"Feed Name: {title}")
                 LOGGER.info(f"Last item: {last_link}")
             except RssShutdownException as ex:

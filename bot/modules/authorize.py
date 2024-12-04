@@ -3,7 +3,7 @@ from pyrogram.handlers import MessageHandler
 
 from bot import bot, user_data, config_dict
 from bot.helper.ext_utils.bot_utils import new_task, update_user_ldata
-from bot.helper.ext_utils.db_handler import database
+from bot.helper.ext_utils.db_handler import Database
 from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.message_utils import send_message
@@ -43,7 +43,7 @@ async def authorize(_, message):
         if thread_id is not None:
             update_user_ldata(chat_id, "thread_ids", [thread_id])
         if config_dict["DATABASE_URL"]:
-            await database.update_user_data(chat_id)
+            await Database.update_user_data(chat_id)
         msg = "Authorized"
     await send_message(message, msg)
 
@@ -73,7 +73,7 @@ async def unauthorize(_, message):
         else:
             update_user_ldata(chat_id, "is_auth", False)
         if config_dict["DATABASE_URL"]:
-            await database.update_user_data(chat_id)
+            await Database.update_user_data(chat_id)
         msg = "Unauthorized"
     else:
         msg = "Already Unauthorized!"
@@ -96,7 +96,7 @@ async def addSudo(_, message):
         else:
             update_user_ldata(id_, "is_sudo", True)
             if config_dict["DATABASE_URL"]:
-                await database.update_user_data(id_)
+                await Database.update_user_data(id_)
             msg = "Promoted as Sudo"
     else:
         msg = "Give ID or Reply To message of whom you want to Promote."
@@ -116,7 +116,7 @@ async def removeSudo(_, message):
     if (id_ and id_ not in user_data) or user_data[id_].get("is_sudo"):
         update_user_ldata(id_, "is_sudo", False)
         if config_dict["DATABASE_URL"]:
-            await database.update_user_data(id_)
+            await Database.update_user_data(id_)
         msg = "Demoted"
     else:
         msg = "Give ID or Reply To message of whom you want to remove from Sudo"

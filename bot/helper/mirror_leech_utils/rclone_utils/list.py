@@ -11,7 +11,7 @@ from pyrogram.handlers import CallbackQueryHandler
 
 from bot import LOGGER, config_dict
 from bot.helper.ext_utils.bot_utils import cmd_exec, new_task, update_user_ldata
-from bot.helper.ext_utils.db_handler import database
+from bot.helper.ext_utils.db_handler import Database
 from bot.helper.ext_utils.status_utils import (
     get_readable_time,
     get_readable_file_size,
@@ -120,7 +120,7 @@ async def path_updates(_, query, obj):
             update_user_ldata(obj.listener.user_id, "rclone_path", path)
             await obj.get_path_buttons()
             if config_dict["DATABASE_URL"]:
-                await database.update_user_data(obj.listener.user_id)
+                await Database.update_user_data(obj.listener.user_id)
     elif data[1] == "owner":
         obj.config_path = "rclone.conf"
         obj.path = ""

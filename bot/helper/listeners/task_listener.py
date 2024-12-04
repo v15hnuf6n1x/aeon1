@@ -24,7 +24,7 @@ from bot import (
 )
 from bot.helper.common import TaskConfig
 from bot.helper.ext_utils.bot_utils import sync_to_async
-from bot.helper.ext_utils.db_handler import database
+from bot.helper.ext_utils.db_handler import Database
 from bot.helper.ext_utils.files_utils import (
     join_files,
     clean_target,
@@ -81,7 +81,7 @@ class TaskListener(TaskConfig):
             and config_dict["INCOMPLETE_TASK_NOTIFIER"]
             and DATABASE_URL
         ):
-            await database.add_incomplete_task(
+            await Database.add_incomplete_task(
                 self.message.chat.id, self.message.link, self.tag
             )
 
@@ -297,7 +297,7 @@ class TaskListener(TaskConfig):
             and config_dict["INCOMPLETE_TASK_NOTIFIER"]
             and DATABASE_URL
         ):
-            await database.rm_complete_task(self.message.link)
+            await Database.rm_complete_task(self.message.link)
         msg = f"<b>Name: </b><code>{escape(self.name)}</code>\n\n<b>Size: </b>{get_readable_file_size(self.size)}"
         LOGGER.info(f"Task Done: {self.name}")
         if self.is_leech:
@@ -403,7 +403,7 @@ class TaskListener(TaskConfig):
             and config_dict["INCOMPLETE_TASK_NOTIFIER"]
             and DATABASE_URL
         ):
-            await database.rm_complete_task(self.message.link)
+            await Database.rm_complete_task(self.message.link)
 
         async with queue_dict_lock:
             if self.mid in queued_dl:
@@ -441,7 +441,7 @@ class TaskListener(TaskConfig):
             and config_dict["INCOMPLETE_TASK_NOTIFIER"]
             and DATABASE_URL
         ):
-            await database.rm_complete_task(self.message.link)
+            await Database.rm_complete_task(self.message.link)
 
         async with queue_dict_lock:
             if self.mid in queued_dl:

@@ -113,7 +113,7 @@ def exit_clean_up(signal, frame):
         LOGGER.info("Please wait, while we clean up and stop the running downloads")
         clean_all()
         srun(
-            ["pkill", "-9", "-f", "gunicorn|aria2c|qbittorrent-nox|ffmpeg|java"],
+            ["pkill", "-9", "-f", "gunicorn|xria|xnox|xtra|xone"],
             check=False,
         )
         exit(0)

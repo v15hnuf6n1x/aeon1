@@ -23,7 +23,7 @@ from bot.helper.ext_utils.bot_utils import (
     get_size_bytes,
     update_user_ldata,
 )
-from bot.helper.ext_utils.db_handler import database
+from bot.helper.ext_utils.db_handler import Database
 from bot.helper.ext_utils.media_utils import create_thumb
 from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.bot_commands import BotCommands
@@ -236,7 +236,7 @@ async def set_thumb(_, message, pre_event):
     await delete_message(message)
     await update_user_settings(pre_event)
     if config_dict["DATABASE_URL"]:
-        await database.update_user_doc(user_id, "thumb", des_dir)
+        await Database.update_user_doc(user_id, "thumb", des_dir)
 
 
 @new_task
@@ -251,7 +251,7 @@ async def add_rclone(_, message, pre_event):
     await delete_message(message)
     await update_user_settings(pre_event)
     if config_dict["DATABASE_URL"]:
-        await database.update_user_doc(user_id, "rclone_config", des_dir)
+        await Database.update_user_doc(user_id, "rclone_config", des_dir)
 
 
 @new_task
@@ -266,7 +266,7 @@ async def add_token_pickle(_, message, pre_event):
     await delete_message(message)
     await update_user_settings(pre_event)
     if config_dict["DATABASE_URL"]:
-        await database.update_user_doc(user_id, "token_pickle", des_dir)
+        await Database.update_user_doc(user_id, "token_pickle", des_dir)
 
 
 @new_task
@@ -283,7 +283,7 @@ async def delete_path(_, message, pre_event):
     await delete_message(message)
     await update_user_settings(pre_event)
     if config_dict["DATABASE_URL"]:
-        await database.update_user_doc(user_id, "upload_paths", new_value)
+        await Database.update_user_doc(user_id, "upload_paths", new_value)
 
 
 @new_task
@@ -330,7 +330,7 @@ async def set_option(_, message, pre_event, option):
     await delete_message(message)
     await update_user_settings(pre_event)
     if config_dict["DATABASE_URL"]:
-        await database.update_user_data(user_id)
+        await Database.update_user_data(user_id)
 
 
 async def event_handler(client, query, pfunc, photo=False, document=False):
@@ -388,7 +388,7 @@ async def edit_user_settings(client, query):
         await query.answer()
         await update_user_settings(query)
         if config_dict["DATABASE_URL"]:
-            await database.update_user_data(user_id)
+            await Database.update_user_data(user_id)
     elif data[2] in ["thumb", "rclone_config", "token_pickle"]:
         if data[2] == "thumb":
             fpath = thumb_path
@@ -402,7 +402,7 @@ async def edit_user_settings(client, query):
             update_user_ldata(user_id, data[2], "")
             await update_user_settings(query)
             if config_dict["DATABASE_URL"]:
-                await database.update_user_doc(user_id, data[2])
+                await Database.update_user_doc(user_id, data[2])
         else:
             await query.answer("Old Settings", show_alert=True)
             await update_user_settings(query)
@@ -419,14 +419,14 @@ async def edit_user_settings(client, query):
         update_user_ldata(user_id, data[2], "")
         await update_user_settings(query)
         if config_dict["DATABASE_URL"]:
-            await database.update_user_data(user_id)
+            await Database.update_user_data(user_id)
     elif data[2] in ["split_size", "leech_dest", "rclone_path", "gdrive_id"]:
         await query.answer()
         if data[2] in user_data.get(user_id, {}):
             del user_data[user_id][data[2]]
             await update_user_settings(query)
             if config_dict["DATABASE_URL"]:
-                await database.update_user_data(user_id)
+                await Database.update_user_data(user_id)
     elif data[2] == "leech":
         await query.answer()
         thumbpath = f"Thumbnails/{user_id}.jpg"
@@ -835,14 +835,14 @@ Example: script/code/s | mirror/leech | tea/ /s | clone | cpu/ | \[hello\]/hello
         update_user_ldata(user_id, "default_upload", du)
         await update_user_settings(query)
         if config_dict["DATABASE_URL"]:
-            await database.update_user_data(user_id)
+            await Database.update_user_data(user_id)
     elif data[2] == "user_tokens":
         await query.answer()
         tr = data[3].lower() == "false"
         update_user_ldata(user_id, "user_tokens", tr)
         await update_user_settings(query)
         if config_dict["DATABASE_URL"]:
-            await database.update_user_data(user_id)
+            await Database.update_user_data(user_id)
     elif data[2] == "upload_paths":
         await query.answer()
         buttons = ButtonMaker()
@@ -907,7 +907,7 @@ Example: script/code/s | mirror/leech | tea/ /s | clone | cpu/ | \[hello\]/hello
                 user_data[user_id].clear()
         await update_user_settings(query)
         if config_dict["DATABASE_URL"]:
-            await database.update_user_data(user_id)
+            await Database.update_user_data(user_id)
         for fpath in [thumb_path, rclone_conf, token_pickle]:
             if await aiopath.exists(fpath):
                 await remove(fpath)

@@ -167,6 +167,10 @@ class DbManager:
             del data["rclone_config"]
         if data.get("token_pickle"):
             del data["token_pickle"]
+        if data.get("token"):
+            del data["token"]
+        if data.get("time"):
+            del data["time"]
         await self._db.users.replace_one({"_id": user_id}, data, upsert=True)
 
     async def update_user_doc(self, user_id, key, path=""):
@@ -235,6 +239,63 @@ class DbManager:
         if self._return:
             return
         await self._db[name][BOT_ID].drop()
+    
+    async def get_pm_uids(self):
+        if self._return:
+            return None
+        return [doc["_id"] async for doc in self._db.pm_users[bot_id].find({})]
+
+    async def update_pm_users(self, user_id):
+        if self._return:
+            return
+        if not bool(await self._db.pm_users[bot_id].find_one({"_id": user_id})):
+            await self._db.pm_users[bot_id].insert_one({"_id": user_id})
+            LOGGER.info(f"New PM User Added : {user_id}")
+
+    async def rm_pm_user(self, user_id):
+        if self._return:
+            return
+        await self._db.pm_users[bot_id].delete_one({"_id": user_id})
+
+    async def update_user_tdata(self, user_id, token, time):
+        if self._return:
+            return
+        await self._db.access_token.update_one(
+            {"_id": user_id}, {"$set": {"token": token, "time": time}}, upsert=True
+        )
+
+    async def update_user_token(self, user_id, token):
+        if self._return:
+            return
+        await self._db.access_token.update_one(
+            {"_id": user_id}, {"$set": {"token": token}}, upsert=True
+        )
+
+    async def get_token_expiry(self, user_id):
+        if self._return:
+            return None
+        user_data = await self._db.access_token.find_one({"_id": user_id})
+        if user_data:
+            return user_data.get("time")
+        return None
+
+    async def delete_user_token(self, user_id):
+        if self._return:
+            return
+        await self._db.access_token.delete_one({"_id": user_id})
+
+    async def get_user_token(self, user_id):
+        if self._return:
+            return None
+        user_data = await self._db.access_token.find_one({"_id": user_id})
+        if user_data:
+            return user_data.get("token")
+        return None
+
+    async def delete_all_access_tokens(self):
+        if self._return:
+            return
+        await self._db.access_token.delete_many({})
 
 
-database = DbManager()
+Database = DbManager()
