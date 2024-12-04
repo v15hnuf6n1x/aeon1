@@ -239,7 +239,7 @@ class DbManager:
         if self._return:
             return
         await self._db[name][BOT_ID].drop()
-    
+
     async def get_pm_uids(self):
         if self._return:
             return None

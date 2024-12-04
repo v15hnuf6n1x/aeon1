@@ -2,11 +2,11 @@
 import contextlib
 from os import execl as osexecl
 from sys import executable
+from html import escape
 from time import time
+from uuid import uuid4
 from signal import SIGINT, signal
 from asyncio import gather, create_subprocess_exec
-from uuid import uuid4
-from html import escape
 
 from psutil import (
     boot_time,
@@ -20,16 +20,16 @@ from psutil import (
 from aiofiles import open as aiopen
 from aiofiles.os import path as aiopath
 from aiofiles.os import remove
-from pyrogram.filters import command, regex
+from pyrogram.filters import regex, command
 from pyrogram.handlers import MessageHandler, CallbackQueryHandler
 
 from bot import (
     LOGGER,
-    user_data,
-    bot_name,
     bot,
+    bot_name,
     intervals,
     scheduler,
+    user_data,
     config_dict,
     botStartTime,
 )
@@ -192,7 +192,9 @@ async def ping(_, message):
 async def log(_, message):
     buttons = ButtonMaker()
     buttons.data_button("Log display", f"aeon {message.from_user.id} logdisplay")
-    reply_message = await send_file(message, "log.txt", buttons=buttons.build_menu(1))
+    reply_message = await send_file(
+        message, "log.txt", buttons=buttons.build_menu(1)
+    )
     await delete_message(message)
     await five_minute_del(reply_message)
 
