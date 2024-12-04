@@ -5,6 +5,8 @@ from sys import executable
 from time import time
 from signal import SIGINT, signal
 from asyncio import gather, create_subprocess_exec
+from uuid import uuid4
+from html import escape
 
 from psutil import (
     boot_time,
@@ -23,6 +25,8 @@ from pyrogram.handlers import MessageHandler, CallbackQueryHandler
 
 from bot import (
     LOGGER,
+    user_data,
+    bot_name,
     bot,
     intervals,
     scheduler,
@@ -66,6 +70,7 @@ from .helper.telegram_helper.message_utils import (
     send_file,
     edit_message,
     send_message,
+    delete_message,
     five_minute_del,
 )
 from .helper.mirror_leech_utils.rclone_utils.serve import rclone_serve_booter
@@ -263,7 +268,7 @@ async def restart_notification():
 
 
 @new_task
-async def AeonCallback(_, query):
+async def aeon_callback(_, query):
     message = query.message
     user_id = query.from_user.id
     data = query.data.split()
@@ -300,7 +305,7 @@ async def AeonCallback(_, query):
         except Exception as err:
             LOGGER.error(f"TG Log Display : {err!s}")
     elif data[2] == "private":
-        await query.answer(url=f"https://t.me/{bot_username}?start=private")
+        await query.answer(url=f"https://t.me/{bot_name}?start=private")
         return None
     else:
         await query.answer()
@@ -374,7 +379,7 @@ async def main():
             & CustomFilters.authorized,
         )
     )
-    bot.add_handler(CallbackQueryHandler(AeonCallback, filters=regex(r"^aeon")))
+    bot.add_handler(CallbackQueryHandler(aeon_callback, filters=regex(r"^aeon")))
     LOGGER.info("Bot Started!")
     signal(SIGINT, exit_clean_up)
 
