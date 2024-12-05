@@ -59,8 +59,8 @@ class Aria2Status:
         if self._download.is_paused:
             return MirrorStatus.STATUS_PAUSED
         if self._download.seeder and self.seeding:
-            return MirrorStatus.STATUS_SEEDING
-        return MirrorStatus.STATUS_DOWNLOADING
+            return MirrorStatus.STATUS_SEED
+        return MirrorStatus.STATUS_DOWNLOAD
 
     def seeders_num(self):
         return self._download.num_seeders

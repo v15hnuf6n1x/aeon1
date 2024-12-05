@@ -68,13 +68,6 @@ async def get_user_settings(from_user):
     else:
         equal_splits = "Disabled"
 
-    if user_dict.get("media_group", False) or (
-        "media_group" not in user_dict and config_dict["MEDIA_GROUP"]
-    ):
-        media_group = "Enabled"
-    else:
-        media_group = "Disabled"
-
     if user_dict.get("lprefix", False):
         lprefix = user_dict["lprefix"]
     elif "lprefix" not in user_dict and config_dict["LEECH_FILENAME_PREFIX"]:
@@ -191,7 +184,6 @@ Leech Type is <b>{ltype}</b>
 Custom Thumbnail <b>{thumbmsg}</b>
 Leech Split Size is <b>{split_size}</b>
 Equal Splits is <b>{equal_splits}</b>
-Media Group is <b>{media_group}</b>
 Leech Prefix is <code>{escape(lprefix)}</code>
 Leech Destination is <code>{leech_dest}</code>
 Leech by <b>{leech_method}</b> session
@@ -379,7 +371,6 @@ async def edit_user_settings(client, query):
     elif data[2] in [
         "as_doc",
         "equal_splits",
-        "media_group",
         "user_transmission",
         "stop_duplicate",
         "mixed_leech",
@@ -472,18 +463,6 @@ async def edit_user_settings(client, query):
                 "Enable Equal Splits", f"userset {user_id} equal_splits true"
             )
             equal_splits = "Disabled"
-        if user_dict.get("media_group", False) or (
-            "media_group" not in user_dict and config_dict["MEDIA_GROUP"]
-        ):
-            buttons.data_button(
-                "Disable Media Group", f"userset {user_id} media_group false"
-            )
-            media_group = "Enabled"
-        else:
-            buttons.data_button(
-                "Enable Media Group", f"userset {user_id} media_group true"
-            )
-            media_group = "Disabled"
         if (IS_PREMIUM_USER and user_dict.get("user_transmission", False)) or (
             "user_transmission" not in user_dict and config_dict["USER_TRANSMISSION"]
         ):
@@ -529,7 +508,6 @@ Leech Type is <b>{ltype}</b>
 Custom Thumbnail <b>{thumbmsg}</b>
 Leech Split Size is <b>{split_size}</b>
 Equal Splits is <b>{equal_splits}</b>
-Media Group is <b>{media_group}</b>
 Leech Prefix is <code>{escape(lprefix)}</code>
 Leech Destination is <code>{leech_dest}</code>
 Leech by <b>{leech_method}</b> session
@@ -631,9 +609,11 @@ Check all yt-dlp api options from this <a href='https://github.com/yt-dlp/yt-dlp
     elif data[2] == "ffc":
         await query.answer()
         buttons = ButtonMaker()
-        if user_dict.get("ffmpeg_cmds", False) or config_dict["YT_DLP_OPTIONS"]:
+        if user_dict.get("ffmpeg_cmds", False) or config_dict["FFMPEG_CMDS"]:
             buttons.data_button(
-                "Remove YT-DLP Options", f"userset {user_id} ffmpeg_cmds", "header"
+                "Remove FFMPEG Commands",
+                f"userset {user_id} ffmpeg_cmds",
+                "header",
             )
         buttons.data_button("Back", f"userset {user_id} back")
         buttons.data_button("Close", f"userset {user_id} close")

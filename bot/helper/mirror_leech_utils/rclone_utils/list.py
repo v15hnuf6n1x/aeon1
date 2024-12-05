@@ -2,7 +2,7 @@ from json import loads
 from time import time
 from asyncio import Event, gather, wait_for
 from functools import partial
-from configparser import ConfigParser
+from configparser import RawConfigParser
 
 from aiofiles import open as aiopen
 from aiofiles.os import path as aiopath
@@ -167,7 +167,7 @@ class RcloneList:
         )
         try:
             await wait_for(self.event.wait(), timeout=self._timeout)
-        except:
+        except Exception:
             self.path = ""
             self.remote = "Timed Out. Task has been cancelled!"
             self.listener.is_cancelled = True
@@ -309,7 +309,7 @@ class RcloneList:
         return None
 
     async def list_remotes(self):
-        config = ConfigParser()
+        config = RawConfigParser()
         async with aiopen(self.config_path) as f:
             contents = await f.read()
             config.read_string(contents)

@@ -29,7 +29,7 @@ class YtDlpStatus:
         return get_readable_file_size(self._obj.size)
 
     def status(self):
-        return MirrorStatus.STATUS_DOWNLOADING
+        return MirrorStatus.STATUS_DOWNLOAD
 
     def name(self):
         return self.listener.name
@@ -49,7 +49,7 @@ class YtDlpStatus:
                 self._obj.size - self._proccessed_bytes
             ) / self._obj.download_speed
             return get_readable_time(seconds)
-        except:
+        except Exception:
             return "-"
 
     def task(self):

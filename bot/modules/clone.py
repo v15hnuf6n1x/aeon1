@@ -84,7 +84,7 @@ class Clone(TaskListener):
 
         try:
             self.multi = int(args["-i"])
-        except:
+        except Exception:
             self.multi = 0
 
         self.up_dest = args["-up"]

@@ -65,7 +65,7 @@ async def select(_, message):
         await send_message(message, "This task is not for you!")
         return
     if await sync_to_async(task.status) not in [
-        MirrorStatus.STATUS_DOWNLOADING,
+        MirrorStatus.STATUS_DOWNLOAD,
         MirrorStatus.STATUS_PAUSED,
         MirrorStatus.STATUS_QUEUEDL,
     ]:
@@ -80,21 +80,21 @@ async def select(_, message):
 
     try:
         id_ = task.gid()
-        if not task.queued:
-            if task.listener.is_qbit:
+        if task.listener.is_qbit:
+            if not task.queued:
                 await sync_to_async(task.update)
                 id_ = task.hash()
                 await sync_to_async(xnox_client.torrents_pause, torrent_hashes=id_)
-            else:
-                await sync_to_async(task.update)
-                try:
-                    await sync_to_async(aria2.client.force_pause, id_)
-                except Exception as e:
-                    LOGGER.error(
-                        f"{e} Error in pause, this mostly happens after abuse aria2"
-                    )
+        elif not task.queued:
+            await sync_to_async(task.update)
+            try:
+                await sync_to_async(aria2.client.force_pause, id_)
+            except Exception as e:
+                LOGGER.error(
+                    f"{e} Error in pause, this mostly happens after abuse aria2"
+                )
         task.listener.select = True
-    except:
+    except Exception:
         await send_message(message, "This is not a bittorrent task!")
         return
 

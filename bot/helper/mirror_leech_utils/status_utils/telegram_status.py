@@ -21,8 +21,8 @@ class TelegramStatus:
 
     def status(self):
         if self._status == "up":
-            return MirrorStatus.STATUS_UPLOADING
-        return MirrorStatus.STATUS_DOWNLOADING
+            return MirrorStatus.STATUS_UPLOAD
+        return MirrorStatus.STATUS_DOWNLOAD
 
     def name(self):
         return self.listener.name
@@ -30,7 +30,7 @@ class TelegramStatus:
     def progress(self):
         try:
             progress_raw = self._obj.processed_bytes / self._size * 100
-        except:
+        except Exception:
             progress_raw = 0
         return f"{round(progress_raw, 2)}%"
 
@@ -41,7 +41,7 @@ class TelegramStatus:
         try:
             seconds = (self._size - self._obj.processed_bytes) / self._obj.speed
             return get_readable_time(seconds)
-        except:
+        except Exception:
             return "-"
 
     def gid(self):

@@ -66,7 +66,6 @@ class TelegramUploader:
         self._last_msg_in_group = False
         self._up_path = ""
         self._lprefix = ""
-        self._media_group = False
         self._is_private = False
         self._sent_msg = None
         self._user_session = self._listener.user_transmission
@@ -82,11 +81,6 @@ class TelegramUploader:
         self._processed_bytes += chunk_size
 
     async def _user_settings(self):
-        self._media_group = self._listener.user_dict.get("media_group") or (
-            config_dict["MEDIA_GROUP"]
-            if "media_group" not in self._listener.user_dict
-            else False
-        )
         self._lprefix = self._listener.user_dict.get("lprefix") or (
             config_dict["LEECH_FILENAME_PREFIX"]
             if "lprefix" not in self._listener.user_dict
@@ -475,28 +469,6 @@ class TelegramUploader:
                 )
 
             if (
-                not self._listener.is_cancelled
-                and self._media_group
-                and (self._sent_msg.video or self._sent_msg.document)
-            ):
-                key = "documents" if self._sent_msg.document else "videos"
-                if match := re_match(r".+(?=\.0*\d+$)|.+(?=\.part\d+\..+$)", o_path):
-                    pname = match.group(0)
-                    if pname in self._media_dict[key]:
-                        self._media_dict[key][pname].append(
-                            [self._sent_msg.chat.id, self._sent_msg.id]
-                        )
-                    else:
-                        self._media_dict[key][pname] = [
-                            [self._sent_msg.chat.id, self._sent_msg.id]
-                        ]
-                    msgs = self._media_dict[key][pname]
-                    if len(msgs) == 10:
-                        await self._send_media_group(pname, key, msgs)
-                    else:
-                        self._last_msg_in_group = True
-
-            if (
                 self._thumb is None
                 and thumb is not None
                 and await aiopath.exists(thumb)
@@ -530,7 +502,7 @@ class TelegramUploader:
     def speed(self):
         try:
             return self._processed_bytes / (time() - self._start_time)
-        except:
+        except Exception:
             return 0
 
     @property

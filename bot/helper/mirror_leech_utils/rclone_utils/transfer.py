@@ -4,7 +4,7 @@ from json import loads
 from random import randrange
 from asyncio import gather, create_subprocess_exec
 from logging import getLogger
-from configparser import ConfigParser
+from configparser import RawConfigParser
 from asyncio.subprocess import PIPE
 
 from aiofiles import open as aiopen
@@ -63,7 +63,7 @@ class RcloneTransferHelper:
         while not (self._proc is None or self._listener.is_cancelled):
             try:
                 data = (await self._proc.stdout.readline()).decode()
-            except:
+            except Exception:
                 continue
             if not data:
                 break
@@ -505,7 +505,7 @@ class RcloneTransferHelper:
 
     @staticmethod
     async def _get_remote_options(config_path, remote):
-        config = ConfigParser()
+        config = RawConfigParser()
         async with aiopen(config_path) as f:
             contents = await f.read()
             config.read_string(contents)

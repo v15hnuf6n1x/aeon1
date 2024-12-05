@@ -150,7 +150,7 @@ class Mirror(TaskListener):
 
         try:
             self.multi = int(args["-i"])
-        except:
+        except Exception:
             self.multi = 0
 
         try:

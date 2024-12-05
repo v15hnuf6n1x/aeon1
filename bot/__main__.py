@@ -73,7 +73,6 @@ from .helper.telegram_helper.message_utils import (
     delete_message,
     five_minute_del,
 )
-from .helper.mirror_leech_utils.rclone_utils.serve import rclone_serve_booter
 
 
 @new_task
@@ -232,7 +231,6 @@ NOTE: Try each command without any argument to see more detalis.
 /{BotCommands.AExecCommand}: Exec async functions (Only Owner).
 /{BotCommands.ExecCommand}: Exec sync functions (Only Owner).
 /{BotCommands.ClearLocalsCommand}: Clear {BotCommands.AExecCommand} or {BotCommands.ExecCommand} locals (Only Owner).
-/{BotCommands.RssCommand}: RSS Menu.
 """
 
 
@@ -246,7 +244,7 @@ async def restart_notification():
         cmd = r"""remote_url=$(git config --get remote.origin.url) &&
             if echo "$remote_url" | grep -qE "github\.com[:/](.*)/(.*?)(\.git)?$"; then
                 last_commit=$(git log -1 --pretty=format:'%h') &&
-                commit_link="https://github.com/5hojib/Aeon/commit/$last_commit" &&
+                commit_link="https://github.com/AeonOrg/Aeon-MLTB/commit/$last_commit" &&
                 echo $commit_link;
             else
                 echo "Failed to extract repository name and owner name from the remote URL.";
@@ -323,7 +321,6 @@ async def main():
         bot_settings.initiate_search_tools(),
         restart_notification(),
         telegraph.create_account(),
-        rclone_serve_booter(),
         sync_to_async(start_aria2_listener, wait=False),
     )
     create_help_buttons()

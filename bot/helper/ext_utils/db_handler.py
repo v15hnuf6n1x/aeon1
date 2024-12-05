@@ -9,7 +9,6 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from bot import (
     BOT_ID,
     LOGGER,
-    rss_dict,
     user_data,
     config_dict,
     qbit_options,
@@ -69,7 +68,7 @@ class DbManager:
         # User Data
         if await self._db.users.find_one():
             rows = self._db.users.find({})
-            # return a dict ==> {_id, is_sudo, is_auth, as_doc, thumb, yt_opt, media_group, equal_splits, split_size, rclone, rclone_path, token_pickle, gdrive_id, leech_dest, lperfix, lprefix, excluded_extensions, user_transmission, index_url, default_upload}
+            # return a dict ==> {_id, is_sudo, is_auth, as_doc, thumb, yt_opt, split_size, rclone, rclone_path, token_pickle, gdrive_id, leech_dest, lperfix, lprefix, excluded_extensions, user_transmission, index_url, default_upload}
             async for row in rows:
                 uid = row["_id"]
                 del row["_id"]
@@ -96,15 +95,6 @@ class DbManager:
                     row["token_pickle"] = token_path
                 user_data[uid] = row
             LOGGER.info("Users data has been imported from Database")
-        # Rss Data
-        if await self._db.rss[BOT_ID].find_one():
-            # return a dict ==> {_id, title: {link, last_feed, last_name, inf, exf, command, paused}
-            rows = self._db.rss[BOT_ID].find({})
-            async for row in rows:
-                user_id = row["_id"]
-                del row["_id"]
-                rss_dict[user_id] = row
-            LOGGER.info("Rss data has been imported from Database.")
 
     async def update_deploy_config(self):
         if self._return:
@@ -184,56 +174,6 @@ class DbManager:
         await self._db.users.update_one(
             {"_id": user_id}, {"$set": {key: doc_bin}}, upsert=True
         )
-
-    async def rss_update_all(self):
-        if self._return:
-            return
-        for user_id in list(rss_dict.keys()):
-            await self._db.rss[BOT_ID].replace_one(
-                {"_id": user_id}, rss_dict[user_id], upsert=True
-            )
-
-    async def rss_update(self, user_id):
-        if self._return:
-            return
-        await self._db.rss[BOT_ID].replace_one(
-            {"_id": user_id}, rss_dict[user_id], upsert=True
-        )
-
-    async def rss_delete(self, user_id):
-        if self._return:
-            return
-        await self._db.rss[BOT_ID].delete_one({"_id": user_id})
-
-    async def add_incomplete_task(self, cid, link, tag):
-        if self._return:
-            return
-        await self._db.tasks[BOT_ID].insert_one(
-            {"_id": link, "cid": cid, "tag": tag}
-        )
-
-    async def rm_complete_task(self, link):
-        if self._return:
-            return
-        await self._db.tasks[BOT_ID].delete_one({"_id": link})
-
-    async def get_incomplete_tasks(self):
-        notifier_dict = {}
-        if self._return:
-            return notifier_dict
-        if await self._db.tasks[BOT_ID].find_one():
-            # return a dict ==> {_id, cid, tag}
-            rows = self._db.tasks[BOT_ID].find({})
-            async for row in rows:
-                if row["cid"] in list(notifier_dict.keys()):
-                    if row["tag"] in list(notifier_dict[row["cid"]]):
-                        notifier_dict[row["cid"]][row["tag"]].append(row["_id"])
-                    else:
-                        notifier_dict[row["cid"]][row["tag"]] = [row["_id"]]
-                else:
-                    notifier_dict[row["cid"]] = {row["tag"]: [row["_id"]]}
-        await self._db.tasks[BOT_ID].drop()
-        return notifier_dict  # return a dict ==> {cid: {tag: [_id, _id, ...]}}
 
     async def trunc_table(self, name):
         if self._return:

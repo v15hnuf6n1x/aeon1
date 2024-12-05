@@ -15,7 +15,7 @@ from bot.helper.ext_utils.task_manager import (
 )
 from bot.helper.telegram_helper.message_utils import send_status_message
 from bot.helper.mirror_leech_utils.status_utils.queue_status import QueueStatus
-from bot.helper.mirror_leech_utils.status_utils.yt_dlp_download_status import (
+from bot.helper.mirror_leech_utils.status_utils.yt_dlp_status import (
     YtDlpStatus,
 )
 

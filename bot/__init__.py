@@ -91,7 +91,7 @@ try:
         error("The README.md file there to be read! Exiting now!")
         bot_loop.stop()
         exit(1)
-except:
+except Exception:
     pass
 
 task_dict_lock = Lock()
@@ -102,7 +102,6 @@ subprocess_lock = Lock()
 same_directory_lock = Lock()
 status_dict = {}
 task_dict = {}
-rss_dict = {}
 
 BOT_TOKEN = environ.get("BOT_TOKEN", "")
 if len(BOT_TOKEN) == 0:
@@ -194,7 +193,7 @@ if len(USER_SESSION_STRING) != 0:
             max_concurrent_transmissions=10,
         ).start()
         IS_PREMIUM_USER = user.me.is_premium
-    except:
+    except Exception:
         error("Failed to start client from USER_SESSION_STRING")
         IS_PREMIUM_USER = False
         user = ""
@@ -218,11 +217,7 @@ DEFAULT_UPLOAD = environ.get("DEFAULT_UPLOAD", "")
 if DEFAULT_UPLOAD != "gd":
     DEFAULT_UPLOAD = "rc"
 
-DOWNLOAD_DIR = environ.get("DOWNLOAD_DIR", "")
-if len(DOWNLOAD_DIR) == 0:
-    DOWNLOAD_DIR = "/usr/src/app/downloads/"
-elif not DOWNLOAD_DIR.endswith("/"):
-    DOWNLOAD_DIR = f"{DOWNLOAD_DIR}/"
+DOWNLOAD_DIR = "/usr/src/app/downloads/"
 
 AUTHORIZED_CHATS = environ.get("AUTHORIZED_CHATS", "")
 if len(AUTHORIZED_CHATS) != 0:
@@ -261,23 +256,9 @@ INDEX_URL = environ.get("INDEX_URL", "").rstrip("/")
 if len(INDEX_URL) == 0:
     INDEX_URL = ""
 
-SEARCH_API_LINK = environ.get("SEARCH_API_LINK", "").rstrip("/")
-if len(SEARCH_API_LINK) == 0:
-    SEARCH_API_LINK = ""
-
 LEECH_FILENAME_PREFIX = environ.get("LEECH_FILENAME_PREFIX", "")
 if len(LEECH_FILENAME_PREFIX) == 0:
     LEECH_FILENAME_PREFIX = ""
-
-SEARCH_PLUGINS = environ.get("SEARCH_PLUGINS", "")
-if len(SEARCH_PLUGINS) == 0:
-    SEARCH_PLUGINS = ""
-else:
-    try:
-        SEARCH_PLUGINS = eval(SEARCH_PLUGINS)
-    except:
-        error(f"Wrong USENET_SERVERS format: {SEARCH_PLUGINS}")
-        SEARCH_PLUGINS = ""
 
 MAX_SPLIT_SIZE = 4194304000 if IS_PREMIUM_USER else 2097152000
 
@@ -291,18 +272,9 @@ if (
 else:
     LEECH_SPLIT_SIZE = int(LEECH_SPLIT_SIZE)
 
-STATUS_UPDATE_INTERVAL = environ.get("STATUS_UPDATE_INTERVAL", "")
-if len(STATUS_UPDATE_INTERVAL) == 0:
-    STATUS_UPDATE_INTERVAL = 15
-else:
-    STATUS_UPDATE_INTERVAL = int(STATUS_UPDATE_INTERVAL)
-
 YT_DLP_OPTIONS = environ.get("YT_DLP_OPTIONS", "")
 if len(YT_DLP_OPTIONS) == 0:
     YT_DLP_OPTIONS = ""
-
-SEARCH_LIMIT = environ.get("SEARCH_LIMIT", "")
-SEARCH_LIMIT = 0 if len(SEARCH_LIMIT) == 0 else int(SEARCH_LIMIT)
 
 LEECH_DUMP_CHAT = environ.get("LEECH_DUMP_CHAT", "")
 LEECH_DUMP_CHAT = "" if len(LEECH_DUMP_CHAT) == 0 else LEECH_DUMP_CHAT
@@ -311,12 +283,6 @@ STATUS_LIMIT = environ.get("STATUS_LIMIT", "")
 STATUS_LIMIT = 4 if len(STATUS_LIMIT) == 0 else int(STATUS_LIMIT)
 
 CMD_SUFFIX = environ.get("CMD_SUFFIX", "")
-
-RSS_CHAT = environ.get("RSS_CHAT", "")
-RSS_CHAT = "" if len(RSS_CHAT) == 0 else RSS_CHAT
-
-RSS_DELAY = environ.get("RSS_DELAY", "")
-RSS_DELAY = 600 if len(RSS_DELAY) == 0 else int(RSS_DELAY)
 
 TORRENT_TIMEOUT = environ.get("TORRENT_TIMEOUT", "")
 TORRENT_TIMEOUT = "" if len(TORRENT_TIMEOUT) == 0 else int(TORRENT_TIMEOUT)
@@ -330,9 +296,6 @@ QUEUE_DOWNLOAD = "" if len(QUEUE_DOWNLOAD) == 0 else int(QUEUE_DOWNLOAD)
 QUEUE_UPLOAD = environ.get("QUEUE_UPLOAD", "")
 QUEUE_UPLOAD = "" if len(QUEUE_UPLOAD) == 0 else int(QUEUE_UPLOAD)
 
-INCOMPLETE_TASK_NOTIFIER = environ.get("INCOMPLETE_TASK_NOTIFIER", "")
-INCOMPLETE_TASK_NOTIFIER = INCOMPLETE_TASK_NOTIFIER.lower() == "true"
-
 STOP_DUPLICATE = environ.get("STOP_DUPLICATE", "")
 STOP_DUPLICATE = STOP_DUPLICATE.lower() == "true"
 
@@ -342,23 +305,14 @@ IS_TEAM_DRIVE = IS_TEAM_DRIVE.lower() == "true"
 USE_SERVICE_ACCOUNTS = environ.get("USE_SERVICE_ACCOUNTS", "")
 USE_SERVICE_ACCOUNTS = USE_SERVICE_ACCOUNTS.lower() == "true"
 
-WEB_PINCODE = environ.get("WEB_PINCODE", "")
-WEB_PINCODE = WEB_PINCODE.lower() == "true"
-
 AS_DOCUMENT = environ.get("AS_DOCUMENT", "")
 AS_DOCUMENT = AS_DOCUMENT.lower() == "true"
 
 EQUAL_SPLITS = environ.get("EQUAL_SPLITS", "")
 EQUAL_SPLITS = EQUAL_SPLITS.lower() == "true"
 
-MEDIA_GROUP = environ.get("MEDIA_GROUP", "")
-MEDIA_GROUP = MEDIA_GROUP.lower() == "true"
-
 USER_TRANSMISSION = environ.get("USER_TRANSMISSION", "")
 USER_TRANSMISSION = USER_TRANSMISSION.lower() == "true" and IS_PREMIUM_USER
-
-BASE_URL_PORT = environ.get("BASE_URL_PORT", "")
-BASE_URL_PORT = 80 if len(BASE_URL_PORT) == 0 else int(BASE_URL_PORT)
 
 BASE_URL = environ.get("BASE_URL", "").rstrip("/")
 if len(BASE_URL) == 0:
@@ -373,21 +327,6 @@ UPSTREAM_BRANCH = environ.get("UPSTREAM_BRANCH", "")
 if len(UPSTREAM_BRANCH) == 0:
     UPSTREAM_BRANCH = "master"
 
-RCLONE_SERVE_URL = environ.get("RCLONE_SERVE_URL", "").rstrip("/")
-if len(RCLONE_SERVE_URL) == 0:
-    RCLONE_SERVE_URL = ""
-
-RCLONE_SERVE_PORT = environ.get("RCLONE_SERVE_PORT", "")
-RCLONE_SERVE_PORT = 8080 if len(RCLONE_SERVE_PORT) == 0 else int(RCLONE_SERVE_PORT)
-
-RCLONE_SERVE_USER = environ.get("RCLONE_SERVE_USER", "")
-if len(RCLONE_SERVE_USER) == 0:
-    RCLONE_SERVE_USER = ""
-
-RCLONE_SERVE_PASS = environ.get("RCLONE_SERVE_PASS", "")
-if len(RCLONE_SERVE_PASS) == 0:
-    RCLONE_SERVE_PASS = ""
-
 NAME_SUBSTITUTE = environ.get("NAME_SUBSTITUTE", "")
 NAME_SUBSTITUTE = "" if len(NAME_SUBSTITUTE) == 0 else NAME_SUBSTITUTE
 
@@ -400,7 +339,7 @@ THUMBNAIL_LAYOUT = "" if len(THUMBNAIL_LAYOUT) == 0 else THUMBNAIL_LAYOUT
 FFMPEG_CMDS = environ.get("FFMPEG_CMDS", "")
 try:
     FFMPEG_CMDS = [] if len(FFMPEG_CMDS) == 0 else eval(FFMPEG_CMDS)
-except:
+except Exception:
     error(f"Wrong FFMPEG_CMDS format: {FFMPEG_CMDS}")
     FFMPEG_CMDS = []
 
@@ -408,24 +347,20 @@ config_dict = {
     "AS_DOCUMENT": AS_DOCUMENT,
     "AUTHORIZED_CHATS": AUTHORIZED_CHATS,
     "BASE_URL": BASE_URL,
-    "BASE_URL_PORT": BASE_URL_PORT,
     "BOT_TOKEN": BOT_TOKEN,
     "CMD_SUFFIX": CMD_SUFFIX,
     "DATABASE_URL": DATABASE_URL,
     "DEFAULT_UPLOAD": DEFAULT_UPLOAD,
-    "DOWNLOAD_DIR": DOWNLOAD_DIR,
     "EQUAL_SPLITS": EQUAL_SPLITS,
     "EXTENSION_FILTER": EXTENSION_FILTER,
     "FFMPEG_CMDS": FFMPEG_CMDS,
     "FILELION_API": FILELION_API,
     "GDRIVE_ID": GDRIVE_ID,
-    "INCOMPLETE_TASK_NOTIFIER": INCOMPLETE_TASK_NOTIFIER,
     "INDEX_URL": INDEX_URL,
     "IS_TEAM_DRIVE": IS_TEAM_DRIVE,
     "LEECH_DUMP_CHAT": LEECH_DUMP_CHAT,
     "LEECH_FILENAME_PREFIX": LEECH_FILENAME_PREFIX,
     "LEECH_SPLIT_SIZE": LEECH_SPLIT_SIZE,
-    "MEDIA_GROUP": MEDIA_GROUP,
     "MIXED_LEECH": MIXED_LEECH,
     "NAME_SUBSTITUTE": NAME_SUBSTITUTE,
     "OWNER_ID": OWNER_ID,
@@ -434,17 +369,7 @@ config_dict = {
     "QUEUE_UPLOAD": QUEUE_UPLOAD,
     "RCLONE_FLAGS": RCLONE_FLAGS,
     "RCLONE_PATH": RCLONE_PATH,
-    "RCLONE_SERVE_URL": RCLONE_SERVE_URL,
-    "RCLONE_SERVE_USER": RCLONE_SERVE_USER,
-    "RCLONE_SERVE_PASS": RCLONE_SERVE_PASS,
-    "RCLONE_SERVE_PORT": RCLONE_SERVE_PORT,
-    "RSS_CHAT": RSS_CHAT,
-    "RSS_DELAY": RSS_DELAY,
-    "SEARCH_API_LINK": SEARCH_API_LINK,
-    "SEARCH_LIMIT": SEARCH_LIMIT,
-    "SEARCH_PLUGINS": SEARCH_PLUGINS,
     "STATUS_LIMIT": STATUS_LIMIT,
-    "STATUS_UPDATE_INTERVAL": STATUS_UPDATE_INTERVAL,
     "STOP_DUPLICATE": STOP_DUPLICATE,
     "STREAMWISH_API": STREAMWISH_API,
     "SUDO_USERS": SUDO_USERS,
@@ -457,7 +382,6 @@ config_dict = {
     "UPSTREAM_BRANCH": UPSTREAM_BRANCH,
     "USER_SESSION_STRING": USER_SESSION_STRING,
     "USE_SERVICE_ACCOUNTS": USE_SERVICE_ACCOUNTS,
-    "WEB_PINCODE": WEB_PINCODE,
     "YT_DLP_OPTIONS": YT_DLP_OPTIONS,
 }
 
@@ -491,14 +415,6 @@ if not ospath.exists(".netrc"):
 run(["chmod", "600", ".netrc"], check=False)
 run(["cp", ".netrc", "/root/.netrc"], check=False)
 
-trackers = (
-    check_output(
-        "curl -Ns https://raw.githubusercontent.com/XIU2/TrackersListCollection/master/all.txt https://ngosang.github.io/trackerslist/trackers_all_http.txt https://newtrackon.com/api/all https://raw.githubusercontent.com/hezhijie0327/Trackerslist/main/trackerslist_tracker.txt | awk '$0' | tr '\n\n' ','",
-        shell=True,
-    )
-    .decode("utf-8")
-    .rstrip(",")
-)
 with open("a2c.conf", "a+") as a:
     if TORRENT_TIMEOUT is not None:
         a.write(f"bt-stop-timeout={TORRENT_TIMEOUT}\n")

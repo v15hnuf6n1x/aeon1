@@ -869,7 +869,7 @@ def linkBox(url: str):
     parsed_url = urlparse(url)
     try:
         shareToken = parsed_url.path.split("/")[-1]
-    except:
+    except Exception:
         raise DirectDownloadLinkException("ERROR: invalid URL")
 
     details = {"contents": [], "title": "", "total_size": 0}
@@ -933,7 +933,7 @@ def linkBox(url: str):
         try:
             if data["shareType"] == "singleItem":
                 return __singleItem(session, data["itemId"])
-        except:
+        except Exception:
             pass
         if not details["title"]:
             details["title"] = data["dirName"]
@@ -1091,7 +1091,7 @@ def mediafireFolder(url):
         raw = url.split("/", 4)[-1]
         folderkey = raw.split("/", 1)[0]
         folderkey = folderkey.split(",")
-    except:
+    except Exception:
         raise DirectDownloadLinkException("ERROR: Could not parse ")
     if len(folderkey) == 1:
         folderkey = folderkey[0]
@@ -1153,12 +1153,12 @@ def mediafireFolder(url):
                 html = HTML(session.get(url).text)
                 if new_link := html.xpath('//a[@id="continue-btn"]/@href'):
                     return __scraper(f"https://mediafire.com/{new_link[0]}")
-            except:
+            except Exception:
                 return None
 
         try:
             html = HTML(session.get(url).text)
-        except:
+        except Exception:
             return None
         if html.xpath("//div[@class='passwordPrompt']"):
             if not _password:
@@ -1167,7 +1167,7 @@ def mediafireFolder(url):
                 )
             try:
                 html = HTML(session.post(url, data={"downloadp": _password}).text)
-            except:
+            except Exception:
                 return None
             if html.xpath("//div[@class='passwordPrompt']"):
                 return None
@@ -1334,7 +1334,7 @@ def send_cm(url):
             )
             if "Location" in _res.headers:
                 return _res.headers["Location"]
-        except:
+        except Exception:
             pass
 
     def __getFiles(html):
@@ -1720,7 +1720,7 @@ def mp4upload(url):
             data["referer"] = url
             direct_link = session.post(url, data=data).url
             return direct_link, header
-        except:
+        except Exception:
             raise DirectDownloadLinkException("ERROR: File Not Found!")
 
 

@@ -17,7 +17,6 @@ class _BotCommands:
         self.CancelAllCommand = f"cancelall{CMD_SUFFIX}"
         self.ForceStartCommand = [f"forcestart{CMD_SUFFIX}", f"fs{CMD_SUFFIX}"]
         self.ListCommand = f"list{CMD_SUFFIX}"
-        self.SearchCommand = f"search{CMD_SUFFIX}"
         self.StatusCommand = f"status{CMD_SUFFIX}"
         self.UsersCommand = f"users{CMD_SUFFIX}"
         self.AuthorizeCommand = f"authorize{CMD_SUFFIX}"
@@ -36,7 +35,6 @@ class _BotCommands:
         self.BotSetCommand = [f"bsetting{CMD_SUFFIX}", f"bs{CMD_SUFFIX}"]
         self.UserSetCommand = [f"usetting{CMD_SUFFIX}", f"us{CMD_SUFFIX}"]
         self.SelectCommand = f"sel{CMD_SUFFIX}"
-        self.RssCommand = f"rss{CMD_SUFFIX}"
 
 
 BotCommands = _BotCommands()

@@ -62,7 +62,7 @@ class TaskListener(TaskConfig):
                     intvl.cancel()
             intervals["status"].clear()
             await gather(sync_to_async(aria2.purge), delete_status())
-        except:
+        except Exception:
             pass
 
     async def remove_from_same_dir(self):
@@ -76,14 +76,7 @@ class TaskListener(TaskConfig):
                 self.same_dir[self.folder_name]["total"] -= 1
 
     async def on_download_start(self):
-        if (
-            self.is_super_chat
-            and config_dict["INCOMPLETE_TASK_NOTIFIER"]
-            and DATABASE_URL
-        ):
-            await Database.add_incomplete_task(
-                self.message.chat.id, self.message.link, self.tag
-            )
+        pass
 
     async def on_download_complete(self):
         await sleep(2)
@@ -292,12 +285,6 @@ class TaskListener(TaskConfig):
     async def on_upload_complete(
         self, link, files, folders, mime_type, rclonePath="", dir_id=""
     ):
-        if (
-            self.is_super_chat
-            and config_dict["INCOMPLETE_TASK_NOTIFIER"]
-            and DATABASE_URL
-        ):
-            await Database.rm_complete_task(self.message.link)
         msg = f"<b>Name: </b><code>{escape(self.name)}</code>\n\n<b>Size: </b>{get_readable_file_size(self.size)}"
         LOGGER.info(f"Task Done: {self.name}")
         if self.is_leech:
@@ -324,7 +311,6 @@ class TaskListener(TaskConfig):
                 msg += f"\n<b>Files: </b>{files}"
             if link or (
                 rclonePath
-                and config_dict["RCLONE_SERVE_URL"]
                 and not self.private_link
             ):
                 buttons = ButtonMaker()
@@ -334,15 +320,10 @@ class TaskListener(TaskConfig):
                     msg += f"\n\nPath: <code>{rclonePath}</code>"
                 if (
                     rclonePath
-                    and (RCLONE_SERVE_URL := config_dict["RCLONE_SERVE_URL"])
                     and not self.private_link
                 ):
                     remote, path = rclonePath.split(":", 1)
                     url_path = rutils.quote(f"{path}")
-                    share_url = f"{RCLONE_SERVE_URL}/{remote}/{url_path}"
-                    if mime_type == "Folder":
-                        share_url += "/"
-                    buttons.url_button("🔗 Rclone Link", share_url)
                 if not rclonePath and dir_id:
                     INDEX_URL = ""
                     if self.private_link:
@@ -398,13 +379,6 @@ class TaskListener(TaskConfig):
         else:
             await update_status_message(self.message.chat.id)
 
-        if (
-            self.is_super_chat
-            and config_dict["INCOMPLETE_TASK_NOTIFIER"]
-            and DATABASE_URL
-        ):
-            await Database.rm_complete_task(self.message.link)
-
         async with queue_dict_lock:
             if self.mid in queued_dl:
                 queued_dl[self.mid].set()
@@ -435,13 +409,6 @@ class TaskListener(TaskConfig):
             await self.clean()
         else:
             await update_status_message(self.message.chat.id)
-
-        if (
-            self.is_super_chat
-            and config_dict["INCOMPLETE_TASK_NOTIFIER"]
-            and DATABASE_URL
-        ):
-            await Database.rm_complete_task(self.message.link)
 
         async with queue_dict_lock:
             if self.mid in queued_dl:

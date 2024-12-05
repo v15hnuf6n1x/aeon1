@@ -58,10 +58,10 @@ class QbittorrentStatus:
         if state in ["pausedDL", "pausedUP"]:
             return MirrorStatus.STATUS_PAUSED
         if state in ["checkingUP", "checkingDL"]:
-            return MirrorStatus.STATUS_CHECKING
+            return MirrorStatus.STATUS_CHECK
         if state in ["stalledUP", "uploading"] and self.seeding:
-            return MirrorStatus.STATUS_SEEDING
-        return MirrorStatus.STATUS_DOWNLOADING
+            return MirrorStatus.STATUS_SEED
+        return MirrorStatus.STATUS_DOWNLOAD
 
     def seeders_num(self):
         return self._info.num_seeds
