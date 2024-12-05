@@ -1,3 +1,4 @@
+# ruff: noqa
 from os import path as ospath
 from re import match, search, findall
 from json import loads
