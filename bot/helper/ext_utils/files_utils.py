@@ -108,7 +108,7 @@ def clean_all():
     makedirs(DOWNLOAD_DIR, exist_ok=True)
 
 
-def exit_clean_up(signal, frame):
+def exit_clean_up(_, __):
     try:
         LOGGER.info("Please wait, while we clean up and stop the running downloads")
         clean_all()

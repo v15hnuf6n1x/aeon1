@@ -12,7 +12,7 @@ from bot.helper.mirror_leech_utils.gdrive_utils.count import GoogleDriveCount
 
 
 @new_task
-async def countNode(_, message):
+async def count_node(_, message):
     args = message.text.split()
     user = message.from_user or message.sender_chat
     if username := user.username:
@@ -48,7 +48,7 @@ async def countNode(_, message):
 
 bot.add_handler(
     MessageHandler(
-        countNode,
+        count_node,
         filters=command(
             BotCommands.CountCommand,
         )

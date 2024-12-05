@@ -281,7 +281,7 @@ class TaskListener(TaskConfig):
             )
 
     async def on_upload_complete(
-        self, link, files, folders, mime_type, rclonePath="", dir_id=""
+        self, link, files, folders, mime_type, rclone_path="", dir_id=""
     ):
         msg = f"<b>Name: </b><code>{escape(self.name)}</code>\n\n<b>Size: </b>{get_readable_file_size(self.size)}"
         LOGGER.info(f"Task Done: {self.name}")
@@ -307,16 +307,16 @@ class TaskListener(TaskConfig):
             if mime_type == "Folder":
                 msg += f"\n<b>SubFolders: </b>{folders}"
                 msg += f"\n<b>Files: </b>{files}"
-            if link or (rclonePath and not self.private_link):
+            if link or (rclone_path and not self.private_link):
                 buttons = ButtonMaker()
                 if link:
                     buttons.url_button("☁️ Cloud Link", link)
                 else:
-                    msg += f"\n\nPath: <code>{rclonePath}</code>"
-                if rclonePath and not self.private_link:
-                    remote, path = rclonePath.split(":", 1)
+                    msg += f"\n\nPath: <code>{rclone_path}</code>"
+                if rclone_path and not self.private_link:
+                    remote, path = rclone_path.split(":", 1)
                     rutils.quote(f"{path}")
-                if not rclonePath and dir_id:
+                if not rclone_path and dir_id:
                     INDEX_URL = ""
                     if self.private_link:
                         INDEX_URL = self.user_dict.get("index_url", "") or ""
@@ -330,7 +330,7 @@ class TaskListener(TaskConfig):
                             buttons.url_button("🌐 View Link", share_urls)
                 button = buttons.build_menu(2)
             else:
-                msg += f"\n\nPath: <code>{rclonePath}</code>"
+                msg += f"\n\nPath: <code>{rclone_path}</code>"
                 button = None
             msg += f"\n\n<b>cc: </b>{self.tag}"
             await send_message(self.message, msg, button)

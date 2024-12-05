@@ -21,6 +21,7 @@ from pyrogram.handlers import MessageHandler, CallbackQueryHandler
 
 from bot import (
     bot,
+    LOGGER,
     intervals,
     task_dict,
     user_data,
@@ -399,7 +400,7 @@ async def load_config():
     if len(task_dict) != 0 and (st := intervals["status"]):
         for key, intvl in list(st.items()):
             intvl.cancel()
-            jntervals["status"][key] = SetInterval(1, update_status_message, key)
+            intervals["status"][key] = SetInterval(1, update_status_message, key)
 
     YT_DLP_OPTIONS = environ.get("YT_DLP_OPTIONS", "")
     LEECH_DUMP_CHAT = environ.get("LEECH_DUMP_CHAT", "")

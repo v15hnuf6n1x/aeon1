@@ -31,7 +31,7 @@ from bot import (
     scheduler,
     user_data,
     config_dict,
-    botStartTime,
+    bot_start_time,
 )
 
 from .modules import (
@@ -89,7 +89,7 @@ async def stats(_, message):
     memory = virtual_memory()
     stats = (
         f"<b>Commit Date:</b> {last_commit}\n\n"
-        f"<b>Bot Uptime:</b> {get_readable_time(time() - botStartTime)}\n"
+        f"<b>Bot Uptime:</b> {get_readable_time(time() - bot_start_time)}\n"
         f"<b>OS Uptime:</b> {get_readable_time(time() - boot_time())}\n\n"
         f"<b>Total Disk Space:</b> {get_readable_file_size(total)}\n"
         f"<b>Used:</b> {get_readable_file_size(used)} | <b>Free:</b> {get_readable_file_size(free)}\n\n"

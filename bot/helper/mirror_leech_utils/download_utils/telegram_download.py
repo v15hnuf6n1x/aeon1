@@ -56,7 +56,7 @@ class TelegramDownloadHelper:
                 f"Start Queued Download from Telegram: {self._listener.name}"
             )
 
-    async def _onDownloadProgress(self, current, total):
+    async def _on_download_progress(self, current, _):
         if self._listener.is_cancelled:
             if self.session == "user":
                 user.stop_transmission()
@@ -78,7 +78,7 @@ class TelegramDownloadHelper:
     async def _download(self, message, path):
         try:
             download = await message.download(
-                file_name=path, progress=self._onDownloadProgress
+                file_name=path, progress=self._on_download_progress
             )
             if self._listener.is_cancelled:
                 await self._on_download_error("Cancelled by user!")

@@ -168,7 +168,7 @@ def direct_link_generator(link):
             "telbx.net",
         ]
     ):
-        return linkBox(link)
+        return linkbox(link)
     if is_share_link(link):
         if "gdtot" in domain:
             return gdtot(link)
@@ -865,7 +865,7 @@ def shrdsk(url):
     raise DirectDownloadLinkException("ERROR: cannot find direct link in headers")
 
 
-def linkBox(url: str):
+def linkbox(url: str):
     parsed_url = urlparse(url)
     try:
         shareToken = parsed_url.path.split("/")[-1]
@@ -874,7 +874,7 @@ def linkBox(url: str):
 
     details = {"contents": [], "title": "", "total_size": 0}
 
-    def __singleItem(session, itemId):
+    def __single_item(session, itemId):
         try:
             _json = session.get(
                 "https://www.linkbox.to/api/file/detail",
@@ -932,7 +932,7 @@ def linkBox(url: str):
             raise DirectDownloadLinkException("ERROR: data not found")
         try:
             if data["shareType"] == "singleItem":
-                return __singleItem(session, data["itemId"])
+                return __single_item(session, data["itemId"])
         except Exception:
             pass
         if not details["title"]:

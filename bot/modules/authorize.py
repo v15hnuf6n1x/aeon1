@@ -81,7 +81,7 @@ async def unauthorize(_, message):
 
 
 @new_task
-async def addSudo(_, message):
+async def add_sudo(_, message):
     id_ = ""
     msg = message.text.split()
     if len(msg) > 1:
@@ -104,7 +104,7 @@ async def addSudo(_, message):
 
 
 @new_task
-async def removeSudo(_, message):
+async def remove_sudo(_, message):
     id_ = ""
     msg = message.text.split()
     if len(msg) > 1:
@@ -143,7 +143,7 @@ bot.add_handler(
 )
 bot.add_handler(
     MessageHandler(
-        addSudo,
+        add_sudo,
         filters=command(
             BotCommands.AddSudoCommand,
         )
@@ -152,7 +152,7 @@ bot.add_handler(
 )
 bot.add_handler(
     MessageHandler(
-        removeSudo,
+        remove_sudo,
         filters=command(
             BotCommands.RmSudoCommand,
         )
