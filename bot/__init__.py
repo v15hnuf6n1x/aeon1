@@ -415,6 +415,15 @@ if not ospath.exists(".netrc"):
 run(["chmod", "600", ".netrc"], check=False)
 run(["cp", ".netrc", "/root/.netrc"], check=False)
 
+trackers = (
+    check_output(
+        "curl -Ns https://raw.githubusercontent.com/XIU2/TrackersListCollection/master/all.txt https://ngosang.github.io/trackerslist/trackers_all_http.txt https://newtrackon.com/api/all https://raw.githubusercontent.com/hezhijie0327/Trackerslist/main/trackerslist_tracker.txt | awk '$0' | tr '\n\n' ','",
+        shell=True,
+    )
+    .decode("utf-8")
+    .rstrip(",")
+)
+
 with open("a2c.conf", "a+") as a:
     if TORRENT_TIMEOUT is not None:
         a.write(f"bt-stop-timeout={TORRENT_TIMEOUT}\n")
