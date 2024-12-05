@@ -1,35 +1,35 @@
-from io import BytesIO
-from os import getcwd, environ
-from time import time
 from asyncio import (
-    sleep,
-    gather,
     create_subprocess_exec,
     create_subprocess_shell,
+    gather,
+    sleep,
 )
-from functools import partial
 from collections import OrderedDict
+from functools import partial
+from io import BytesIO
+from os import environ, getcwd
+from time import time
 
-from dotenv import load_dotenv
 from aiofiles import open as aiopen
-from aioshutil import rmtree
 from aiofiles.os import path as aiopath
 from aiofiles.os import remove, rename
+from aioshutil import rmtree
+from dotenv import load_dotenv
 from pyrogram.enums import ChatType
-from pyrogram.filters import regex, create, command
-from pyrogram.handlers import MessageHandler, CallbackQueryHandler
+from pyrogram.filters import command, create, regex
+from pyrogram.handlers import CallbackQueryHandler, MessageHandler
 
 from bot import (
     LOGGER,
     bot,
+    config_dict,
+    drives_ids,
+    drives_names,
+    global_extension_filter,
+    index_urls,
     intervals,
     task_dict,
     user_data,
-    drives_ids,
-    index_urls,
-    config_dict,
-    drives_names,
-    global_extension_filter,
 )
 from bot.helper.ext_utils.bot_utils import (
     SetInterval,
@@ -37,15 +37,15 @@ from bot.helper.ext_utils.bot_utils import (
 )
 from bot.helper.ext_utils.db_handler import Database
 from bot.helper.ext_utils.task_manager import start_from_queued
-from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.button_build import ButtonMaker
+from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.message_utils import (
-    send_file,
     delete_links,
-    edit_message,
-    send_message,
     delete_message,
+    edit_message,
+    send_file,
+    send_message,
     update_status_message,
 )
 
@@ -82,7 +82,9 @@ async def get_buttons(key=None, edit_type=None, edit_mode=None, mess=None):
         buttons.data_button("Close", "botset close")
         for x in range(0, len(config_dict) - 1, 10):
             buttons.data_button(
-                f"{int(x/10)+1}", f"botset start var {x}", position="footer"
+                f"{int(x/10)+1}",
+                f"botset start var {x}",
+                position="footer",
             )
         msg = f"<b>Config Variables<b> | Page: {int(start/10)+1}"
     elif key == "private":
@@ -95,7 +97,9 @@ async def get_buttons(key=None, edit_type=None, edit_mode=None, mess=None):
             msg += f'<b>Value:</b> <code>{config_dict.get(key, "None")}</code>\n\n'
         elif key not in boolean_variables:
             buttons.data_button(
-                "View value", f"botset showvar {key}", position="header"
+                "View value",
+                f"botset showvar {key}",
+                position="header",
             )
         buttons.data_button("Back", "botset back var", position="footer")
         if key not in boolean_variables:
@@ -184,7 +188,12 @@ async def update_private_file(_, message, pre_message):
                 await rmtree("rclone_sa", ignore_errors=True)
             await (
                 await create_subprocess_exec(
-                    "7z", "x", "-o.", "-aoa", "accounts.zip", "accounts/*.json"
+                    "7z",
+                    "x",
+                    "-o.",
+                    "-aoa",
+                    "accounts.zip",
+                    "accounts/*.json",
                 )
             ).wait()
             await (
@@ -236,11 +245,12 @@ async def event_handler(client, query, pfunc, rfunc, document=False):
         return bool(
             user.id == query.from_user.id
             and event.chat.id == chat_id
-            and (event.text or (event.document and document))
+            and (event.text or (event.document and document)),
         )
 
     handler = client.add_handler(
-        MessageHandler(pfunc, filters=create(event_filter)), group=-1
+        MessageHandler(pfunc, filters=create(event_filter)),
+        group=-1,
     )
     while handler_dict[chat_id]:
         await sleep(0.5)
@@ -305,7 +315,8 @@ async def edit_bot_settings(client, query):
         handler_dict[message.chat.id] = False
         value = data[3] == "on"
         await query.answer(
-            f"Successfully variable	 changed to {value}!", show_alert=True
+            f"Successfully variable	 changed to {value}!",
+            show_alert=True,
         )
         config_dict[data[2]] = value
         await update_buttons(message, data[2], "editvar", False)
@@ -443,12 +454,13 @@ async def load_config():
         BASE_URL = ""
     else:
         await create_subprocess_shell(
-            "gunicorn web.wserver:app --bind 0.0.0.0:80 --worker-class gevent"
+            "gunicorn web.wserver:app --bind 0.0.0.0:80 --worker-class gevent",
         )
 
     UPSTREAM_BRANCH = environ.get("UPSTREAM_BRANCH", "main")
     UPSTREAM_REPO = environ.get(
-        "UPSTREAM_REPO", "https://github.com/AeonOrg/Aeon-MLTB"
+        "UPSTREAM_REPO",
+        "https://github.com/AeonOrg/Aeon-MLTB",
     )
     drives_ids.clear()
     drives_names.clear()
@@ -506,7 +518,7 @@ async def load_config():
             "USER_SESSION_STRING": USER_SESSION_STRING,
             "USE_SERVICE_ACCOUNTS": USE_SERVICE_ACCOUNTS,
             "YT_DLP_OPTIONS": YT_DLP_OPTIONS,
-        }
+        },
     )
 
     if config_dict["DATABASE_URL"]:
@@ -519,11 +531,13 @@ async def load_config():
 
 bot.add_handler(
     MessageHandler(
-        bot_settings, filters=command(BotCommands.BotSetCommand) & CustomFilters.sudo
-    )
+        bot_settings,
+        filters=command(BotCommands.BotSetCommand) & CustomFilters.sudo,
+    ),
 )
 bot.add_handler(
     CallbackQueryHandler(
-        edit_bot_settings, filters=regex("^botset") & CustomFilters.sudo
-    )
+        edit_bot_settings,
+        filters=regex("^botset") & CustomFilters.sudo,
+    ),
 )

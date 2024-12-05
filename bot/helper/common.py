@@ -1,41 +1,41 @@
 import contextlib
+from asyncio import create_subprocess_exec, gather, sleep
+from asyncio.subprocess import PIPE
 from os import path as ospath
 from os import walk
 from re import IGNORECASE, sub
-from asyncio import sleep, gather, create_subprocess_exec
 from secrets import token_urlsafe
-from asyncio.subprocess import PIPE
 
-from aioshutil import move, copy2
+from aiofiles.os import makedirs, remove
 from aiofiles.os import path as aiopath
-from aiofiles.os import remove, makedirs
+from aioshutil import copy2, move
 from pyrogram.enums import ChatAction
 
 from bot import (
-    LOGGER,
     DOWNLOAD_DIR,
-    MAX_SPLIT_SIZE,
     IS_PREMIUM_USER,
-    user,
-    intervals,
-    task_dict,
-    user_data,
-    multi_tags,
+    LOGGER,
+    MAX_SPLIT_SIZE,
     config_dict,
     cpu_eater_lock,
-    task_dict_lock,
-    subprocess_lock,
     global_extension_filter,
+    intervals,
+    multi_tags,
+    subprocess_lock,
+    task_dict,
+    task_dict_lock,
+    user,
+    user_data,
 )
 
-from .ext_utils.bot_utils import new_task, sync_to_async, get_size_bytes
+from .ext_utils.bot_utils import get_size_bytes, new_task, sync_to_async
 from .ext_utils.bulk_links import extract_bulk_links
 from .ext_utils.exceptions import NotSupportedExtractionArchive
 from .ext_utils.files_utils import (
-    is_archive,
     clean_target,
     get_base_name,
     get_path_size,
+    is_archive,
     is_archive_split,
     is_first_archive_split,
 )
@@ -46,25 +46,25 @@ from .ext_utils.links_utils import (
     is_telegram_link,
 )
 from .ext_utils.media_utils import (
-    take_ss,
-    split_file,
-    create_thumb,
     convert_audio,
     convert_video,
-    run_ffmpeg_cmd,
-    get_document_type,
     create_sample_video,
-)
-from .telegram_helper.bot_commands import BotCommands
-from .telegram_helper.message_utils import (
-    send_message,
-    get_tg_link_message,
-    send_status_message,
+    create_thumb,
+    get_document_type,
+    run_ffmpeg_cmd,
+    split_file,
+    take_ss,
 )
 from .mirror_leech_utils.gdrive_utils.list import GoogleDriveList
 from .mirror_leech_utils.rclone_utils.list import RcloneList
 from .mirror_leech_utils.status_utils.ffmpeg_status import FFmpegStatus
 from .mirror_leech_utils.status_utils.sevenz_status import SevenZStatus
+from .telegram_helper.bot_commands import BotCommands
+from .telegram_helper.message_utils import (
+    get_tg_link_message,
+    send_message,
+    send_status_message,
+)
 
 
 class TaskConfig:
@@ -174,13 +174,14 @@ class TaskConfig:
         if self.link not in ["rcl", "gdl"]:
             if is_rclone_path(self.link):
                 if not self.link.startswith("mrcc:") and self.user_dict.get(
-                    "user_tokens", False
+                    "user_tokens",
+                    False,
                 ):
                     self.link = f"mrcc:{self.link}"
                 await self.is_token_exists(self.link, "dl")
             elif is_gdrive_link(self.link):
                 if not self.link.startswith(
-                    ("mtp:", "tp:", "sa:")
+                    ("mtp:", "tp:", "sa:"),
                 ) and self.user_dict.get("user_tokens", False):
                     self.link = f"mtp:{self.link}"
                 await self.is_token_exists(self.link, "dl")
@@ -244,12 +245,13 @@ class TaskConfig:
                 raise ValueError("No Upload Destination!")
             if is_gdrive_id(self.up_dest):
                 if not self.up_dest.startswith(
-                    ("mtp:", "tp:", "sa:")
+                    ("mtp:", "tp:", "sa:"),
                 ) and self.user_dict.get("user_tokens", False):
                     self.up_dest = f"mtp:{self.up_dest}"
             elif is_rclone_path(self.up_dest):
                 if not self.up_dest.startswith("mrcc:") and self.user_dict.get(
-                    "user_tokens", False
+                    "user_tokens",
+                    False,
                 ):
                     self.up_dest = f"mrcc:{self.up_dest}"
             else:
@@ -262,13 +264,14 @@ class TaskConfig:
                 if self.is_clone:
                     if not is_rclone_path(self.link):
                         raise ValueError(
-                            "You can't clone from different types of tools"
+                            "You can't clone from different types of tools",
                         )
                     config_path = self.get_config_path(self.link)
                 else:
                     config_path = None
                 self.up_dest = await RcloneList(self).get_rclone_path(
-                    "rcu", config_path
+                    "rcu",
+                    config_path,
                 )
                 if not is_rclone_path(self.up_dest):
                     raise ValueError(self.up_dest)
@@ -276,23 +279,24 @@ class TaskConfig:
                 if self.is_clone:
                     if not is_gdrive_link(self.link):
                         raise ValueError(
-                            "You can't clone from different types of tools"
+                            "You can't clone from different types of tools",
                         )
                     token_path = self.get_token_path(self.link)
                 else:
                     token_path = None
                 self.up_dest = await GoogleDriveList(self).get_target_id(
-                    "gdu", token_path
+                    "gdu",
+                    token_path,
                 )
                 if not is_gdrive_id(self.up_dest):
                     raise ValueError(self.up_dest)
             elif self.is_clone:
                 if is_gdrive_link(self.link) and self.get_token_path(
-                    self.link
+                    self.link,
                 ) != self.get_token_path(self.up_dest):
                     raise ValueError("You must use the same token to clone!")
                 if is_rclone_path(self.link) and self.get_config_path(
-                    self.link
+                    self.link,
                 ) != self.get_config_path(self.up_dest):
                     raise ValueError("You must use the same config to clone!")
         else:
@@ -344,16 +348,17 @@ class TaskConfig:
                         or not member.privileges.can_delete_messages
                     ):
                         raise ValueError(
-                            "You don't have enough privileges in this chat!"
+                            "You don't have enough privileges in this chat!",
                         )
                 elif self.user_transmission:
                     raise ValueError(
-                        "Custom Leech Destination only allowed for super-group or channel when UserTransmission enalbed!\nDisable UserTransmission so bot can send files to user!"
+                        "Custom Leech Destination only allowed for super-group or channel when UserTransmission enalbed!\nDisable UserTransmission so bot can send files to user!",
                     )
                 else:
                     try:
                         await self.client.send_chat_action(
-                            self.up_dest, ChatAction.TYPING
+                            self.up_dest,
+                            ChatAction.TYPING,
                         )
                     except Exception:
                         raise ValueError("Start the bot and try again!")
@@ -442,7 +447,8 @@ class TaskConfig:
             return
         if self.multi_tag and self.multi_tag not in multi_tags:
             await send_message(
-                self.message, f"{self.tag} Multi Task has been cancelled!"
+                self.message,
+                f"{self.tag} Multi Task has been cancelled!",
             )
             await send_status_message(self.message)
             async with task_dict_lock:
@@ -469,7 +475,8 @@ class TaskConfig:
                 msgts += f"\nCancel Multi: <code>/{BotCommands.CancelTaskCommand[1]} {self.multi_tag}</code>"
             nextmsg = await send_message(nextmsg, msgts)
         nextmsg = await self.client.get_messages(
-            chat_id=self.message.chat.id, message_ids=nextmsg.id
+            chat_id=self.message.chat.id,
+            message_ids=nextmsg.id,
         )
         if self.message.from_user:
             nextmsg.from_user = self.user
@@ -508,7 +515,8 @@ class TaskConfig:
                 msg += f"\nCancel Multi: <code>/{BotCommands.CancelTaskCommand[1]} {self.multi_tag}</code>"
             nextmsg = await send_message(self.message, msg)
             nextmsg = await self.client.get_messages(
-                chat_id=self.message.chat.id, message_ids=nextmsg.id
+                chat_id=self.message.chat.id,
+                message_ids=nextmsg.id,
             )
             if self.message.from_user:
                 nextmsg.from_user = self.user
@@ -533,7 +541,9 @@ class TaskConfig:
     async def decompress_zst(self, dl_path, is_dir=False):
         if is_dir:
             for dirpath, _, files in await sync_to_async(
-                walk, dl_path, topdown=False
+                walk,
+                dl_path,
+                topdown=False,
             ):
                 for file_ in files:
                     if file_.endswith(".zst"):
@@ -544,7 +554,8 @@ class TaskConfig:
                             return ""
                         async with subprocess_lock:
                             self.subproc = await create_subprocess_exec(
-                                *cmd, stderr=PIPE
+                                *cmd,
+                                stderr=PIPE,
                             )
                         _, stderr = await self.subproc.communicate()
                         if self.is_cancelled:
@@ -556,7 +567,7 @@ class TaskConfig:
                             except Exception:
                                 stderr = "Unable to decode the error!"
                             LOGGER.error(
-                                f"{stderr}. Unable to extract zst file!. Path: {f_path}"
+                                f"{stderr}. Unable to extract zst file!. Path: {f_path}",
                             )
                         elif not self.seed:
                             await remove(f_path)
@@ -578,7 +589,7 @@ class TaskConfig:
                 except Exception:
                     stderr = "Unable to decode the error!"
                 LOGGER.error(
-                    f"{stderr}. Unable to extract zst file!. Path: {dl_path}"
+                    f"{stderr}. Unable to extract zst file!. Path: {dl_path}",
                 )
             elif not self.seed:
                 await remove(dl_path)
@@ -599,7 +610,9 @@ class TaskConfig:
                     up_path = dl_path
                 await self.decompress_zst(dl_path, is_dir=True)
                 for dirpath, _, files in await sync_to_async(
-                    walk, dl_path, topdown=False
+                    walk,
+                    dl_path,
+                    topdown=False,
                 ):
                     for file_ in files:
                         if is_first_archive_split(file_) or (
@@ -628,7 +641,8 @@ class TaskConfig:
                                 return ""
                             async with subprocess_lock:
                                 self.subproc = await create_subprocess_exec(
-                                    *cmd, stderr=PIPE
+                                    *cmd,
+                                    stderr=PIPE,
                                 )
                             _, stderr = await self.subproc.communicate()
                             if self.is_cancelled:
@@ -640,7 +654,7 @@ class TaskConfig:
                                 except Exception:
                                     stderr = "Unable to decode the error!"
                                 LOGGER.error(
-                                    f"{stderr}. Unable to extract archive splits!. Path: {f_path}"
+                                    f"{stderr}. Unable to extract archive splits!. Path: {f_path}",
                                 )
                     if (
                         not self.seed
@@ -695,13 +709,13 @@ class TaskConfig:
             except Exception:
                 stderr = "Unable to decode the error!"
             LOGGER.error(
-                f"{stderr}. Unable to extract archive! Uploading anyway. Path: {dl_path}"
+                f"{stderr}. Unable to extract archive! Uploading anyway. Path: {dl_path}",
             )
             self.new_dir = ""
             return dl_path
         except NotSupportedExtractionArchive:
             LOGGER.info(
-                f"Not any valid archive, uploading file as it is. Path: {dl_path}"
+                f"Not any valid archive, uploading file as it is. Path: {dl_path}",
             )
             self.new_dir = ""
             return dl_path
@@ -795,7 +809,12 @@ class TaskConfig:
                             task_dict[self.mid] = FFmpegStatus(self, gid, "Split")
                         LOGGER.info(f"Splitting: {self.name}")
                     res = await split_file(
-                        f_path, f_size, dirpath, file_, self.split_size, self
+                        f_path,
+                        f_size,
+                        dirpath,
+                        file_,
+                        self.split_size,
+                        self,
                     )
                     if self.is_cancelled:
                         return
@@ -842,7 +861,10 @@ class TaskConfig:
                 async with cpu_eater_lock:
                     LOGGER.info(f"Creating Sample video: {self.name}")
                     res = await create_sample_video(
-                        self, dl_path, sample_duration, part_duration
+                        self,
+                        dl_path,
+                        sample_duration,
+                        part_duration,
                     )
                 if res:
                     new_folder = ospath.splitext(dl_path)[0]
@@ -866,7 +888,9 @@ class TaskConfig:
                     return new_folder
         else:
             for dirpath, _, files in await sync_to_async(
-                walk, dl_path, topdown=False
+                walk,
+                dl_path,
+                topdown=False,
             ):
                 for file_ in files:
                     f_path = ospath.join(dirpath, file_)
@@ -882,7 +906,10 @@ class TaskConfig:
                                 cpu_eater_lock.release()
                             return ""
                         res = await create_sample_video(
-                            self, f_path, sample_duration, part_duration
+                            self,
+                            f_path,
+                            sample_duration,
+                            part_duration,
                         )
                         if res:
                             ft_delete.append(res)
@@ -992,7 +1019,9 @@ class TaskConfig:
                 return output_file
         else:
             for dirpath, _, files in await sync_to_async(
-                walk, dl_path, topdown=False
+                walk,
+                dl_path,
+                topdown=False,
             ):
                 for file_ in files:
                     if self.is_cancelled:
@@ -1041,7 +1070,9 @@ class TaskConfig:
         else:
             LOGGER.info(f"Creating Screenshot for: {dl_path}")
             for dirpath, _, files in await sync_to_async(
-                walk, dl_path, topdown=False
+                walk,
+                dl_path,
+                topdown=False,
             ):
                 for file_ in files:
                     f_path = ospath.join(dirpath, file_)
@@ -1067,11 +1098,14 @@ class TaskConfig:
                     res = ""
                 try:
                     name = sub(
-                        rf"{pattern}", res, name, flags=IGNORECASE if sen else 0
+                        rf"{pattern}",
+                        res,
+                        name,
+                        flags=IGNORECASE if sen else 0,
                     )
                 except Exception as e:
                     LOGGER.error(
-                        f"Substitute Error: pattern: {pattern} res: {res}. Errro: {e}"
+                        f"Substitute Error: pattern: {pattern} res: {res}. Errro: {e}",
                     )
                     return dl_path
                 if len(name.encode()) > 255:
@@ -1098,11 +1132,14 @@ class TaskConfig:
                         res = ""
                     try:
                         file_ = sub(
-                            rf"{pattern}", res, file_, flags=IGNORECASE if sen else 0
+                            rf"{pattern}",
+                            res,
+                            file_,
+                            flags=IGNORECASE if sen else 0,
                         )
                     except Exception as e:
                         LOGGER.error(
-                            f"Substitute Error: pattern: {pattern} res: {res}. Errro: {e}"
+                            f"Substitute Error: pattern: {pattern} res: {res}. Errro: {e}",
                         )
                         continue
                     if len(file_.encode()) > 255:
@@ -1156,7 +1193,9 @@ class TaskConfig:
                     await remove(file_path)
             else:
                 for dirpath, _, files in await sync_to_async(
-                    walk, dl_path, topdown=False
+                    walk,
+                    dl_path,
+                    topdown=False,
                 ):
                     for file_ in files:
                         if self.is_cancelled:
@@ -1177,7 +1216,9 @@ class TaskConfig:
                             checked = True
                             async with task_dict_lock:
                                 task_dict[self.mid] = FFmpegStatus(
-                                    self, gid, "FFmpeg"
+                                    self,
+                                    gid,
+                                    "FFmpeg",
                                 )
                             await cpu_eater_lock.acquire()
                         LOGGER.info(f"Running ffmpeg cmd for: {f_path}")

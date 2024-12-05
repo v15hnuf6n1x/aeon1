@@ -1,25 +1,25 @@
 import contextlib
-from time import time
 from asyncio import sleep
+from time import time
 
 from aiofiles.os import path as aiopath
 from aiofiles.os import remove
 
-from bot import LOGGER, aria2, intervals, task_dict, config_dict, task_dict_lock
+from bot import LOGGER, aria2, config_dict, intervals, task_dict, task_dict_lock
 from bot.helper.ext_utils.bot_utils import (
+    bt_selection_buttons,
     loop_thread,
     sync_to_async,
-    bt_selection_buttons,
 )
 from bot.helper.ext_utils.files_utils import clean_unwanted
 from bot.helper.ext_utils.status_utils import get_task_by_gid
 from bot.helper.ext_utils.task_manager import stop_duplicate_check
+from bot.helper.mirror_leech_utils.status_utils.aria2_status import Aria2Status
 from bot.helper.telegram_helper.message_utils import (
-    send_message,
     delete_message,
+    send_message,
     update_status_message,
 )
-from bot.helper.mirror_leech_utils.status_utils.aria2_status import Aria2Status
 
 
 @loop_thread
@@ -82,7 +82,7 @@ async def _on_download_complete(api, gid):
             if hasattr(task, "seeding") and task.seeding:
                 LOGGER.info(f"Cancelling Seed: {download.name} onDownloadComplete")
                 await task.listener.on_upload_error(
-                    f"Seeding stopped with Ratio: {task.ratio()} and Time: {task.seeding_time()}"
+                    f"Seeding stopped with Ratio: {task.ratio()} and Time: {task.seeding_time()}",
                 )
                 await sync_to_async(api.remove, [download], force=True, files=True)
     else:
@@ -113,11 +113,13 @@ async def _on_bt_download_complete(api, gid):
         if task.listener.seed:
             try:
                 await sync_to_async(
-                    api.set_options, {"max-upload-limit": "0"}, [download]
+                    api.set_options,
+                    {"max-upload-limit": "0"},
+                    [download],
                 )
             except Exception as e:
                 LOGGER.error(
-                    f"{e} You are not able to seed because you added global option seed-time=0 without adding specific seed_time for this torrent GID: {gid}"
+                    f"{e} You are not able to seed because you added global option seed-time=0 without adding specific seed_time for this torrent GID: {gid}",
                 )
         else:
             try:
@@ -135,7 +137,7 @@ async def _on_bt_download_complete(api, gid):
         ):
             LOGGER.info(f"Cancelling Seed: {download.name}")
             await task.listener.on_upload_error(
-                f"Seeding stopped with Ratio: {task.ratio()} and Time: {task.seeding_time()}"
+                f"Seeding stopped with Ratio: {task.ratio()} and Time: {task.seeding_time()}",
             )
             await sync_to_async(api.remove, [download], force=True, files=True)
         elif (
@@ -148,7 +150,10 @@ async def _on_bt_download_complete(api, gid):
             async with task_dict_lock:
                 if task.listener.mid not in task_dict:
                     await sync_to_async(
-                        api.remove, [download], force=True, files=True
+                        api.remove,
+                        [download],
+                        force=True,
+                        files=True,
                     )
                     return
                 task_dict[task.listener.mid] = Aria2Status(task.listener, gid, True)

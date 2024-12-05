@@ -1,15 +1,15 @@
+from logging import getLogger
 from os import path as ospath
 from time import time
-from logging import getLogger
 
+from googleapiclient.errors import HttpError
 from tenacity import (
     RetryError,
     retry,
-    wait_exponential,
-    stop_after_attempt,
     retry_if_exception_type,
+    stop_after_attempt,
+    wait_exponential,
 )
-from googleapiclient.errors import HttpError
 
 from bot.helper.ext_utils.bot_utils import async_to_sync
 from bot.helper.mirror_leech_utils.gdrive_utils.helper import GoogleDriveHelper
@@ -27,7 +27,7 @@ class GoogleDriveClone(GoogleDriveHelper):
 
     def user_setting(self):
         if self.listener.up_dest.startswith("mtp:") or self.listener.link.startswith(
-            "mtp:"
+            "mtp:",
         ):
             self.token_path = f"tokens/{self.listener.user_id}.pickle"
             self.listener.up_dest = self.listener.up_dest.replace("mtp:", "", 1)
@@ -36,7 +36,7 @@ class GoogleDriveClone(GoogleDriveHelper):
             self.listener.up_dest = self.listener.up_dest.replace("tp:", "", 1)
             self.use_sa = False
         elif self.listener.up_dest.startswith(
-            "sa:"
+            "sa:",
         ) or self.listener.link.startswith("sa:"):
             self.listener.up_dest = self.listener.up_dest.replace("sa:", "", 1)
             self.use_sa = True
@@ -60,14 +60,16 @@ class GoogleDriveClone(GoogleDriveHelper):
             mime_type = meta.get("mimeType")
             if mime_type == self.G_DRIVE_DIR_MIME_TYPE:
                 dir_id = self.create_directory(
-                    meta.get("name"), self.listener.up_dest
+                    meta.get("name"),
+                    self.listener.up_dest,
                 )
                 self._clone_folder(meta.get("name"), meta.get("id"), dir_id)
                 durl = self.G_DRIVE_DIR_BASE_DOWNLOAD_URL.format(dir_id)
                 if self.listener.is_cancelled:
                     LOGGER.info("Deleting cloned data from Drive...")
                     self.service.files().delete(
-                        fileId=dir_id, supportsAllDrives=True
+                        fileId=dir_id,
+                        supportsAllDrives=True,
                     ).execute()
                     return None, None, None, None, None
                 mime_type = "Folder"
@@ -158,7 +160,7 @@ class GoogleDriveClone(GoogleDriveHelper):
                 elif self.use_sa:
                     if self.sa_count >= self.sa_number:
                         LOGGER.info(
-                            f"Reached maximum number of service accounts switching, which is {self.sa_count}"
+                            f"Reached maximum number of service accounts switching, which is {self.sa_count}",
                         )
                         raise err
                     if self.listener.is_cancelled:

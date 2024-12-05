@@ -1,77 +1,77 @@
 # ruff: noqa: F401
 import contextlib
-from os import execl as osexecl
-from sys import executable
+from asyncio import create_subprocess_exec, gather
 from html import escape
+from os import execl as osexecl
+from signal import SIGINT, signal
+from sys import executable
 from time import time
 from uuid import uuid4
-from signal import SIGINT, signal
-from asyncio import gather, create_subprocess_exec
 
-from psutil import (
-    boot_time,
-    cpu_count,
-    disk_usage,
-    cpu_percent,
-    swap_memory,
-    virtual_memory,
-    net_io_counters,
-)
 from aiofiles import open as aiopen
 from aiofiles.os import path as aiopath
 from aiofiles.os import remove
-from pyrogram.filters import regex, command
-from pyrogram.handlers import MessageHandler, CallbackQueryHandler
+from psutil import (
+    boot_time,
+    cpu_count,
+    cpu_percent,
+    disk_usage,
+    net_io_counters,
+    swap_memory,
+    virtual_memory,
+)
+from pyrogram.filters import command, regex
+from pyrogram.handlers import CallbackQueryHandler, MessageHandler
 
 from bot import (
     LOGGER,
     bot,
     bot_name,
+    bot_start_time,
+    config_dict,
     intervals,
     scheduler,
     user_data,
-    config_dict,
-    bot_start_time,
 )
 
-from .modules import (
-    exec,
-    help,
-    clone,
-    shell,
-    ytdlp,
-    status,
-    gd_count,
-    authorize,
-    gd_delete,
-    gd_search,
-    cancel_task,
-    force_start,
-    bot_settings,
-    mirror_leech,
-    file_selector,
-    users_settings,
-)
 from .helper.ext_utils.bot_utils import (
     cmd_exec,
+    create_help_buttons,
     new_task,
     sync_to_async,
-    create_help_buttons,
 )
 from .helper.ext_utils.db_handler import Database
 from .helper.ext_utils.files_utils import clean_all, exit_clean_up
-from .helper.ext_utils.status_utils import get_readable_time, get_readable_file_size
-from .helper.telegram_helper.filters import CustomFilters
-from .helper.listeners.aria2_listener import start_aria2_listener
+from .helper.ext_utils.status_utils import get_readable_file_size, get_readable_time
 from .helper.ext_utils.telegraph_helper import telegraph
+from .helper.listeners.aria2_listener import start_aria2_listener
 from .helper.telegram_helper.bot_commands import BotCommands
 from .helper.telegram_helper.button_build import ButtonMaker
+from .helper.telegram_helper.filters import CustomFilters
 from .helper.telegram_helper.message_utils import (
-    send_file,
-    edit_message,
-    send_message,
     delete_message,
+    edit_message,
     five_minute_del,
+    send_file,
+    send_message,
+)
+from .modules import (
+    authorize,
+    bot_settings,
+    cancel_task,
+    clone,
+    exec,
+    file_selector,
+    force_start,
+    gd_count,
+    gd_delete,
+    gd_search,
+    help,
+    mirror_leech,
+    shell,
+    status,
+    users_settings,
+    ytdlp,
 )
 
 
@@ -79,7 +79,8 @@ from .helper.telegram_helper.message_utils import (
 async def stats(_, message):
     if await aiopath.exists(".git"):
         last_commit = await cmd_exec(
-            "git log -1 --date=short --pretty=format:'%cd <b>From</b> %cr'", True
+            "git log -1 --date=short --pretty=format:'%cd <b>From</b> %cr'",
+            True,
         )
         last_commit = last_commit[0]
     else:
@@ -123,11 +124,13 @@ async def start(client, message):
             )
         if input_token != stored_token:
             return await send_message(
-                message, "Invalid token.\n\nPlease generate a new one."
+                message,
+                "Invalid token.\n\nPlease generate a new one.",
             )
         if userid not in user_data:
             return await send_message(
-                message, "This token is not yours!\n\nKindly generate your own."
+                message,
+                "This token is not yours!\n\nKindly generate your own.",
             )
         data = user_data[userid]
         if "token" not in data or data["token"] != input_token:
@@ -192,7 +195,9 @@ async def log(_, message):
     buttons = ButtonMaker()
     buttons.data_button("Log display", f"aeon {message.from_user.id} logdisplay")
     reply_message = await send_file(
-        message, "log.txt", buttons=buttons.build_menu(1)
+        message,
+        "log.txt",
+        buttons=buttons.build_menu(1),
     )
     await delete_message(message)
     await five_minute_del(reply_message)
@@ -296,7 +301,9 @@ async def aeon_callback(_, query):
             btn = ButtonMaker()
             btn.data_button("Close", f"aeon {user_id} close")
             reply_message = await send_message(
-                message, startLine + escape(Loglines) + endLine, btn.build_menu(1)
+                message,
+                startLine + escape(Loglines) + endLine,
+                btn.build_menu(1),
             )
             await query.edit_message_reply_markup(None)
             await delete_message(message)
@@ -329,7 +336,7 @@ async def main():
             filters=command(
                 BotCommands.StartCommand,
             ),
-        )
+        ),
     )
     bot.add_handler(
         MessageHandler(
@@ -338,7 +345,7 @@ async def main():
                 BotCommands.LogCommand,
             )
             & CustomFilters.sudo,
-        )
+        ),
     )
     bot.add_handler(
         MessageHandler(
@@ -347,7 +354,7 @@ async def main():
                 BotCommands.RestartCommand,
             )
             & CustomFilters.sudo,
-        )
+        ),
     )
     bot.add_handler(
         MessageHandler(
@@ -356,7 +363,7 @@ async def main():
                 BotCommands.PingCommand,
             )
             & CustomFilters.authorized,
-        )
+        ),
     )
     bot.add_handler(
         MessageHandler(
@@ -365,7 +372,7 @@ async def main():
                 BotCommands.HelpCommand,
             )
             & CustomFilters.authorized,
-        )
+        ),
     )
     bot.add_handler(
         MessageHandler(
@@ -374,7 +381,7 @@ async def main():
                 BotCommands.StatsCommand,
             )
             & CustomFilters.authorized,
-        )
+        ),
     )
     bot.add_handler(CallbackQueryHandler(aeon_callback, filters=regex(r"^aeon")))
     LOGGER.info("Bot Started!")

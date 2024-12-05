@@ -34,7 +34,7 @@ class TelegraphHelper:
             )
         except RetryAfterError as st:
             LOGGER.warning(
-                f"Telegraph Flood control exceeded. I will sleep for {st.retry_after} seconds."
+                f"Telegraph Flood control exceeded. I will sleep for {st.retry_after} seconds.",
             )
             await sleep(st.retry_after)
             return await self.create_page(title, content)
@@ -50,7 +50,7 @@ class TelegraphHelper:
             )
         except RetryAfterError as st:
             LOGGER.warning(
-                f"Telegraph Flood control exceeded. I will sleep for {st.retry_after} seconds."
+                f"Telegraph Flood control exceeded. I will sleep for {st.retry_after} seconds.",
             )
             await sleep(st.retry_after)
             return await self.edit_page(path, title, content)

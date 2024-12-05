@@ -1,35 +1,35 @@
-from os import path as ospath
-from os import remove, environ
-from sys import exit
-from time import time
-from shutil import rmtree
-from socket import setdefaulttimeout
 from asyncio import Lock, new_event_loop, set_event_loop
 from logging import (
-    INFO,
     ERROR,
-    Formatter,
+    INFO,
     FileHandler,
+    Formatter,
     StreamHandler,
-    info,
-    error,
-    warning,
-    getLogger,
     basicConfig,
+    error,
+    getLogger,
+    info,
+    warning,
 )
-from subprocess import Popen, run, check_output
+from os import environ, remove
+from os import path as ospath
+from shutil import rmtree
+from socket import setdefaulttimeout
+from subprocess import Popen, check_output, run
+from sys import exit
+from time import time
 
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from aria2p import API as ariaAPI
 from aria2p import Client as ariaClient
-from dotenv import load_dotenv, dotenv_values
-from uvloop import install
-from tzlocal import get_localzone
+from dotenv import dotenv_values, load_dotenv
+from pymongo.mongo_client import MongoClient
+from pymongo.server_api import ServerApi
 from pyrogram import Client as TgClient
 from pyrogram import enums
 from qbittorrentapi import Client as QbClient
-from pymongo.server_api import ServerApi
-from pymongo.mongo_client import MongoClient
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from tzlocal import get_localzone
+from uvloop import install
 
 # from faulthandler import enable as faulthandler_enable
 # faulthandler_enable()
@@ -56,7 +56,8 @@ class CustomFormatter(Formatter):
 
 
 formatter = CustomFormatter(
-    "[%(asctime)s] [%(levelname)s] - %(message)s", datefmt="%d-%b-%y %I:%M:%S %p"
+    "[%(asctime)s] [%(levelname)s] - %(message)s",
+    datefmt="%d-%b-%y %I:%M:%S %p",
 )
 
 file_handler = FileHandler("log.txt")
@@ -123,13 +124,17 @@ if DATABASE_URL:
         old_config = db.settings.deployConfig.find_one({"_id": BOT_ID})
         if old_config is None:
             db.settings.deployConfig.replace_one(
-                {"_id": BOT_ID}, current_config, upsert=True
+                {"_id": BOT_ID},
+                current_config,
+                upsert=True,
             )
         else:
             del old_config["_id"]
         if old_config and old_config != current_config:
             db.settings.deployConfig.replace_one(
-                {"_id": BOT_ID}, current_config, upsert=True
+                {"_id": BOT_ID},
+                current_config,
+                upsert=True,
             )
         elif config_dict := db.settings.config.find_one({"_id": BOT_ID}):
             del config_dict["_id"]

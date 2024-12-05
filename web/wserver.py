@@ -1,13 +1,13 @@
+from logging import INFO, FileHandler, StreamHandler, basicConfig, getLogger
 from time import sleep
-from logging import INFO, FileHandler, StreamHandler, getLogger, basicConfig
 
-from flask import Flask, jsonify, request, render_template
 from aria2p import API as ariaAPI
 from aria2p import Client as ariaClient
+from flask import Flask, jsonify, render_template, request
 from qbittorrentapi import Client as qbClient
 from qbittorrentapi import NotFound404Error
 
-from web.nodes import make_tree, extract_file_ids
+from web.nodes import extract_file_ids, make_tree
 
 app = Flask(__name__)
 
@@ -55,7 +55,9 @@ def re_verify(paused, resumed, hash_id):
         sleep(1)
         try:
             xnox_client.torrents_file_priority(
-                torrent_hash=hash_id, file_ids=paused, priority=0
+                torrent_hash=hash_id,
+                file_ids=paused,
+                priority=0,
             )
         except NotFound404Error as e:
             raise NotFound404Error from e
@@ -63,7 +65,9 @@ def re_verify(paused, resumed, hash_id):
             LOGGER.error(f"{e} Errored in reverification paused!")
         try:
             xnox_client.torrents_file_priority(
-                torrent_hash=hash_id, file_ids=resumed, priority=1
+                torrent_hash=hash_id,
+                file_ids=resumed,
+                priority=1,
             )
         except NotFound404Error as e:
             raise NotFound404Error from e
@@ -90,7 +94,7 @@ def handle_torrent():
                 "engine": "",
                 "error": "GID is missing",
                 "message": "GID not specified",
-            }
+            },
         )
 
     if not (pin := request.args.get("pin")):
@@ -100,7 +104,7 @@ def handle_torrent():
                 "engine": "",
                 "error": "Pin is missing",
                 "message": "PIN not specified",
-            }
+            },
         )
     code = ""
     for nbr in gid:
@@ -115,7 +119,7 @@ def handle_torrent():
                 "engine": "",
                 "error": "Invalid pin",
                 "message": "The PIN you entered is incorrect",
-            }
+            },
         )
     if request.method == "POST":
         data = request.get_json(cache=False, force=True)
@@ -155,7 +159,9 @@ def handle_torrent():
 def set_qbittorrent(gid, selected_files, unselected_files):
     try:
         xnox_client.torrents_file_priority(
-            torrent_hash=gid, file_ids=unselected_files, priority=0
+            torrent_hash=gid,
+            file_ids=unselected_files,
+            priority=0,
         )
     except NotFound404Error as e:
         raise NotFound404Error from e
@@ -163,7 +169,9 @@ def set_qbittorrent(gid, selected_files, unselected_files):
         LOGGER.error(f"{e} Errored in paused")
     try:
         xnox_client.torrents_file_priority(
-            torrent_hash=gid, file_ids=selected_files, priority=1
+            torrent_hash=gid,
+            file_ids=selected_files,
+            priority=1,
         )
     except NotFound404Error as e:
         raise NotFound404Error from e

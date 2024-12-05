@@ -20,13 +20,14 @@ class GoogleDriveDelete(GoogleDriveHelper):
         msg = ""
         try:
             self.service.files().delete(
-                fileId=file_id, supportsAllDrives=True
+                fileId=file_id,
+                supportsAllDrives=True,
             ).execute()
             msg = "Successfully deleted"
             LOGGER.info(f"Delete Result: {msg}")
         except HttpError as err:
             if "File not found" in str(err) or "insufficientFilePermissions" in str(
-                err
+                err,
             ):
                 if not self.alt_auth and self.use_sa:
                     self.alt_auth = True

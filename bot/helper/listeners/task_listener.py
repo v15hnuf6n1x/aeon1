@@ -1,52 +1,52 @@
+from asyncio import gather, sleep
 from html import escape
-from asyncio import sleep, gather
 
-from requests import utils as rutils
-from aioshutil import move
+from aiofiles.os import listdir, makedirs, remove
 from aiofiles.os import path as aiopath
-from aiofiles.os import remove, listdir, makedirs
+from aioshutil import move
+from requests import utils as rutils
 
 from bot import (
-    LOGGER,
     DOWNLOAD_DIR,
+    LOGGER,
     aria2,
-    intervals,
-    queued_dl,
-    queued_up,
-    task_dict,
     config_dict,
+    intervals,
     non_queued_dl,
     non_queued_up,
-    task_dict_lock,
     queue_dict_lock,
+    queued_dl,
+    queued_up,
     same_directory_lock,
+    task_dict,
+    task_dict_lock,
 )
 from bot.helper.common import TaskConfig
 from bot.helper.ext_utils.bot_utils import sync_to_async
 from bot.helper.ext_utils.files_utils import (
-    join_files,
+    clean_download,
     clean_target,
     get_path_size,
-    clean_download,
+    join_files,
 )
 from bot.helper.ext_utils.links_utils import is_gdrive_id
 from bot.helper.ext_utils.status_utils import get_readable_file_size
-from bot.helper.ext_utils.task_manager import start_from_queued, check_running_tasks
-from bot.helper.telegram_helper.button_build import ButtonMaker
-from bot.helper.telegram_helper.message_utils import (
-    send_message,
-    delete_status,
-    update_status_message,
-)
-from bot.helper.mirror_leech_utils.telegram_uploader import TelegramUploader
+from bot.helper.ext_utils.task_manager import check_running_tasks, start_from_queued
 from bot.helper.mirror_leech_utils.gdrive_utils.upload import GoogleDriveUpload
 from bot.helper.mirror_leech_utils.rclone_utils.transfer import RcloneTransferHelper
-from bot.helper.mirror_leech_utils.status_utils.queue_status import QueueStatus
 from bot.helper.mirror_leech_utils.status_utils.gdrive_status import (
     GoogleDriveStatus,
 )
+from bot.helper.mirror_leech_utils.status_utils.queue_status import QueueStatus
 from bot.helper.mirror_leech_utils.status_utils.rclone_status import RcloneStatus
 from bot.helper.mirror_leech_utils.status_utils.telegram_status import TelegramStatus
+from bot.helper.mirror_leech_utils.telegram_uploader import TelegramUploader
+from bot.helper.telegram_helper.button_build import ButtonMaker
+from bot.helper.telegram_helper.message_utils import (
+    delete_status,
+    send_message,
+    update_status_message,
+)
 
 
 class TaskListener(TaskConfig):
@@ -95,19 +95,19 @@ class TaskListener(TaskConfig):
                         ):
                             if self.same_dir[self.folder_name]["total"] > 1:
                                 self.same_dir[self.folder_name]["tasks"].remove(
-                                    self.mid
+                                    self.mid,
                                 )
                                 self.same_dir[self.folder_name]["total"] -= 1
                                 spath = f"{self.dir}{self.folder_name}"
                                 des_id = next(
-                                    iter(self.same_dir[self.folder_name]["tasks"])
+                                    iter(self.same_dir[self.folder_name]["tasks"]),
                                 )
                                 des_path = (
                                     f"{DOWNLOAD_DIR}{des_id}{self.folder_name}"
                                 )
                                 await makedirs(des_path, exist_ok=True)
                                 LOGGER.info(
-                                    f"Moving files from {self.mid} to {des_id}"
+                                    f"Moving files from {self.mid} to {des_id}",
                                 )
                                 for item in await listdir(spath):
                                     if item.endswith((".aria2", ".!qB")):
@@ -140,7 +140,7 @@ class TaskListener(TaskConfig):
 
         if multi_links:
             await self.on_upload_error(
-                f"{self.name} Downloaded!\n\nWaiting for other tasks to finish..."
+                f"{self.name} Downloaded!\n\nWaiting for other tasks to finish...",
             )
             return
 
@@ -213,7 +213,10 @@ class TaskListener(TaskConfig):
 
         if self.sample_video:
             up_path = await self.generate_sample_video(
-                up_path, gid, unwanted_files, files_to_delete
+                up_path,
+                gid,
+                unwanted_files,
+                files_to_delete,
             )
             if self.is_cancelled:
                 return
@@ -222,7 +225,10 @@ class TaskListener(TaskConfig):
 
         if self.compress:
             up_path = await self.proceed_compress(
-                up_path, gid, unwanted_files, files_to_delete
+                up_path,
+                gid,
+                unwanted_files,
+                files_to_delete,
             )
             if self.is_cancelled:
                 return
@@ -232,7 +238,10 @@ class TaskListener(TaskConfig):
 
         if self.is_leech and not self.compress:
             await self.proceed_split(
-                up_dir, unwanted_files_size, unwanted_files, gid
+                up_dir,
+                unwanted_files_size,
+                unwanted_files,
+                gid,
             )
             if self.is_cancelled:
                 return
@@ -281,7 +290,13 @@ class TaskListener(TaskConfig):
             )
 
     async def on_upload_complete(
-        self, link, files, folders, mime_type, rclone_path="", dir_id=""
+        self,
+        link,
+        files,
+        folders,
+        mime_type,
+        rclone_path="",
+        dir_id="",
     ):
         msg = f"<b>Name: </b><code>{escape(self.name)}</code>\n\n<b>Size: </b>{get_readable_file_size(self.size)}"
         LOGGER.info(f"Task Done: {self.name}")

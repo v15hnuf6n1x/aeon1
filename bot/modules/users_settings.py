@@ -1,38 +1,38 @@
-from io import BytesIO
-from os import getcwd
-from html import escape
-from time import time
 from asyncio import sleep
 from functools import partial
+from html import escape
+from io import BytesIO
+from os import getcwd
+from time import time
 
+from aiofiles.os import makedirs, remove
 from aiofiles.os import path as aiopath
-from aiofiles.os import remove, makedirs
-from pyrogram.filters import regex, create, command
-from pyrogram.handlers import MessageHandler, CallbackQueryHandler
+from pyrogram.filters import command, create, regex
+from pyrogram.handlers import CallbackQueryHandler, MessageHandler
 
 from bot import (
-    MAX_SPLIT_SIZE,
     IS_PREMIUM_USER,
+    MAX_SPLIT_SIZE,
     bot,
-    user_data,
     config_dict,
     global_extension_filter,
+    user_data,
 )
 from bot.helper.ext_utils.bot_utils import (
-    new_task,
     get_size_bytes,
+    new_task,
     update_user_ldata,
 )
 from bot.helper.ext_utils.db_handler import Database
 from bot.helper.ext_utils.media_utils import create_thumb
-from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.button_build import ButtonMaker
+from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.message_utils import (
-    send_file,
-    edit_message,
-    send_message,
     delete_message,
+    edit_message,
+    send_file,
+    send_message,
 )
 
 handler_dict = {}
@@ -144,7 +144,8 @@ async def get_user_settings(from_user):
     tr = "MY" if user_tokens else "OWNER"
     trr = "OWNER" if user_tokens else "MY"
     buttons.data_button(
-        f"Use {trr} token/config", f"userset {user_id} user_tokens {user_tokens}"
+        f"Use {trr} token/config",
+        f"userset {user_id} user_tokens {user_tokens}",
     )
 
     buttons.data_button("Excluded Extensions", f"userset {user_id} ex_ex")
@@ -339,11 +340,12 @@ async def event_handler(client, query, pfunc, photo=False, document=False):
             mtype = event.text
         user = event.from_user or event.sender_chat
         return bool(
-            user.id == user_id and event.chat.id == query.message.chat.id and mtype
+            user.id == user_id and event.chat.id == query.message.chat.id and mtype,
         )
 
     handler = client.add_handler(
-        MessageHandler(pfunc, filters=create(event_filter)), group=-1
+        MessageHandler(pfunc, filters=create(event_filter)),
+        group=-1,
     )
 
     while handler_dict[user_id]:
@@ -455,25 +457,29 @@ async def edit_user_settings(client, query):
             "equal_splits" not in user_dict and config_dict["EQUAL_SPLITS"]
         ):
             buttons.data_button(
-                "Disable Equal Splits", f"userset {user_id} equal_splits false"
+                "Disable Equal Splits",
+                f"userset {user_id} equal_splits false",
             )
             equal_splits = "Enabled"
         else:
             buttons.data_button(
-                "Enable Equal Splits", f"userset {user_id} equal_splits true"
+                "Enable Equal Splits",
+                f"userset {user_id} equal_splits true",
             )
             equal_splits = "Disabled"
         if (IS_PREMIUM_USER and user_dict.get("user_transmission", False)) or (
             "user_transmission" not in user_dict and config_dict["USER_TRANSMISSION"]
         ):
             buttons.data_button(
-                "Leech by Bot", f"userset {user_id} user_transmission false"
+                "Leech by Bot",
+                f"userset {user_id} user_transmission false",
             )
             leech_method = "user"
         elif IS_PREMIUM_USER:
             leech_method = "bot"
             buttons.data_button(
-                "Leech by User", f"userset {user_id} user_transmission true"
+                "Leech by User",
+                f"userset {user_id} user_transmission true",
             )
         else:
             leech_method = "bot"
@@ -483,12 +489,14 @@ async def edit_user_settings(client, query):
         ):
             mixed_leech = "Enabled"
             buttons.data_button(
-                "Disable Mixed Leech", f"userset {user_id} mixed_leech false"
+                "Disable Mixed Leech",
+                f"userset {user_id} mixed_leech false",
             )
         elif IS_PREMIUM_USER:
             mixed_leech = "Disabled"
             buttons.data_button(
-                "Enable Mixed Leech", f"userset {user_id} mixed_leech true"
+                "Enable Mixed Leech",
+                f"userset {user_id} mixed_leech true",
             )
         else:
             mixed_leech = "Disabled"
@@ -543,12 +551,14 @@ Rclone Path is <code>{rccpath}</code>"""
             "stop_duplicate" not in user_dict and config_dict["STOP_DUPLICATE"]
         ):
             buttons.data_button(
-                "Disable Stop Duplicate", f"userset {user_id} stop_duplicate false"
+                "Disable Stop Duplicate",
+                f"userset {user_id} stop_duplicate false",
             )
             sd_msg = "Enabled"
         else:
             buttons.data_button(
-                "Enable Stop Duplicate", f"userset {user_id} stop_duplicate true"
+                "Enable Stop Duplicate",
+                f"userset {user_id} stop_duplicate true",
             )
             sd_msg = "Disabled"
         buttons.data_button("Back", f"userset {user_id} back")
@@ -593,7 +603,9 @@ Stop Duplicate is <b>{sd_msg}</b>"""
         buttons = ButtonMaker()
         if user_dict.get("yt_opt", False) or config_dict["YT_DLP_OPTIONS"]:
             buttons.data_button(
-                "Remove YT-DLP Options", f"userset {user_id} yt_opt", "header"
+                "Remove YT-DLP Options",
+                f"userset {user_id} yt_opt",
+                "header",
             )
         buttons.data_button("Back", f"userset {user_id} back")
         buttons.data_button("Close", f"userset {user_id} close")
@@ -650,12 +662,15 @@ Here I will explain how to use file.* which is reference to files you want to wo
         buttons = ButtonMaker()
         if await aiopath.exists(rclone_conf):
             buttons.data_button(
-                "Delete rclone.conf", f"userset {user_id} rclone_config"
+                "Delete rclone.conf",
+                f"userset {user_id} rclone_config",
             )
         buttons.data_button("Back", f"userset {user_id} rclone")
         buttons.data_button("Close", f"userset {user_id} close")
         await edit_message(
-            message, "Send rclone.conf. Timeout: 60 sec", buttons.build_menu(1)
+            message,
+            "Send rclone.conf. Timeout: 60 sec",
+            buttons.build_menu(1),
         )
         pfunc = partial(add_rclone, pre_event=query)
         await event_handler(client, query, pfunc, document=True)
@@ -664,7 +679,8 @@ Here I will explain how to use file.* which is reference to files you want to wo
         buttons = ButtonMaker()
         if user_dict.get("rclone_path", False):
             buttons.data_button(
-                "Reset Rclone Path", f"userset {user_id} rclone_path"
+                "Reset Rclone Path",
+                f"userset {user_id} rclone_path",
             )
         buttons.data_button("Back", f"userset {user_id} rclone")
         buttons.data_button("Close", f"userset {user_id} close")
@@ -677,12 +693,15 @@ Here I will explain how to use file.* which is reference to files you want to wo
         buttons = ButtonMaker()
         if await aiopath.exists(token_pickle):
             buttons.data_button(
-                "Delete token.pickle", f"userset {user_id} token_pickle"
+                "Delete token.pickle",
+                f"userset {user_id} token_pickle",
             )
         buttons.data_button("Back", f"userset {user_id} gdrive")
         buttons.data_button("Close", f"userset {user_id} close")
         await edit_message(
-            message, "Send token.pickle. Timeout: 60 sec", buttons.build_menu(1)
+            message,
+            "Send token.pickle. Timeout: 60 sec",
+            buttons.build_menu(1),
         )
         pfunc = partial(add_token_pickle, pre_event=query)
         await event_handler(client, query, pfunc, document=True)
@@ -731,7 +750,8 @@ Here I will explain how to use file.* which is reference to files you want to wo
             "leech_dest" not in user_dict and config_dict["LEECH_DUMP_CHAT"]
         ):
             buttons.data_button(
-                "Reset Leech Destination", f"userset {user_id} leech_dest"
+                "Reset Leech Destination",
+                f"userset {user_id} leech_dest",
             )
         buttons.data_button("Back", f"userset {user_id} leech")
         buttons.data_button("Close", f"userset {user_id} close")
@@ -749,7 +769,8 @@ Here I will explain how to use file.* which is reference to files you want to wo
             "thumb_layout" not in user_dict and config_dict["THUMBNAIL_LAYOUT"]
         ):
             buttons.data_button(
-                "Reset Thumbnail Layout", f"userset {user_id} thumb_layout"
+                "Reset Thumbnail Layout",
+                f"userset {user_id} thumb_layout",
             )
         buttons.data_button("Back", f"userset {user_id} leech")
         buttons.data_button("Close", f"userset {user_id} close")
@@ -784,7 +805,8 @@ Here I will explain how to use file.* which is reference to files you want to wo
         buttons = ButtonMaker()
         if user_dict.get("name_sub", False):
             buttons.data_button(
-                "Remove Name Subtitute", f"userset {user_id} name_sub"
+                "Remove Name Subtitute",
+                f"userset {user_id} name_sub",
             )
         buttons.data_button("Back", f"userset {user_id} back")
         buttons.data_button("Close", f"userset {user_id} close")
@@ -929,7 +951,7 @@ bot.add_handler(
             BotCommands.UsersCommand,
         )
         & CustomFilters.sudo,
-    )
+    ),
 )
 bot.add_handler(
     MessageHandler(
@@ -938,6 +960,6 @@ bot.add_handler(
             BotCommands.UserSetCommand,
         )
         & CustomFilters.authorized,
-    )
+    ),
 )
 bot.add_handler(CallbackQueryHandler(edit_user_settings, filters=regex("^userset")))

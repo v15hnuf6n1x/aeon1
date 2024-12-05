@@ -1,18 +1,18 @@
-from dotenv import dotenv_values
 from aiofiles import open as aiopen
-from aiofiles.os import path as aiopath
 from aiofiles.os import makedirs
+from aiofiles.os import path as aiopath
+from dotenv import dotenv_values
+from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo.errors import PyMongoError
 from pymongo.server_api import ServerApi
-from motor.motor_asyncio import AsyncIOMotorClient
 
 from bot import (
     BOT_ID,
     LOGGER,
-    user_data,
+    aria2_options,
     config_dict,
     qbit_options,
-    aria2_options,
+    user_data,
 )
 
 
@@ -28,7 +28,8 @@ class DbManager:
                 if self._conn is not None:
                     await self._conn.close()
                 self._conn = AsyncIOMotorClient(
-                    config_dict["DATABASE_URL"], server_api=ServerApi("1")
+                    config_dict["DATABASE_URL"],
+                    server_api=ServerApi("1"),
                 )
                 self._db = self._conn.luna
                 self._return = False
@@ -52,7 +53,9 @@ class DbManager:
         # Save bot settings
         try:
             await self._db.settings.config.replace_one(
-                {"_id": BOT_ID}, config_dict, upsert=True
+                {"_id": BOT_ID},
+                config_dict,
+                upsert=True,
             )
         except Exception as e:
             LOGGER.error(f"DataBase Collection Error: {e}")
@@ -60,7 +63,9 @@ class DbManager:
         # Save Aria2c options
         if await self._db.settings.aria2c.find_one({"_id": BOT_ID}) is None:
             await self._db.settings.aria2c.update_one(
-                {"_id": BOT_ID}, {"$set": aria2_options}, upsert=True
+                {"_id": BOT_ID},
+                {"$set": aria2_options},
+                upsert=True,
             )
         # Save qbittorrent options
         if await self._db.settings.qbittorrent.find_one({"_id": BOT_ID}) is None:
@@ -101,35 +106,45 @@ class DbManager:
             return
         current_config = dict(dotenv_values("config.env"))
         await self._db.settings.deployConfig.replace_one(
-            {"_id": BOT_ID}, current_config, upsert=True
+            {"_id": BOT_ID},
+            current_config,
+            upsert=True,
         )
 
     async def update_config(self, dict_):
         if self._return:
             return
         await self._db.settings.config.update_one(
-            {"_id": BOT_ID}, {"$set": dict_}, upsert=True
+            {"_id": BOT_ID},
+            {"$set": dict_},
+            upsert=True,
         )
 
     async def update_aria2(self, key, value):
         if self._return:
             return
         await self._db.settings.aria2c.update_one(
-            {"_id": BOT_ID}, {"$set": {key: value}}, upsert=True
+            {"_id": BOT_ID},
+            {"$set": {key: value}},
+            upsert=True,
         )
 
     async def update_qbittorrent(self, key, value):
         if self._return:
             return
         await self._db.settings.qbittorrent.update_one(
-            {"_id": BOT_ID}, {"$set": {key: value}}, upsert=True
+            {"_id": BOT_ID},
+            {"$set": {key: value}},
+            upsert=True,
         )
 
     async def save_qbit_settings(self):
         if self._return:
             return
         await self._db.settings.qbittorrent.replace_one(
-            {"_id": BOT_ID}, qbit_options, upsert=True
+            {"_id": BOT_ID},
+            qbit_options,
+            upsert=True,
         )
 
     async def update_private_file(self, path):
@@ -142,7 +157,9 @@ class DbManager:
             pf_bin = ""
         path = path.replace(".", "__")
         await self._db.settings.files.update_one(
-            {"_id": BOT_ID}, {"$set": {path: pf_bin}}, upsert=True
+            {"_id": BOT_ID},
+            {"$set": {path: pf_bin}},
+            upsert=True,
         )
         if path == "config.env":
             await self.update_deploy_config()
@@ -172,7 +189,9 @@ class DbManager:
         else:
             doc_bin = ""
         await self._db.users.update_one(
-            {"_id": user_id}, {"$set": {key: doc_bin}}, upsert=True
+            {"_id": user_id},
+            {"$set": {key: doc_bin}},
+            upsert=True,
         )
 
     async def trunc_table(self, name):
@@ -201,14 +220,18 @@ class DbManager:
         if self._return:
             return
         await self._db.access_token.update_one(
-            {"_id": user_id}, {"$set": {"token": token, "time": time}}, upsert=True
+            {"_id": user_id},
+            {"$set": {"token": token, "time": time}},
+            upsert=True,
         )
 
     async def update_user_token(self, user_id, token):
         if self._return:
             return
         await self._db.access_token.update_one(
-            {"_id": user_id}, {"$set": {"token": token}}, upsert=True
+            {"_id": user_id},
+            {"$set": {"token": token}},
+            upsert=True,
         )
 
     async def get_token_expiry(self, user_id):

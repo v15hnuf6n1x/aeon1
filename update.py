@@ -1,22 +1,22 @@
-from os import path, remove, environ
+from datetime import datetime
 from logging import (
-    INFO,
     ERROR,
-    Formatter,
+    INFO,
     FileHandler,
+    Formatter,
     StreamHandler,
-    info,
+    basicConfig,
     error,
     getLogger,
-    basicConfig,
+    info,
 )
-from datetime import datetime
+from os import environ, path, remove
 from subprocess import run
 
-from pytz import timezone
-from dotenv import load_dotenv, dotenv_values
-from pymongo.server_api import ServerApi
+from dotenv import dotenv_values, load_dotenv
 from pymongo.mongo_client import MongoClient
+from pymongo.server_api import ServerApi
+from pytz import timezone
 
 
 class CustomFormatter(Formatter):
@@ -104,7 +104,7 @@ if UPSTREAM_REPO is not None:
                      && git commit -sm update -q \
                      && git remote add origin {UPSTREAM_REPO} \
                      && git fetch origin -q \
-                     && git reset --hard origin/{UPSTREAM_BRANCH} -q"
+                     && git reset --hard origin/{UPSTREAM_BRANCH} -q",
         ],
         shell=True,
         check=False,
@@ -114,5 +114,5 @@ if UPSTREAM_REPO is not None:
         info("Successfully updated with latest commit from UPSTREAM_REPO")
     else:
         error(
-            "Something went wrong while updating, check UPSTREAM_REPO if valid or not!"
+            "Something went wrong while updating, check UPSTREAM_REPO if valid or not!",
         )

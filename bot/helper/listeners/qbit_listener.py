@@ -1,31 +1,33 @@
 import contextlib
-from time import time
 from asyncio import sleep
+from time import time
 
 from aiofiles.os import path as aiopath
 from aiofiles.os import remove
 
 from bot import (
     LOGGER,
-    intervals,
-    task_dict,
     config_dict,
-    qb_torrents,
-    xnox_client,
-    task_dict_lock,
+    intervals,
     qb_listener_lock,
+    qb_torrents,
+    task_dict,
+    task_dict_lock,
+    xnox_client,
 )
 from bot.helper.ext_utils.bot_utils import new_task, sync_to_async
 from bot.helper.ext_utils.files_utils import clean_unwanted
-from bot.helper.ext_utils.status_utils import get_task_by_gid, get_readable_time
+from bot.helper.ext_utils.status_utils import get_readable_time, get_task_by_gid
 from bot.helper.ext_utils.task_manager import stop_duplicate_check
-from bot.helper.telegram_helper.message_utils import update_status_message
 from bot.helper.mirror_leech_utils.status_utils.qbit_status import QbittorrentStatus
+from bot.helper.telegram_helper.message_utils import update_status_message
 
 
 async def _remove_torrent(hash_, tag):
     await sync_to_async(
-        xnox_client.torrents_delete, torrent_hashes=hash_, delete_files=True
+        xnox_client.torrents_delete,
+        torrent_hashes=hash_,
+        delete_files=True,
     )
     async with qb_listener_lock:
         if tag in qb_torrents:
@@ -59,7 +61,8 @@ async def _stop_duplicate(tor):
     if task := await get_task_by_gid(tor.hash[:12]):
         if task.listener.stop_duplicate:
             task.listener.name = tor.content_path.rsplit("/", 1)[-1].rsplit(
-                ".!qB", 1
+                ".!qB",
+                1,
             )[0]
             msg, button = await stop_duplicate_check(task.listener)
             if msg:
@@ -77,7 +80,8 @@ async def _on_download_complete(tor):
             await clean_unwanted(task.listener.dir)
             path = tor.content_path.rsplit("/", 1)[0]
             res = await sync_to_async(
-                xnox_client.torrents_files, torrent_hash=ext_hash
+                xnox_client.torrents_files,
+                torrent_hash=ext_hash,
             )
             for f in res:
                 if f.priority == 0 and await aiopath.exists(f"{path}/{f.name}"):
@@ -91,7 +95,8 @@ async def _on_download_complete(tor):
                 if task.listener.mid in task_dict:
                     removed = False
                     task_dict[task.listener.mid] = QbittorrentStatus(
-                        task.listener, True
+                        task.listener,
+                        True,
                     )
                 else:
                     removed = True
@@ -176,7 +181,8 @@ async def _qb_listener():
                         )
                     elif state == "error":
                         await _on_download_error(
-                            "No enough space for this torrent on device", tor_info
+                            "No enough space for this torrent on device",
+                            tor_info,
                         )
                     elif (
                         tor_info.completion_on != 0

@@ -1,11 +1,11 @@
 import contextlib
-from os import path as ospath
-from os import listdir
-from re import search as re_search
 from logging import getLogger
+from os import listdir
+from os import path as ospath
+from re import search as re_search
 from secrets import token_urlsafe
 
-from yt_dlp import YoutubeDL, DownloadError
+from yt_dlp import DownloadError, YoutubeDL
 
 from bot import task_dict, task_dict_lock
 from bot.helper.ext_utils.bot_utils import async_to_sync, sync_to_async
@@ -13,11 +13,11 @@ from bot.helper.ext_utils.task_manager import (
     check_running_tasks,
     stop_duplicate_check,
 )
-from bot.helper.telegram_helper.message_utils import send_status_message
 from bot.helper.mirror_leech_utils.status_utils.queue_status import QueueStatus
 from bot.helper.mirror_leech_utils.status_utils.yt_dlp_status import (
     YtDlpStatus,
 )
+from bot.helper.telegram_helper.message_utils import send_status_message
 
 LOGGER = getLogger(__name__)
 
@@ -126,7 +126,9 @@ class YoutubeDLHelper:
     async def _on_download_start(self, from_queue=False):
         async with task_dict_lock:
             task_dict[self._listener.mid] = YtDlpStatus(
-                self._listener, self, self._gid
+                self._listener,
+                self,
+                self._gid,
             )
         if not from_queue:
             await self._listener.on_download_start()
@@ -158,7 +160,7 @@ class YoutubeDLHelper:
                     if not self._listener.name:
                         outtmpl_ = "%(series,playlist_title,channel)s%(season_number& |)s%(season_number&S|)s%(season_number|)02d.%(ext)s"
                         self._listener.name, ext = ospath.splitext(
-                            ydl.prepare_filename(entry, outtmpl=outtmpl_)
+                            ydl.prepare_filename(entry, outtmpl=outtmpl_),
                         )
                         if not self._ext:
                             self._ext = ext
@@ -187,7 +189,7 @@ class YoutubeDLHelper:
                 not ospath.exists(path) or len(listdir(path)) == 0
             ):
                 self._on_download_error(
-                    "No video available to download from this playlist. Check logs for more details"
+                    "No video available to download from this playlist. Check logs for more details",
                 )
                 return
             if self._listener.is_cancelled:
@@ -211,7 +213,7 @@ class YoutubeDLHelper:
                 "add_infojson": "if_exists",
                 "add_metadata": True,
                 "key": "FFmpegMetadata",
-            }
+            },
         ]
 
         if qual.startswith("ba/b-"):
@@ -224,7 +226,7 @@ class YoutubeDLHelper:
                     "key": "FFmpegExtractAudio",
                     "preferredcodec": audio_format,
                     "preferredquality": rate,
-                }
+                },
             )
             if audio_format == "vorbis":
                 self._ext = ".ogg"
@@ -294,7 +296,7 @@ class YoutubeDLHelper:
                     "format": "jpg",
                     "key": "FFmpegThumbnailsConvertor",
                     "when": "before_dl",
-                }
+                },
             )
         if self._ext in [
             ".mp3",
@@ -312,10 +314,10 @@ class YoutubeDLHelper:
                 {
                     "already_have_thumbnail": bool(
                         self._listener.is_leech
-                        and not self._listener.thumbnail_layout
+                        and not self._listener.thumbnail_layout,
                     ),
                     "key": "EmbedThumbnail",
-                }
+                },
             )
         elif not self._listener.is_leech:
             self.opts["writethumbnail"] = False
@@ -330,7 +332,9 @@ class YoutubeDLHelper:
             LOGGER.info(f"Added to Queue/Download: {self._listener.name}")
             async with task_dict_lock:
                 task_dict[self._listener.mid] = QueueStatus(
-                    self._listener, self._gid, "dl"
+                    self._listener,
+                    self._gid,
+                    "dl",
                 )
             await event.wait()
             if self._listener.is_cancelled:
@@ -362,7 +366,7 @@ class YoutubeDLHelper:
             elif value.lower() == "false":
                 value = False
             elif value.startswith(("{", "[", "(")) and value.endswith(
-                ("}", "]", ")")
+                ("}", "]", ")"),
             ):
                 value = eval(value)
 

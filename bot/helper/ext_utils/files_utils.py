@@ -1,18 +1,18 @@
+from os import makedirs, walk
 from os import path as ospath
-from os import walk, makedirs
 from re import IGNORECASE, escape
-from re import split as re_split
 from re import search as re_search
-from sys import exit
+from re import split as re_split
 from shutil import rmtree
 from subprocess import run as srun
+from sys import exit
 
-from magic import Magic
-from aioshutil import rmtree as aiormtree
+from aiofiles.os import listdir, remove, rmdir
 from aiofiles.os import path as aiopath
-from aiofiles.os import rmdir, remove, listdir
+from aioshutil import rmtree as aiormtree
+from magic import Magic
 
-from bot import LOGGER, DOWNLOAD_DIR, aria2, xnox_client
+from bot import DOWNLOAD_DIR, LOGGER, aria2, xnox_client
 
 from .bot_utils import cmd_exec, sync_to_async
 from .exceptions import NotSupportedExtractionArchive
@@ -173,7 +173,8 @@ async def count_files_and_folders(path, extension_filter, unwanted_files=None):
 
 def get_base_name(orig_path):
     extension = next(
-        (ext for ext in ARCH_EXT if orig_path.lower().endswith(ext)), ""
+        (ext for ext in ARCH_EXT if orig_path.lower().endswith(ext)),
+        "",
     )
     if extension != "":
         return re_split(f"{extension}$", orig_path, maxsplit=1, flags=IGNORECASE)[0]
@@ -192,7 +193,8 @@ async def join_files(path):
     exists = False
     for file_ in files:
         if re_search(r"\.0+2$", file_) and await sync_to_async(
-            get_mime_type, f"{path}/{file_}"
+            get_mime_type,
+            f"{path}/{file_}",
         ) not in ["application/x-7z-compressed", "application/zip"]:
             exists = True
             final_name = file_.rsplit(".", 1)[0]

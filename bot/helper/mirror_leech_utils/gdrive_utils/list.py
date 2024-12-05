@@ -1,28 +1,28 @@
-from time import time
 from asyncio import Event, gather, wait_for
-from logging import getLogger
 from functools import partial
+from logging import getLogger
+from time import time
 
-from natsort import natsorted
-from tenacity import RetryError
 from aiofiles.os import path as aiopath
-from pyrogram.filters import user, regex
+from natsort import natsorted
+from pyrogram.filters import regex, user
 from pyrogram.handlers import CallbackQueryHandler
+from tenacity import RetryError
 
 from bot import config_dict
 from bot.helper.ext_utils.bot_utils import new_task, update_user_ldata
 from bot.helper.ext_utils.db_handler import Database
 from bot.helper.ext_utils.status_utils import (
-    get_readable_time,
     get_readable_file_size,
-)
-from bot.helper.telegram_helper.button_build import ButtonMaker
-from bot.helper.telegram_helper.message_utils import (
-    edit_message,
-    send_message,
-    delete_message,
+    get_readable_time,
 )
 from bot.helper.mirror_leech_utils.gdrive_utils.helper import GoogleDriveHelper
+from bot.helper.telegram_helper.button_build import ButtonMaker
+from bot.helper.telegram_helper.message_utils import (
+    delete_message,
+    edit_message,
+    send_message,
+)
 
 LOGGER = getLogger(__name__)
 
@@ -143,7 +143,8 @@ class GoogleDriveList(GoogleDriveHelper):
         pfunc = partial(id_updates, obj=self)
         handler = self.listener.client.add_handler(
             CallbackQueryHandler(
-                pfunc, filters=regex("^gdq") & user(self.listener.user_id)
+                pfunc,
+                filters=regex("^gdq") & user(self.listener.user_id),
             ),
             group=-1,
         )
@@ -160,7 +161,9 @@ class GoogleDriveList(GoogleDriveHelper):
         if not self.listener.is_cancelled:
             if self._reply_to is None:
                 self._reply_to = await send_message(
-                    self.listener.message, msg, button
+                    self.listener.message,
+                    msg,
+                    button,
                 )
             else:
                 await edit_message(self._reply_to, msg, button)
@@ -175,7 +178,7 @@ class GoogleDriveList(GoogleDriveHelper):
         page = (self.iter_start / LIST_LIMIT) + 1 if self.iter_start != 0 else 1
         buttons = ButtonMaker()
         for index, item in enumerate(
-            self.items_list[self.iter_start : LIST_LIMIT + self.iter_start]
+            self.items_list[self.iter_start : LIST_LIMIT + self.iter_start],
         ):
             orig_index = index + self.iter_start
             if item["mimeType"] == self.G_DRIVE_DIR_MIME_TYPE:
@@ -197,7 +200,9 @@ class GoogleDriveList(GoogleDriveHelper):
                 buttons.data_button("Files", "gdq itype files", position="footer")
             else:
                 buttons.data_button(
-                    "Folders", "gdq itype folders", position="footer"
+                    "Folders",
+                    "gdq itype folders",
+                    position="footer",
                 )
         if self.list_status == "gdu" or len(self.items_list) > 0:
             buttons.data_button("Choose Current Path", "gdq cur", position="footer")

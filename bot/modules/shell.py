@@ -1,12 +1,12 @@
 from io import BytesIO
 
 from pyrogram.filters import command
-from pyrogram.handlers import MessageHandler, EditedMessageHandler
+from pyrogram.handlers import EditedMessageHandler, MessageHandler
 
 from bot import LOGGER, bot
 from bot.helper.ext_utils.bot_utils import cmd_exec, new_task
-from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.bot_commands import BotCommands
+from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.message_utils import send_file, send_message
 
 
@@ -42,7 +42,7 @@ bot.add_handler(
             BotCommands.ShellCommand,
         )
         & CustomFilters.owner,
-    )
+    ),
 )
 bot.add_handler(
     EditedMessageHandler(
@@ -51,5 +51,5 @@ bot.add_handler(
             BotCommands.ShellCommand,
         )
         & CustomFilters.owner,
-    )
+    ),
 )

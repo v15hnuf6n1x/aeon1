@@ -1,49 +1,49 @@
-from re import match as re_match
 from base64 import b64encode
+from re import match as re_match
 
 from aiofiles.os import path as aiopath
 from pyrogram.filters import command
 from pyrogram.handlers import MessageHandler
 
-from bot import LOGGER, DOWNLOAD_DIR, bot, bot_loop, task_dict_lock
+from bot import DOWNLOAD_DIR, LOGGER, bot, bot_loop, task_dict_lock
 from bot.helper.ext_utils.bot_utils import (
     COMMAND_USAGE,
     arg_parser,
-    sync_to_async,
     get_content_type,
+    sync_to_async,
 )
 from bot.helper.ext_utils.exceptions import DirectDownloadLinkException
 from bot.helper.ext_utils.links_utils import (
-    is_url,
-    is_magnet,
     is_gdrive_id,
     is_gdrive_link,
+    is_magnet,
     is_rclone_path,
     is_telegram_link,
+    is_url,
 )
 from bot.helper.listeners.task_listener import TaskListener
-from bot.helper.telegram_helper.filters import CustomFilters
-from bot.helper.telegram_helper.bot_commands import BotCommands
-from bot.helper.telegram_helper.message_utils import (
-    send_message,
-    get_tg_link_message,
-)
-from bot.helper.mirror_leech_utils.download_utils.gd_download import add_gd_download
-from bot.helper.mirror_leech_utils.download_utils.qbit_download import add_qb_torrent
 from bot.helper.mirror_leech_utils.download_utils.aria2_download import (
     add_aria2c_download,
-)
-from bot.helper.mirror_leech_utils.download_utils.rclone_download import (
-    add_rclone_download,
 )
 from bot.helper.mirror_leech_utils.download_utils.direct_downloader import (
     add_direct_download,
 )
+from bot.helper.mirror_leech_utils.download_utils.direct_link_generator import (
+    direct_link_generator,
+)
+from bot.helper.mirror_leech_utils.download_utils.gd_download import add_gd_download
+from bot.helper.mirror_leech_utils.download_utils.qbit_download import add_qb_torrent
+from bot.helper.mirror_leech_utils.download_utils.rclone_download import (
+    add_rclone_download,
+)
 from bot.helper.mirror_leech_utils.download_utils.telegram_download import (
     TelegramDownloadHelper,
 )
-from bot.helper.mirror_leech_utils.download_utils.direct_link_generator import (
-    direct_link_generator,
+from bot.helper.telegram_helper.bot_commands import BotCommands
+from bot.helper.telegram_helper.filters import CustomFilters
+from bot.helper.telegram_helper.message_utils import (
+    get_tg_link_message,
+    send_message,
 )
 
 
@@ -198,7 +198,7 @@ class Mirror(TaskListener):
                                 self.folder_name: {
                                     "total": self.multi,
                                     "tasks": {self.mid},
-                                }
+                                },
                             }
                 elif self.same_dir:
                     async with task_dict_lock:
@@ -235,7 +235,8 @@ class Mirror(TaskListener):
             b_msg.append(f"{self.bulk[0]} -i {len(self.bulk)} {self.options}")
             nextmsg = await send_message(self.message, " ".join(b_msg))
             nextmsg = await self.client.get_messages(
-                chat_id=self.message.chat.id, message_ids=nextmsg.id
+                chat_id=self.message.chat.id,
+                message_ids=nextmsg.id,
             )
             if self.message.from_user:
                 nextmsg.from_user = self.user
@@ -292,7 +293,9 @@ class Mirror(TaskListener):
             )
         ):
             await send_message(
-                self.message, COMMAND_USAGE["mirror"][0], COMMAND_USAGE["mirror"][1]
+                self.message,
+                COMMAND_USAGE["mirror"][0],
+                COMMAND_USAGE["mirror"][1],
             )
             await self.remove_from_same_dir()
             return
@@ -318,7 +321,8 @@ class Mirror(TaskListener):
         ):
             content_type = await get_content_type(self.link)
             if content_type is None or re_match(
-                r"text/html|text/plain", content_type
+                r"text/html|text/plain",
+                content_type,
             ):
                 try:
                     self.link = await sync_to_async(direct_link_generator, self.link)
@@ -337,7 +341,9 @@ class Mirror(TaskListener):
 
         if file_ is not None:
             await TelegramDownloadHelper(self).add_download(
-                reply_to, f"{path}/", session
+                reply_to,
+                f"{path}/",
+                session,
             )
         elif isinstance(self.link, dict):
             await add_direct_download(self, path)
@@ -370,7 +376,7 @@ async def leech(client, message):
 
 async def qb_leech(client, message):
     bot_loop.create_task(
-        Mirror(client, message, is_qbit=True, is_leech=True).new_event()
+        Mirror(client, message, is_qbit=True, is_leech=True).new_event(),
     )
 
 
@@ -381,7 +387,7 @@ bot.add_handler(
             BotCommands.MirrorCommand,
         )
         & CustomFilters.authorized,
-    )
+    ),
 )
 bot.add_handler(
     MessageHandler(
@@ -390,7 +396,7 @@ bot.add_handler(
             BotCommands.QbMirrorCommand,
         )
         & CustomFilters.authorized,
-    )
+    ),
 )
 bot.add_handler(
     MessageHandler(
@@ -399,7 +405,7 @@ bot.add_handler(
             BotCommands.LeechCommand,
         )
         & CustomFilters.authorized,
-    )
+    ),
 )
 bot.add_handler(
     MessageHandler(
@@ -408,5 +414,5 @@ bot.add_handler(
             BotCommands.QbLeechCommand,
         )
         & CustomFilters.authorized,
-    )
+    ),
 )

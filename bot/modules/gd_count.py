@@ -5,10 +5,10 @@ from bot import bot
 from bot.helper.ext_utils.bot_utils import new_task, sync_to_async
 from bot.helper.ext_utils.links_utils import is_gdrive_link
 from bot.helper.ext_utils.status_utils import get_readable_file_size
-from bot.helper.telegram_helper.filters import CustomFilters
-from bot.helper.telegram_helper.bot_commands import BotCommands
-from bot.helper.telegram_helper.message_utils import send_message, delete_message
 from bot.helper.mirror_leech_utils.gdrive_utils.count import GoogleDriveCount
+from bot.helper.telegram_helper.bot_commands import BotCommands
+from bot.helper.telegram_helper.filters import CustomFilters
+from bot.helper.telegram_helper.message_utils import delete_message, send_message
 
 
 @new_task
@@ -27,7 +27,9 @@ async def count_node(_, message):
     if is_gdrive_link(link):
         msg = await send_message(message, f"Counting: <code>{link}</code>")
         name, mime_type, size, files, folders = await sync_to_async(
-            GoogleDriveCount().count, link, user.id
+            GoogleDriveCount().count,
+            link,
+            user.id,
         )
         if mime_type is None:
             await send_message(message, name)
@@ -53,5 +55,5 @@ bot.add_handler(
             BotCommands.CountCommand,
         )
         & CustomFilters.authorized,
-    )
+    ),
 )

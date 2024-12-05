@@ -1,9 +1,9 @@
+from contextlib import redirect_stdout, suppress
 from io import BytesIO, StringIO
-from os import path as ospath
 from os import chdir, getcwd
+from os import path as ospath
 from textwrap import indent
 from traceback import format_exc
-from contextlib import suppress, redirect_stdout
 
 from aiofiles import open as aiopen
 from pyrogram.filters import command
@@ -11,8 +11,8 @@ from pyrogram.handlers import MessageHandler
 
 from bot import LOGGER, bot
 from bot.helper.ext_utils.bot_utils import new_task, sync_to_async
-from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.bot_commands import BotCommands
+from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.message_utils import send_file, send_message
 
 namespaces = {}
@@ -33,7 +33,7 @@ def namespace_of(message):
 
 def log_input(message):
     LOGGER.info(
-        f"IN: {message.text} (user={message.from_user.id if message.from_user else message.sender_chat.id}, chat={message.chat.id})"
+        f"IN: {message.text} (user={message.from_user.id if message.from_user else message.sender_chat.id}, chat={message.chat.id})",
     )
 
 
@@ -124,7 +124,7 @@ bot.add_handler(
             BotCommands.AExecCommand,
         )
         & CustomFilters.owner,
-    )
+    ),
 )
 bot.add_handler(
     MessageHandler(
@@ -133,7 +133,7 @@ bot.add_handler(
             BotCommands.ExecCommand,
         )
         & CustomFilters.owner,
-    )
+    ),
 )
 bot.add_handler(
     MessageHandler(
@@ -142,5 +142,5 @@ bot.add_handler(
             BotCommands.ClearLocalsCommand,
         )
         & CustomFilters.owner,
-    )
+    ),
 )

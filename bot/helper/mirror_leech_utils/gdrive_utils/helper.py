@@ -1,21 +1,21 @@
-from os import path as ospath
+from logging import ERROR, getLogger
 from os import listdir
-from re import search as re_search
+from os import path as ospath
 from pickle import load as pload
 from random import randrange
-from logging import ERROR, getLogger
+from re import search as re_search
 from urllib.parse import parse_qs, urlparse
 
-from tenacity import (
-    retry,
-    wait_exponential,
-    stop_after_attempt,
-    retry_if_exception_type,
-)
 from google.oauth2 import service_account
 from google_auth_httplib2 import AuthorizedHttp
-from googleapiclient.http import build_http
 from googleapiclient.discovery import build
+from googleapiclient.http import build_http
+from tenacity import (
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_exponential,
+)
 
 from bot import config_dict
 from bot.helper.ext_utils.links_utils import is_gdrive_id
@@ -82,10 +82,11 @@ class GoogleDriveHelper:
             self.sa_number = len(json_files)
             self.sa_index = randrange(self.sa_number)
             LOGGER.info(
-                f"Authorizing with {json_files[self.sa_index]} service account"
+                f"Authorizing with {json_files[self.sa_index]} service account",
             )
             credentials = service_account.Credentials.from_service_account_file(
-                f"accounts/{json_files[self.sa_index]}", scopes=self._OAUTH_SCOPE
+                f"accounts/{json_files[self.sa_index]}",
+                scopes=self._OAUTH_SCOPE,
             )
         elif ospath.exists(self.token_path):
             LOGGER.info(f"Authorize with {self.token_path}")
@@ -219,7 +220,7 @@ class GoogleDriveHelper:
         if not config_dict["IS_TEAM_DRIVE"]:
             self.set_permission(file_id)
         LOGGER.info(
-            f'Created G-Drive Folder:\nName: {file.get("name")}\nID: {file_id}'
+            f'Created G-Drive Folder:\nName: {file.get("name")}\nID: {file_id}',
         )
         return file_id
 
@@ -257,10 +258,10 @@ class GoogleDriveHelper:
         elif self.is_cloning:
             LOGGER.info(f"Cancelling Clone: {self.listener.name}")
             await self.listener.on_upload_error(
-                "your clone has been stopped and cloned data has been deleted!"
+                "your clone has been stopped and cloned data has been deleted!",
             )
         elif self.is_uploading:
             LOGGER.info(f"Cancelling Upload: {self.listener.name}")
             await self.listener.on_upload_error(
-                "your upload has been stopped and uploaded data has been deleted!"
+                "your upload has been stopped and uploaded data has been deleted!",
             )

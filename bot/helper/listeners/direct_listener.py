@@ -37,7 +37,9 @@ class DirectListener:
             self._a2c_opt["out"] = filename
             try:
                 self.download_task = aria2.add_uris(
-                    [content["url"]], self._a2c_opt, position=0
+                    [content["url"]],
+                    self._a2c_opt,
+                    position=0,
                 )
             except Exception as e:
                 self._failed += 1
@@ -53,7 +55,7 @@ class DirectListener:
                 if error_message := self.download_task.error_message:
                     self._failed += 1
                     LOGGER.error(
-                        f"Unable to download {self.download_task.name} due to: {error_message}"
+                        f"Unable to download {self.download_task.name} due to: {error_message}",
                     )
                     self.download_task.remove(True, True)
                     break
@@ -67,7 +69,8 @@ class DirectListener:
             return
         if self._failed == len(contents):
             async_to_sync(
-                self.listener.on_download_error, "All files are failed to download!"
+                self.listener.on_download_error,
+                "All files are failed to download!",
             )
             return
         async_to_sync(self.listener.on_download_complete)

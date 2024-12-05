@@ -5,20 +5,20 @@ from aiofiles.os import remove
 
 from bot import (
     LOGGER,
-    task_dict,
     config_dict,
-    xnox_client,
+    task_dict,
     task_dict_lock,
+    xnox_client,
 )
-from bot.helper.ext_utils.bot_utils import sync_to_async, bt_selection_buttons
+from bot.helper.ext_utils.bot_utils import bt_selection_buttons, sync_to_async
 from bot.helper.ext_utils.task_manager import check_running_tasks
 from bot.helper.listeners.qbit_listener import on_download_start
+from bot.helper.mirror_leech_utils.status_utils.qbit_status import QbittorrentStatus
 from bot.helper.telegram_helper.message_utils import (
-    send_message,
     delete_message,
+    send_message,
     send_status_message,
 )
-from bot.helper.mirror_leech_utils.status_utils.qbit_status import QbittorrentStatus
 
 """
 Only v1 torrents
@@ -59,14 +59,16 @@ async def add_qb_torrent(listener, path, ratio, seed_time):
         )
         if op.lower() == "ok.":
             tor_info = await sync_to_async(
-                xnox_client.torrents_info, tag=f"{listener.mid}"
+                xnox_client.torrents_info,
+                tag=f"{listener.mid}",
             )
             if len(tor_info) == 0:
                 while True:
                     if add_to_queue and event.is_set():
                         add_to_queue = False
                     tor_info = await sync_to_async(
-                        xnox_client.torrents_info, tag=f"{listener.mid}"
+                        xnox_client.torrents_info,
+                        tag=f"{listener.mid}",
                     )
                     if len(tor_info) > 0:
                         break
@@ -82,13 +84,14 @@ async def add_qb_torrent(listener, path, ratio, seed_time):
 
         async with task_dict_lock:
             task_dict[listener.mid] = QbittorrentStatus(
-                listener, queued=add_to_queue
+                listener,
+                queued=add_to_queue,
             )
         await on_download_start(f"{listener.mid}")
 
         if add_to_queue:
             LOGGER.info(
-                f"Added to Queue/Download: {tor_info.name} - Hash: {ext_hash}"
+                f"Added to Queue/Download: {tor_info.name} - Hash: {ext_hash}",
             )
         else:
             LOGGER.info(f"QbitDownload started: {tor_info.name} - Hash: {ext_hash}")
@@ -101,7 +104,8 @@ async def add_qb_torrent(listener, path, ratio, seed_time):
                 meta = await send_message(listener.message, metamsg)
                 while True:
                     tor_info = await sync_to_async(
-                        xnox_client.torrents_info, tag=f"{listener.mid}"
+                        xnox_client.torrents_info,
+                        tag=f"{listener.mid}",
                     )
                     if len(tor_info) == 0:
                         await delete_message(meta)
@@ -122,7 +126,8 @@ async def add_qb_torrent(listener, path, ratio, seed_time):
             ext_hash = tor_info.hash
             if not add_to_queue:
                 await sync_to_async(
-                    xnox_client.torrents_pause, torrent_hashes=ext_hash
+                    xnox_client.torrents_pause,
+                    torrent_hashes=ext_hash,
                 )
             SBUTTONS = bt_selection_buttons(ext_hash)
             msg = "Your download paused. Choose files then press Done Selecting button to start downloading."
@@ -138,7 +143,7 @@ async def add_qb_torrent(listener, path, ratio, seed_time):
                 async with task_dict_lock:
                     task_dict[listener.mid].queued = False
                 LOGGER.info(
-                    f"Start Queued Download from Qbittorrent: {tor_info.name} - Hash: {ext_hash}"
+                    f"Start Queued Download from Qbittorrent: {tor_info.name} - Hash: {ext_hash}",
                 )
             await sync_to_async(xnox_client.torrents_resume, torrent_hashes=ext_hash)
 

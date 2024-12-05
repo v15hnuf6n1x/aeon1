@@ -1,35 +1,35 @@
-from time import time
 from asyncio import Event, wait_for
 from functools import partial
+from time import time
 
 from httpx import AsyncClient
+from pyrogram.filters import command, regex, user
+from pyrogram.handlers import CallbackQueryHandler, MessageHandler
 from yt_dlp import YoutubeDL
-from pyrogram.filters import user, regex, command
-from pyrogram.handlers import MessageHandler, CallbackQueryHandler
 
-from bot import LOGGER, DOWNLOAD_DIR, bot, bot_loop, config_dict, task_dict_lock
+from bot import DOWNLOAD_DIR, LOGGER, bot, bot_loop, config_dict, task_dict_lock
 from bot.helper.ext_utils.bot_utils import (
     COMMAND_USAGE,
-    new_task,
     arg_parser,
+    new_task,
     sync_to_async,
 )
 from bot.helper.ext_utils.links_utils import is_url
 from bot.helper.ext_utils.status_utils import (
-    get_readable_time,
     get_readable_file_size,
+    get_readable_time,
 )
 from bot.helper.listeners.task_listener import TaskListener
-from bot.helper.telegram_helper.filters import CustomFilters
-from bot.helper.telegram_helper.bot_commands import BotCommands
-from bot.helper.telegram_helper.button_build import ButtonMaker
-from bot.helper.telegram_helper.message_utils import (
-    edit_message,
-    send_message,
-    delete_message,
-)
 from bot.helper.mirror_leech_utils.download_utils.yt_dlp_download import (
     YoutubeDLHelper,
+)
+from bot.helper.telegram_helper.bot_commands import BotCommands
+from bot.helper.telegram_helper.button_build import ButtonMaker
+from bot.helper.telegram_helper.filters import CustomFilters
+from bot.helper.telegram_helper.message_utils import (
+    delete_message,
+    edit_message,
+    send_message,
 )
 
 
@@ -85,7 +85,8 @@ class YtSelection:
         pfunc = partial(select_format, obj=self)
         handler = self.listener.client.add_handler(
             CallbackQueryHandler(
-                pfunc, filters=regex("^ytq") & user(self.listener.user_id)
+                pfunc,
+                filters=regex("^ytq") & user(self.listener.user_id),
             ),
             group=-1,
         )
@@ -179,7 +180,9 @@ class YtSelection:
             self._main_buttons = buttons.build_menu(2)
             msg = f"Choose Video Quality:\nTimeout: {get_readable_time(self._timeout - (time() - self._time))}"
         self._reply_to = await send_message(
-            self.listener.message, msg, self._main_buttons
+            self.listener.message,
+            msg,
+            self._main_buttons,
         )
         await self._event_handler()
         if not self.listener.is_cancelled:
@@ -255,7 +258,7 @@ async def _mdisk(link, name):
     key = link.split("/")[-1]
     async with AsyncClient(verify=False) as client:
         resp = await client.get(
-            f"https://diskuploader.entertainvideo.com/v1/file/cdnurl?param={key}"
+            f"https://diskuploader.entertainvideo.com/v1/file/cdnurl?param={key}",
         )
     if resp.status_code == 200:
         resp_json = resp.json()
@@ -397,7 +400,7 @@ class YtDlp(TaskListener):
                                 self.folder_name: {
                                     "total": self.multi,
                                     "tasks": {self.mid},
-                                }
+                                },
                             }
                 elif self.same_dir:
                     async with task_dict_lock:
@@ -421,7 +424,9 @@ class YtDlp(TaskListener):
 
         if not is_url(self.link):
             await send_message(
-                self.message, COMMAND_USAGE["yt"][0], COMMAND_USAGE["yt"][1]
+                self.message,
+                COMMAND_USAGE["yt"][0],
+                COMMAND_USAGE["yt"][1],
             )
             await self.remove_from_same_dir()
             return
@@ -458,7 +463,7 @@ class YtDlp(TaskListener):
                 elif value.lower() == "false":
                     value = False
                 elif value.startswith(("{", "[", "(")) and value.endswith(
-                    ("}", "]", ")")
+                    ("}", "]", ")"),
                 ):
                     value = eval(value)
                 options[key] = value
@@ -501,7 +506,7 @@ bot.add_handler(
             BotCommands.YtdlCommand,
         )
         & CustomFilters.authorized,
-    )
+    ),
 )
 bot.add_handler(
     MessageHandler(
@@ -510,5 +515,5 @@ bot.add_handler(
             BotCommands.YtdlLeechCommand,
         )
         & CustomFilters.authorized,
-    )
+    ),
 )

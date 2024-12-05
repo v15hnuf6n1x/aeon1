@@ -1,16 +1,16 @@
 import contextlib
+from asyncio import iscoroutinefunction
 from html import escape
 from time import time
-from asyncio import iscoroutinefunction
 
-from psutil import disk_usage, cpu_percent, virtual_memory
+from psutil import cpu_percent, disk_usage, virtual_memory
 
 from bot import (
     DOWNLOAD_DIR,
-    task_dict,
+    bot_start_time,
     config_dict,
     status_dict,
-    bot_start_time,
+    task_dict,
     task_dict_lock,
 )
 from bot.helper.telegram_helper.button_build import ButtonMaker
@@ -183,7 +183,8 @@ async def get_readable_message(sid, is_user, page_no=1, status="All", page_step=
     start_position = (page_no - 1) * STATUS_LIMIT
 
     for index, task in enumerate(
-        tasks[start_position : STATUS_LIMIT + start_position], start=1
+        tasks[start_position : STATUS_LIMIT + start_position],
+        start=1,
     ):
         tstatus = await sync_to_async(task.status) if status == "All" else status
         if task.listener.is_super_chat:

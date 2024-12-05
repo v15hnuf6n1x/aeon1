@@ -1,11 +1,11 @@
-from asyncio import sleep, gather
+from asyncio import gather, sleep
 
-from bot import LOGGER, qb_torrents, xnox_client, qb_listener_lock
+from bot import LOGGER, qb_listener_lock, qb_torrents, xnox_client
 from bot.helper.ext_utils.bot_utils import sync_to_async
 from bot.helper.ext_utils.status_utils import (
     MirrorStatus,
-    get_readable_time,
     get_readable_file_size,
+    get_readable_time,
 )
 
 
@@ -94,7 +94,8 @@ class QbittorrentStatus:
         self.listener.is_cancelled = True
         await sync_to_async(self.update)
         await sync_to_async(
-            xnox_client.torrents_pause, torrent_hashes=self._info.hash
+            xnox_client.torrents_pause,
+            torrent_hashes=self._info.hash,
         )
         if not self.seeding:
             if self.queued:
@@ -112,7 +113,8 @@ class QbittorrentStatus:
                     delete_files=True,
                 ),
                 sync_to_async(
-                    xnox_client.torrents_delete_tags, tags=self._info.tags
+                    xnox_client.torrents_delete_tags,
+                    tags=self._info.tags,
                 ),
             )
             async with qb_listener_lock:

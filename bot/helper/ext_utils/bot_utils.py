@@ -1,22 +1,22 @@
 from asyncio import (
-    sleep,
     create_subprocess_exec,
     create_subprocess_shell,
     run_coroutine_threadsafe,
+    sleep,
 )
-from functools import wraps, partial
 from asyncio.subprocess import PIPE
 from concurrent.futures import ThreadPoolExecutor
+from functools import partial, wraps
 
 from httpx import AsyncClient
 
-from bot import bot_loop, user_data, config_dict
+from bot import bot_loop, config_dict, user_data
 from bot.helper.telegram_helper.button_build import ButtonMaker
 
 from .help_messages import (
-    YT_HELP_DICT,
     CLONE_HELP_DICT,
     MIRROR_HELP_DICT,
+    YT_HELP_DICT,
 )
 from .telegraph_helper import telegraph
 
@@ -71,7 +71,8 @@ async def get_telegraph_list(telegraph_content):
     path = [
         (
             await telegraph.create_page(
-                title="Mirror-Leech-Bot Drive Search", content=content
+                title="Mirror-Leech-Bot Drive Search",
+                content=content,
             )
         )["path"]
         for content in telegraph_content

@@ -1,11 +1,11 @@
 from pyrogram.filters import command
 from pyrogram.handlers import MessageHandler
 
-from bot import bot, user_data, config_dict
+from bot import bot, config_dict, user_data
 from bot.helper.ext_utils.bot_utils import new_task, update_user_ldata
 from bot.helper.ext_utils.db_handler import Database
-from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.bot_commands import BotCommands
+from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.message_utils import send_message
 
 
@@ -67,7 +67,8 @@ async def unauthorize(_, message):
         chat_id = message.chat.id
     if chat_id in user_data and user_data[chat_id].get("is_auth"):
         if thread_id is not None and thread_id in user_data[chat_id].get(
-            "thread_ids", []
+            "thread_ids",
+            [],
         ):
             user_data[chat_id]["thread_ids"].remove(thread_id)
         else:
@@ -130,7 +131,7 @@ bot.add_handler(
             BotCommands.AuthorizeCommand,
         )
         & CustomFilters.sudo,
-    )
+    ),
 )
 bot.add_handler(
     MessageHandler(
@@ -139,7 +140,7 @@ bot.add_handler(
             BotCommands.UnAuthorizeCommand,
         )
         & CustomFilters.sudo,
-    )
+    ),
 )
 bot.add_handler(
     MessageHandler(
@@ -148,7 +149,7 @@ bot.add_handler(
             BotCommands.AddSudoCommand,
         )
         & CustomFilters.sudo,
-    )
+    ),
 )
 bot.add_handler(
     MessageHandler(
@@ -157,5 +158,5 @@ bot.add_handler(
             BotCommands.RmSudoCommand,
         )
         & CustomFilters.sudo,
-    )
+    ),
 )

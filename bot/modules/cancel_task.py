@@ -1,23 +1,23 @@
 from asyncio import sleep
 
-from pyrogram.filters import regex, command
-from pyrogram.handlers import MessageHandler, CallbackQueryHandler
+from pyrogram.filters import command, regex
+from pyrogram.handlers import CallbackQueryHandler, MessageHandler
 
-from bot import OWNER_ID, bot, task_dict, user_data, multi_tags, task_dict_lock
-from bot.helper.telegram_helper import button_build
+from bot import OWNER_ID, bot, multi_tags, task_dict, task_dict_lock, user_data
 from bot.helper.ext_utils.bot_utils import new_task
 from bot.helper.ext_utils.status_utils import (
     MirrorStatus,
     get_all_tasks,
     get_task_by_gid,
 )
-from bot.helper.telegram_helper.filters import CustomFilters
+from bot.helper.telegram_helper import button_build
 from bot.helper.telegram_helper.bot_commands import BotCommands
+from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.message_utils import (
+    auto_delete_message,
+    delete_message,
     edit_message,
     send_message,
-    delete_message,
-    auto_delete_message,
 )
 
 
@@ -87,41 +87,53 @@ async def cancel_all(status, user_id):
 def create_cancel_buttons(is_sudo, user_id=""):
     buttons = button_build.ButtonMaker()
     buttons.data_button(
-        "Downloading", f"canall ms {MirrorStatus.STATUS_DOWNLOAD} {user_id}"
+        "Downloading",
+        f"canall ms {MirrorStatus.STATUS_DOWNLOAD} {user_id}",
     )
     buttons.data_button(
-        "Uploading", f"canall ms {MirrorStatus.STATUS_UPLOAD} {user_id}"
+        "Uploading",
+        f"canall ms {MirrorStatus.STATUS_UPLOAD} {user_id}",
     )
     buttons.data_button("Seeding", f"canall ms {MirrorStatus.STATUS_SEED} {user_id}")
     buttons.data_button(
-        "Spltting", f"canall ms {MirrorStatus.STATUS_SPLIT} {user_id}"
+        "Spltting",
+        f"canall ms {MirrorStatus.STATUS_SPLIT} {user_id}",
     )
     buttons.data_button(
-        "Cloning", f"canall ms {MirrorStatus.STATUS_CLONE} {user_id}"
+        "Cloning",
+        f"canall ms {MirrorStatus.STATUS_CLONE} {user_id}",
     )
     buttons.data_button(
-        "Extracting", f"canall ms {MirrorStatus.STATUS_EXTRACT} {user_id}"
+        "Extracting",
+        f"canall ms {MirrorStatus.STATUS_EXTRACT} {user_id}",
     )
     buttons.data_button(
-        "Archiving", f"canall ms {MirrorStatus.STATUS_ARCHIVE} {user_id}"
+        "Archiving",
+        f"canall ms {MirrorStatus.STATUS_ARCHIVE} {user_id}",
     )
     buttons.data_button(
-        "QueuedDl", f"canall ms {MirrorStatus.STATUS_QUEUEDL} {user_id}"
+        "QueuedDl",
+        f"canall ms {MirrorStatus.STATUS_QUEUEDL} {user_id}",
     )
     buttons.data_button(
-        "QueuedUp", f"canall ms {MirrorStatus.STATUS_QUEUEUP} {user_id}"
+        "QueuedUp",
+        f"canall ms {MirrorStatus.STATUS_QUEUEUP} {user_id}",
     )
     buttons.data_button(
-        "SampleVideo", f"canall ms {MirrorStatus.STATUS_SAMVID} {user_id}"
+        "SampleVideo",
+        f"canall ms {MirrorStatus.STATUS_SAMVID} {user_id}",
     )
     buttons.data_button(
-        "ConvertMedia", f"canall ms {MirrorStatus.STATUS_CONVERT} {user_id}"
+        "ConvertMedia",
+        f"canall ms {MirrorStatus.STATUS_CONVERT} {user_id}",
     )
     buttons.data_button(
-        "FFmpeg", f"canall ms {MirrorStatus.STATUS_FFMPEG} {user_id}"
+        "FFmpeg",
+        f"canall ms {MirrorStatus.STATUS_FFMPEG} {user_id}",
     )
     buttons.data_button(
-        "Paused", f"canall ms {MirrorStatus.STATUS_PAUSED} {user_id}"
+        "Paused",
+        f"canall ms {MirrorStatus.STATUS_PAUSED} {user_id}",
     )
     buttons.data_button("All", f"canall ms All {user_id}")
     if is_sudo:
@@ -176,7 +188,9 @@ async def cancel_all_update(_, query):
         buttons.data_button("Close", f"canall close confirm {user_id}")
         button = buttons.build_menu(2)
         await edit_message(
-            message, f"Are you sure you want to cancel all {data[2]} tasks", button
+            message,
+            f"Are you sure you want to cancel all {data[2]} tasks",
+            button,
         )
     else:
         button = create_cancel_buttons(is_sudo, user_id)
@@ -193,7 +207,7 @@ bot.add_handler(
             BotCommands.CancelTaskCommand,
         )
         & CustomFilters.authorized,
-    )
+    ),
 )
 bot.add_handler(
     MessageHandler(
@@ -202,7 +216,7 @@ bot.add_handler(
             BotCommands.CancelAllCommand,
         )
         & CustomFilters.authorized,
-    )
+    ),
 )
 bot.add_handler(CallbackQueryHandler(cancel_all_update, filters=regex("^canall")))
 bot.add_handler(CallbackQueryHandler(cancel_multi, filters=regex("^stopm")))

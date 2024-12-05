@@ -32,7 +32,7 @@ class CustomFilters:
                     thread_id is None
                     or thread_id in user_data[chat_id].get("thread_ids", [])
                 )
-            )
+            ),
         )
 
     authorized = create(authorized_user)
@@ -41,7 +41,7 @@ class CustomFilters:
         user = update.from_user or update.sender_chat
         uid = user.id
         return bool(
-            uid == OWNER_ID or (uid in user_data and user_data[uid].get("is_sudo"))
+            uid == OWNER_ID or (uid in user_data and user_data[uid].get("is_sudo")),
         )
 
     sudo = create(sudo_user)

@@ -6,19 +6,21 @@ from bot.helper.ext_utils.task_manager import (
     check_running_tasks,
     stop_duplicate_check,
 )
-from bot.helper.telegram_helper.message_utils import send_status_message
 from bot.helper.mirror_leech_utils.gdrive_utils.count import GoogleDriveCount
 from bot.helper.mirror_leech_utils.gdrive_utils.download import GoogleDriveDownload
-from bot.helper.mirror_leech_utils.status_utils.queue_status import QueueStatus
 from bot.helper.mirror_leech_utils.status_utils.gdrive_status import (
     GoogleDriveStatus,
 )
+from bot.helper.mirror_leech_utils.status_utils.queue_status import QueueStatus
+from bot.helper.telegram_helper.message_utils import send_status_message
 
 
 async def add_gd_download(listener, path):
     drive = GoogleDriveCount()
     name, mime_type, listener.size, _, _ = await sync_to_async(
-        drive.count, listener.link, listener.user_id
+        drive.count,
+        listener.link,
+        listener.user_id,
     )
     if mime_type is None:
         await listener.on_download_error(name)

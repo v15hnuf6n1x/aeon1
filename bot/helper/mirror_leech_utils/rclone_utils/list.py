@@ -1,26 +1,26 @@
+from asyncio import Event, gather, wait_for
+from configparser import RawConfigParser
+from functools import partial
 from json import loads
 from time import time
-from asyncio import Event, gather, wait_for
-from functools import partial
-from configparser import RawConfigParser
 
 from aiofiles import open as aiopen
 from aiofiles.os import path as aiopath
-from pyrogram.filters import user, regex
+from pyrogram.filters import regex, user
 from pyrogram.handlers import CallbackQueryHandler
 
 from bot import LOGGER, config_dict
 from bot.helper.ext_utils.bot_utils import cmd_exec, new_task, update_user_ldata
 from bot.helper.ext_utils.db_handler import Database
 from bot.helper.ext_utils.status_utils import (
-    get_readable_time,
     get_readable_file_size,
+    get_readable_time,
 )
 from bot.helper.telegram_helper.button_build import ButtonMaker
 from bot.helper.telegram_helper.message_utils import (
+    delete_message,
     edit_message,
     send_message,
-    delete_message,
 )
 
 LIST_LIMIT = 6
@@ -161,7 +161,8 @@ class RcloneList:
         pfunc = partial(path_updates, obj=self)
         handler = self.listener.client.add_handler(
             CallbackQueryHandler(
-                pfunc, filters=regex("^rcq") & user(self.listener.user_id)
+                pfunc,
+                filters=regex("^rcq") & user(self.listener.user_id),
             ),
             group=-1,
         )
@@ -179,7 +180,9 @@ class RcloneList:
         if not self.listener.is_cancelled:
             if self._reply_to is None:
                 self._reply_to = await send_message(
-                    self.listener.message, msg, button
+                    self.listener.message,
+                    msg,
+                    button,
                 )
             else:
                 await edit_message(self._reply_to, msg, button)
@@ -194,7 +197,7 @@ class RcloneList:
         page = (self.iter_start / LIST_LIMIT) + 1 if self.iter_start != 0 else 1
         buttons = ButtonMaker()
         for index, idict in enumerate(
-            self.path_list[self.iter_start : LIST_LIMIT + self.iter_start]
+            self.path_list[self.iter_start : LIST_LIMIT + self.iter_start],
         ):
             orig_index = index + self.iter_start
             name = idict["Path"]
@@ -216,11 +219,15 @@ class RcloneList:
         if self.list_status == "rcd":
             if self.item_type == "--dirs-only":
                 buttons.data_button(
-                    "Files", "rcq itype --files-only", position="footer"
+                    "Files",
+                    "rcq itype --files-only",
+                    position="footer",
                 )
             else:
                 buttons.data_button(
-                    "Folders", "rcq itype --dirs-only", position="footer"
+                    "Folders",
+                    "rcq itype --dirs-only",
+                    position="footer",
                 )
         if self.list_status == "rcu" or len(self.path_list) > 0:
             buttons.data_button("Choose Current Path", "rcq cur", position="footer")
@@ -286,7 +293,7 @@ class RcloneList:
             if not err:
                 err = "Use <code>/shell cat rlog.txt</code> to see more information"
             LOGGER.error(
-                f"While rclone listing. Path: {self.remote}{self.path}. Stderr: {err}"
+                f"While rclone listing. Path: {self.remote}{self.path}. Stderr: {err}",
             )
             self.remote = err[:4000]
             self.path = ""
@@ -370,7 +377,8 @@ class RcloneList:
         self.list_status = status
         if config_path is None:
             self._rc_user, self._rc_owner = await gather(
-                aiopath.exists(self.user_rcc_path), aiopath.exists("rclone.conf")
+                aiopath.exists(self.user_rcc_path),
+                aiopath.exists("rclone.conf"),
             )
             if not self._rc_owner and not self._rc_user:
                 self.event.set()

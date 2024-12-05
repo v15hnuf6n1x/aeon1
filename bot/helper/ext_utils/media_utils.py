@@ -1,18 +1,18 @@
-from os import path as ospath
+from asyncio import create_subprocess_exec, gather, wait_for
+from asyncio.subprocess import PIPE
 from os import cpu_count
+from os import path as ospath
 from re import escape
 from re import search as re_search
 from time import time
-from asyncio import gather, wait_for, create_subprocess_exec
-from asyncio.subprocess import PIPE
 
 import suppress
-from PIL import Image
-from aioshutil import rmtree
+from aiofiles.os import makedirs, remove
 from aiofiles.os import path as aiopath
-from aiofiles.os import remove, makedirs
+from aioshutil import rmtree
+from PIL import Image
 
-from bot import LOGGER, DOWNLOAD_DIR, subprocess_lock
+from bot import DOWNLOAD_DIR, LOGGER, subprocess_lock
 
 from .bot_utils import cmd_exec, sync_to_async
 from .files_utils import ARCH_EXT, get_mime_type
@@ -79,7 +79,7 @@ async def convert_video(listener, video_file, ext, retry=False):
     except Exception:
         stderr = "Unable to decode the error!"
     LOGGER.error(
-        f"{stderr}. Something went wrong while converting video, mostly file need specific codec. Path: {video_file}"
+        f"{stderr}. Something went wrong while converting video, mostly file need specific codec. Path: {video_file}",
     )
     return False
 
@@ -116,7 +116,7 @@ async def convert_audio(listener, audio_file, ext):
     except Exception:
         stderr = "Unable to decode the error!"
     LOGGER.error(
-        f"{stderr}. Something went wrong while converting audio, mostly file need specific codec. Path: {audio_file}"
+        f"{stderr}. Something went wrong while converting audio, mostly file need specific codec. Path: {audio_file}",
     )
     if await aiopath.exists(output):
         await remove(output)
@@ -149,11 +149,11 @@ async def is_multi_streams(path):
                 "json",
                 "-show_streams",
                 path,
-            ]
+            ],
         )
     except Exception as e:
         LOGGER.error(
-            f"Get Video Streams: {e}. Mostly File not found! - File: {path}"
+            f"Get Video Streams: {e}. Mostly File not found! - File: {path}",
         )
         return False
     if result[0] and result[2] == 0:
@@ -184,7 +184,7 @@ async def get_media_info(path):
                 "json",
                 "-show_format",
                 path,
-            ]
+            ],
         )
     except Exception as e:
         LOGGER.error(f"Get Media Info: {e}. Mostly File not found! - File: {path}")
@@ -205,7 +205,8 @@ async def get_media_info(path):
 async def get_document_type(path):
     is_video, is_audio, is_image = False, False, False
     if path.endswith(tuple(ARCH_EXT)) or re_search(
-        r".+(\.|_)(rar|7z|zip|bin)(\.0*\d+)?$", path
+        r".+(\.|_)(rar|7z|zip|bin)(\.0*\d+)?$",
+        path,
     ):
         return is_video, is_audio, is_image
     mime_type = await sync_to_async(get_mime_type, path)
@@ -222,18 +223,18 @@ async def get_document_type(path):
                 "json",
                 "-show_streams",
                 path,
-            ]
+            ],
         )
         if result[1] and mime_type.startswith("video"):
             is_video = True
     except Exception as e:
         LOGGER.error(
-            f"Get Document Type: {e}. Mostly File not found! - File: {path}"
+            f"Get Document Type: {e}. Mostly File not found! - File: {path}",
         )
         if mime_type.startswith("audio"):
             return False, True, False
         if not mime_type.startswith("video") and not mime_type.endswith(
-            "octet-stream"
+            "octet-stream",
         ):
             return is_video, is_audio, is_image
         if mime_type.startswith("video"):
@@ -288,13 +289,13 @@ async def take_ss(video_file, ss_nb) -> bool:
             resutls = await wait_for(gather(*cmds), timeout=60)
             if resutls[0][2] != 0:
                 LOGGER.error(
-                    f"Error while creating sreenshots from video. Path: {video_file}. stderr: {resutls[0][1]}"
+                    f"Error while creating sreenshots from video. Path: {video_file}. stderr: {resutls[0][1]}",
                 )
                 await rmtree(dirpath, ignore_errors=True)
                 return False
         except Exception:
             LOGGER.error(
-                f"Error while creating sreenshots from video. Path: {video_file}. Error: Timeout some issues with ffmpeg with specific arch!"
+                f"Error while creating sreenshots from video. Path: {video_file}. Error: Timeout some issues with ffmpeg with specific arch!",
             )
             await rmtree(dirpath, ignore_errors=True)
             return False
@@ -324,7 +325,7 @@ async def get_audio_thumbnail(audio_file):
     _, err, code = await cmd_exec(cmd)
     if code != 0 or not await aiopath.exists(output):
         LOGGER.error(
-            f"Error while extracting thumbnail from audio. Name: {audio_file} stderr: {err}"
+            f"Error while extracting thumbnail from audio. Name: {audio_file} stderr: {err}",
         )
         return None
     return output
@@ -362,12 +363,12 @@ async def get_video_thumbnail(video_file, duration):
         _, err, code = await wait_for(cmd_exec(cmd), timeout=60)
         if code != 0 or not await aiopath.exists(output):
             LOGGER.error(
-                f"Error while extracting thumbnail from video. Name: {video_file} stderr: {err}"
+                f"Error while extracting thumbnail from video. Name: {video_file} stderr: {err}",
             )
             return None
     except Exception:
         LOGGER.error(
-            f"Error while extracting thumbnail from video. Name: {video_file}. Error: Timeout some issues with ffmpeg with specific arch!"
+            f"Error while extracting thumbnail from video. Name: {video_file}. Error: Timeout some issues with ffmpeg with specific arch!",
         )
         return None
     return output
@@ -407,12 +408,12 @@ async def get_multiple_frames_thumbnail(video_file, layout, keep_screenshots):
         _, err, code = await wait_for(cmd_exec(cmd), timeout=60)
         if code != 0 or not await aiopath.exists(output):
             LOGGER.error(
-                f"Error while combining thumbnails for video. Name: {video_file} stderr: {err}"
+                f"Error while combining thumbnails for video. Name: {video_file} stderr: {err}",
             )
             return None
     except Exception:
         LOGGER.error(
-            f"Error while combining thumbnails from video. Name: {video_file}. Error: Timeout some issues with ffmpeg with specific arch!"
+            f"Error while combining thumbnails from video. Name: {video_file}. Error: Timeout some issues with ffmpeg with specific arch!",
         )
         return None
     finally:
@@ -497,7 +498,7 @@ async def split_file(
 
                 if multi_streams:
                     LOGGER.warning(
-                        f"{stderr}. Retrying without map, -map 0 not working in all situations. Path: {path}"
+                        f"{stderr}. Retrying without map, -map 0 not working in all situations. Path: {path}",
                     )
                     return await split_file(
                         path,
@@ -511,7 +512,7 @@ async def split_file(
                         False,
                     )
                 LOGGER.warning(
-                    f"{stderr}. Unable to split this video, if it's size less than {listener.max_split_size} will be uploaded as it is. Path: {path}"
+                    f"{stderr}. Unable to split this video, if it's size less than {listener.max_split_size} will be uploaded as it is. Path: {path}",
                 )
                 return False
 
@@ -535,12 +536,12 @@ async def split_file(
             lpd = (await get_media_info(out_path))[0]
             if lpd == 0:
                 LOGGER.error(
-                    f"Something went wrong while splitting, mostly file is corrupted. Path: {path}"
+                    f"Something went wrong while splitting, mostly file is corrupted. Path: {path}",
                 )
                 break
             if duration == lpd:
                 LOGGER.warning(
-                    f"This file has been split with default stream and audio, so you will only see one part with less size from the original one because it doesn't have all streams and audios. This happens mostly with MKV videos. Path: {path}"
+                    f"This file has been split with default stream and audio, so you will only see one part with less size from the original one because it doesn't have all streams and audios. This happens mostly with MKV videos. Path: {path}",
                 )
                 break
             if lpd <= 3:
@@ -651,7 +652,7 @@ async def create_sample_video(listener, video_file, sample_duration, part_durati
     except Exception:
         stderr = "Unable to decode the error!"
     LOGGER.error(
-        f"{stderr}. Something went wrong while creating sample video, mostly file is corrupted. Path: {video_file}"
+        f"{stderr}. Something went wrong while creating sample video, mostly file is corrupted. Path: {video_file}",
     )
     if await aiopath.exists(output_file):
         await remove(output_file)
@@ -784,7 +785,7 @@ async def run_ffmpeg_cmd(listener, ffmpeg, path):
     except Exception:
         stderr = "Unable to decode the error!"
     LOGGER.error(
-        f"{stderr}. Something went wrong while running ffmpeg cmd, mostly file requires different/specific arguments. Path: {path}"
+        f"{stderr}. Something went wrong while running ffmpeg cmd, mostly file requires different/specific arguments. Path: {path}",
     )
     if await aiopath.exists(output):
         await remove(output)

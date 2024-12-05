@@ -2,31 +2,31 @@ import contextlib
 
 from aiofiles.os import path as aiopath
 from aiofiles.os import remove
-from pyrogram.filters import regex, command
-from pyrogram.handlers import MessageHandler, CallbackQueryHandler
+from pyrogram.filters import command, regex
+from pyrogram.handlers import CallbackQueryHandler, MessageHandler
 
 from bot import (
     LOGGER,
     OWNER_ID,
-    bot,
     aria2,
-    task_dict,
-    user_data,
+    bot,
     config_dict,
-    xnox_client,
+    task_dict,
     task_dict_lock,
+    user_data,
+    xnox_client,
 )
 from bot.helper.ext_utils.bot_utils import (
+    bt_selection_buttons,
     new_task,
     sync_to_async,
-    bt_selection_buttons,
 )
 from bot.helper.ext_utils.status_utils import MirrorStatus, get_task_by_gid
-from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.bot_commands import BotCommands
+from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.message_utils import (
-    send_message,
     delete_message,
+    send_message,
     send_status_message,
 )
 
@@ -91,7 +91,7 @@ async def select(_, message):
                 await sync_to_async(aria2.client.force_pause, id_)
             except Exception as e:
                 LOGGER.error(
-                    f"{e} Error in pause, this mostly happens after abuse aria2"
+                    f"{e} Error in pause, this mostly happens after abuse aria2",
                 )
         task.listener.select = True
     except Exception:
@@ -127,7 +127,8 @@ async def get_confirm(_, query):
                 )[0]
                 path = tor_info.content_path.rsplit("/", 1)[0]
                 res = await sync_to_async(
-                    xnox_client.torrents_files, torrent_hash=id_
+                    xnox_client.torrents_files,
+                    torrent_hash=id_,
                 )
                 for f in res:
                     if f.priority == 0:
@@ -138,7 +139,8 @@ async def get_confirm(_, query):
                                     await remove(f_path)
                 if not task.queued:
                     await sync_to_async(
-                        xnox_client.torrents_resume, torrent_hashes=id_
+                        xnox_client.torrents_resume,
+                        torrent_hashes=id_,
                     )
             else:
                 res = await sync_to_async(aria2.client.get_files, id_)
@@ -151,7 +153,7 @@ async def get_confirm(_, query):
                         await sync_to_async(aria2.client.unpause, id_)
                     except Exception as e:
                         LOGGER.error(
-                            f"{e} Error in resume, this mostly happens after abuse aria2. Try to use select cmd again!"
+                            f"{e} Error in resume, this mostly happens after abuse aria2. Try to use select cmd again!",
                         )
         await send_status_message(message)
         await delete_message(message)
@@ -167,6 +169,6 @@ bot.add_handler(
             BotCommands.SelectCommand,
         )
         & CustomFilters.authorized,
-    )
+    ),
 )
 bot.add_handler(CallbackQueryHandler(get_confirm, filters=regex("^sel")))

@@ -1,6 +1,6 @@
 from logging import getLogger
 
-from bot import user_data, drives_ids, index_urls, drives_names
+from bot import drives_ids, drives_names, index_urls, user_data
 from bot.helper.ext_utils.status_utils import get_readable_file_size
 from bot.helper.mirror_leech_utils.gdrive_utils.helper import GoogleDriveHelper
 
@@ -9,7 +9,11 @@ LOGGER = getLogger(__name__)
 
 class GoogleDriveSearch(GoogleDriveHelper):
     def __init__(
-        self, stop_dup=False, no_multi=False, is_recursive=True, item_type=""
+        self,
+        stop_dup=False,
+        no_multi=False,
+        is_recursive=True,
+        item_type="",
     ):
         super().__init__()
         self._stop_dup = stop_dup
@@ -107,10 +111,10 @@ class GoogleDriveSearch(GoogleDriveHelper):
                     "From Owner",
                     target_id.replace("tp:", "", 1),
                     index_urls[0] if index_urls else "",
-                )
+                ),
             ]
         else:
-            drives = zip(drives_names, drives_ids, index_urls)
+            drives = zip(drives_names, drives_ids, index_urls, strict=False)
         if (
             not target_id.startswith("mtp:") and len(drives_ids) > 1
         ) or target_id.startswith("tp:"):

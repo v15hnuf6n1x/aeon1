@@ -1,22 +1,22 @@
+from asyncio import sleep
 from re import match as re_match
 from time import time
-from asyncio import sleep
 
-from pyrogram import Client, enums
 from cachetools import TTLCache
-from pyrogram.types import InputMediaPhoto
+from pyrogram import Client, enums
 from pyrogram.errors import FloodWait, MessageEmpty, MessageNotModified
+from pyrogram.types import InputMediaPhoto
 
 from bot import (
     LOGGER,
     TELEGRAM_API,
     TELEGRAM_HASH,
     bot,
-    user,
     intervals,
-    user_data,
     status_dict,
     task_dict_lock,
+    user,
+    user_data,
 )
 from bot.helper.ext_utils.bot_utils import SetInterval
 from bot.helper.ext_utils.exceptions import TgLinkException
@@ -26,7 +26,12 @@ session_cache = TTLCache(maxsize=1000, ttl=36000)
 
 
 async def send_message(
-    message, text, buttons=None, block=True, photo=None, MARKDOWN=False
+    message,
+    text,
+    buttons=None,
+    block=True,
+    photo=None,
+    MARKDOWN=False,
 ):
     parse_mode = enums.ParseMode.MARKDOWN if MARKDOWN else enums.ParseMode.HTML
     try:
@@ -68,7 +73,12 @@ async def send_message(
 
 
 async def edit_message(
-    message, text, buttons=None, block=True, photo=None, MARKDOWN=False
+    message,
+    text,
+    buttons=None,
+    block=True,
+    photo=None,
+    MARKDOWN=False,
 ):
     parse_mode = enums.ParseMode.MARKDOWN if MARKDOWN else enums.ParseMode.HTML
     try:
@@ -80,7 +90,9 @@ async def edit_message(
                     parse_mode=parse_mode,
                 )
             return await message.edit_caption(
-                caption=text, reply_markup=buttons, parse_mode=parse_mode
+                caption=text,
+                reply_markup=buttons,
+                parse_mode=parse_mode,
             )
         await message.edit(
             text=text,
@@ -186,16 +198,18 @@ async def get_tg_link_message(link, user_id=""):
     if link.startswith("https://t.me/"):
         private = False
         msg = re_match(
-            r"https:\/\/t\.me\/(?:c\/)?([^\/]+)(?:\/[^\/]+)?\/([0-9-]+)", link
+            r"https:\/\/t\.me\/(?:c\/)?([^\/]+)(?:\/[^\/]+)?\/([0-9-]+)",
+            link,
         )
     else:
         private = True
         msg = re_match(
-            r"tg:\/\/openmessage\?user_id=([0-9]+)&message_id=([0-9-]+)", link
+            r"tg:\/\/openmessage\?user_id=([0-9]+)&message_id=([0-9-]+)",
+            link,
         )
         if not user:
             raise TgLinkException(
-                "USER_SESSION_STRING required for this private link!"
+                "USER_SESSION_STRING required for this private link!",
             )
 
     chat = msg[1]
@@ -237,7 +251,8 @@ async def get_tg_link_message(link, user_id=""):
     if user_s:
         try:
             user_message = await user_s.get_messages(
-                chat_id=chat, message_ids=msg_id
+                chat_id=chat,
+                message_ids=msg_id,
             )
         except Exception as e:
             raise TgLinkException("We don't have access to this chat!") from e
@@ -264,7 +279,11 @@ async def update_status_message(sid, force=False):
         is_user = status_dict[sid]["is_user"]
         page_step = status_dict[sid]["page_step"]
         text, buttons = await get_readable_message(
-            sid, is_user, page_no, status, page_step
+            sid,
+            is_user,
+            page_no,
+            status,
+            page_step,
         )
         if text is None:
             del status_dict[sid]
@@ -274,7 +293,10 @@ async def update_status_message(sid, force=False):
             return
         if text != status_dict[sid]["message"].text:
             message = await edit_message(
-                status_dict[sid]["message"], text, buttons, block=False
+                status_dict[sid]["message"],
+                text,
+                buttons,
+                block=False,
             )
             if isinstance(message, str):
                 if message.startswith("Telegram says: [400"):
@@ -284,7 +306,7 @@ async def update_status_message(sid, force=False):
                         del intervals["status"][sid]
                 else:
                     LOGGER.error(
-                        f"Status with id: {sid} haven't been updated. Error: {message}"
+                        f"Status with id: {sid} haven't been updated. Error: {message}",
                     )
                 return
             status_dict[sid]["message"].text = text
@@ -302,7 +324,11 @@ async def send_status_message(msg, user_id=0):
             status = status_dict[sid]["status"]
             page_step = status_dict[sid]["page_step"]
             text, buttons = await get_readable_message(
-                sid, is_user, page_no, status, page_step
+                sid,
+                is_user,
+                page_no,
+                status,
+                page_step,
             )
             if text is None:
                 del status_dict[sid]
@@ -315,7 +341,7 @@ async def send_status_message(msg, user_id=0):
             message = await send_message(msg, text, buttons, block=False)
             if isinstance(message, str):
                 LOGGER.error(
-                    f"Status with id: {sid} haven't been sent. Error: {message}"
+                    f"Status with id: {sid} haven't been sent. Error: {message}",
                 )
                 return
             message.text = text
@@ -327,7 +353,7 @@ async def send_status_message(msg, user_id=0):
             message = await send_message(msg, text, buttons, block=False)
             if isinstance(message, str):
                 LOGGER.error(
-                    f"Status with id: {sid} haven't been sent. Error: {message}"
+                    f"Status with id: {sid} haven't been sent. Error: {message}",
                 )
                 return
             message.text = text

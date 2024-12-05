@@ -4,12 +4,12 @@ from pyrogram.handlers import MessageHandler
 from bot import (
     OWNER_ID,
     bot,
+    queue_dict_lock,
     queued_dl,
     queued_up,
     task_dict,
-    user_data,
     task_dict_lock,
-    queue_dict_lock,
+    user_data,
 )
 from bot.helper.ext_utils.bot_utils import new_task
 from bot.helper.ext_utils.status_utils import get_task_by_gid
@@ -17,8 +17,8 @@ from bot.helper.ext_utils.task_manager import (
     start_dl_from_queued,
     start_up_from_queued,
 )
-from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.bot_commands import BotCommands
+from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.message_utils import send_message
 
 
@@ -84,5 +84,5 @@ bot.add_handler(
             BotCommands.ForceStartCommand,
         )
         & CustomFilters.authorized,
-    )
+    ),
 )

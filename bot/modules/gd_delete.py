@@ -4,13 +4,13 @@ from pyrogram.handlers import MessageHandler
 from bot import LOGGER, bot
 from bot.helper.ext_utils.bot_utils import new_task, sync_to_async
 from bot.helper.ext_utils.links_utils import is_gdrive_link
-from bot.helper.telegram_helper.filters import CustomFilters
-from bot.helper.telegram_helper.bot_commands import BotCommands
-from bot.helper.telegram_helper.message_utils import (
-    send_message,
-    auto_delete_message,
-)
 from bot.helper.mirror_leech_utils.gdrive_utils.delete import GoogleDriveDelete
+from bot.helper.telegram_helper.bot_commands import BotCommands
+from bot.helper.telegram_helper.filters import CustomFilters
+from bot.helper.telegram_helper.message_utils import (
+    auto_delete_message,
+    send_message,
+)
 
 
 @new_task
@@ -39,5 +39,5 @@ bot.add_handler(
             BotCommands.DeleteCommand,
         )
         & CustomFilters.authorized,
-    )
+    ),
 )

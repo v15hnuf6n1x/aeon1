@@ -4,8 +4,8 @@ from bot import LOGGER, subprocess_lock
 from bot.helper.ext_utils.files_utils import get_path_size
 from bot.helper.ext_utils.status_utils import (
     MirrorStatus,
-    get_readable_time,
     get_readable_file_size,
+    get_readable_time,
 )
 
 

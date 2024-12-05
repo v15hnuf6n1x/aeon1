@@ -1,33 +1,33 @@
 from time import time
 
-from psutil import disk_usage, cpu_percent, virtual_memory
-from pyrogram.filters import regex, command
-from pyrogram.handlers import MessageHandler, CallbackQueryHandler
+from psutil import cpu_percent, disk_usage, virtual_memory
+from pyrogram.filters import command, regex
+from pyrogram.handlers import CallbackQueryHandler, MessageHandler
 
 from bot import (
     DOWNLOAD_DIR,
     bot,
-    intervals,
-    task_dict,
-    status_dict,
     bot_start_time,
+    intervals,
+    status_dict,
+    task_dict,
     task_dict_lock,
 )
 from bot.helper.ext_utils.bot_utils import new_task, sync_to_async
 from bot.helper.ext_utils.status_utils import (
     MirrorStatus,
+    get_readable_file_size,
     get_readable_time,
     speed_string_to_bytes,
-    get_readable_file_size,
 )
-from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.button_build import ButtonMaker
+from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.message_utils import (
+    auto_delete_message,
+    delete_message,
     edit_message,
     send_message,
-    delete_message,
-    auto_delete_message,
     send_status_message,
     update_status_message,
 )
@@ -164,6 +164,6 @@ bot.add_handler(
             BotCommands.StatusCommand,
         )
         & CustomFilters.authorized,
-    )
+    ),
 )
 bot.add_handler(CallbackQueryHandler(status_pages, filters=regex("^status")))
