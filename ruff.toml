@@ -1,4 +1,3 @@
-[tool.ruff]
 fix = true
 unsafe-fixes = true
 line-length = 85
