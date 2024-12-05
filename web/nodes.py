@@ -1,4 +1,3 @@
-from os import environ
 from re import findall as re_findall
 
 from anytree import NodeMixin

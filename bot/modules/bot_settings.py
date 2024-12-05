@@ -20,19 +20,19 @@ from pyrogram.filters import regex, create, command
 from pyrogram.handlers import MessageHandler, CallbackQueryHandler
 
 from bot import (
-    global_extension_filter,
-    intervals,
     bot,
+    intervals,
     task_dict,
     user_data,
     drives_ids,
     index_urls,
-    drives_names,
     config_dict,
+    drives_names,
+    global_extension_filter,
 )
 from bot.helper.ext_utils.bot_utils import (
-    new_task,
     SetInterval,
+    new_task,
 )
 from bot.helper.ext_utils.db_handler import Database
 from bot.helper.ext_utils.task_manager import start_from_queued
@@ -235,7 +235,7 @@ async def event_handler(client, query, pfunc, rfunc, document=False):
         return bool(
             user.id == query.from_user.id
             and event.chat.id == chat_id
-            and (event.text or event.document and document)
+            and (event.text or (event.document and document))
         )
 
     handler = client.add_handler(
@@ -381,7 +381,7 @@ async def load_config():
     except Exception:
         LOGGER.error(f"Wrong FFMPEG_CMDS format: {FFMPEG_CMDS}")
         FFMPEG_CMDS = []
-    
+
     EXTENSION_FILTER = environ.get("EXTENSION_FILTER", "")
     if len(EXTENSION_FILTER) > 0:
         fx = EXTENSION_FILTER.split()
@@ -446,7 +446,9 @@ async def load_config():
         )
 
     UPSTREAM_BRANCH = environ.get("UPSTREAM_BRANCH", "main")
-    UPSTREAM_REPO = environ.get("UPSTREAM_REPO", "https://github.com/AeonOrg/Aeon-MLTB")
+    UPSTREAM_REPO = environ.get(
+        "UPSTREAM_REPO", "https://github.com/AeonOrg/Aeon-MLTB"
+    )
     drives_ids.clear()
     drives_names.clear()
     index_urls.clear()

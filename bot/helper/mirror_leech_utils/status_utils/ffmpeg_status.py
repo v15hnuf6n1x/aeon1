@@ -21,12 +21,11 @@ class FFmpegStatus:
     def status(self):
         if self.cstatus == "Convert":
             return MirrorStatus.STATUS_CONVERT
-        elif self.cstatus == "Split":
+        if self.cstatus == "Split":
             return MirrorStatus.STATUS_SPLIT
-        elif self.cstatus == "Sample Video":
+        if self.cstatus == "Sample Video":
             return MirrorStatus.STATUS_SAMVID
-        else:
-            return MirrorStatus.STATUS_FFMPEG
+        return MirrorStatus.STATUS_FFMPEG
 
     def task(self):
         return self

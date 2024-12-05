@@ -92,9 +92,7 @@ def create_cancel_buttons(is_sudo, user_id=""):
     buttons.data_button(
         "Uploading", f"canall ms {MirrorStatus.STATUS_UPLOAD} {user_id}"
     )
-    buttons.data_button(
-        "Seeding", f"canall ms {MirrorStatus.STATUS_SEED} {user_id}"
-    )
+    buttons.data_button("Seeding", f"canall ms {MirrorStatus.STATUS_SEED} {user_id}")
     buttons.data_button(
         "Spltting", f"canall ms {MirrorStatus.STATUS_SPLIT} {user_id}"
     )

@@ -1,4 +1,3 @@
-import contextlib
 from os import path as ospath
 from os import cpu_count
 from re import escape

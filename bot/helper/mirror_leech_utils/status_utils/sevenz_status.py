@@ -53,8 +53,7 @@ class SevenZStatus:
     def status(self):
         if self.cstatus == "Extract":
             return MirrorStatus.STATUS_EXTRACT
-        else:
-            return MirrorStatus.STATUS_ARCHIVE
+        return MirrorStatus.STATUS_ARCHIVE
 
     def processed_bytes(self):
         return get_readable_file_size(self._proccessed_bytes)

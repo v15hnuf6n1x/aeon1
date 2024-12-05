@@ -8,7 +8,6 @@ from aiofiles.os import remove, listdir, makedirs
 
 from bot import (
     LOGGER,
-    DATABASE_URL,
     DOWNLOAD_DIR,
     aria2,
     intervals,
@@ -24,7 +23,6 @@ from bot import (
 )
 from bot.helper.common import TaskConfig
 from bot.helper.ext_utils.bot_utils import sync_to_async
-from bot.helper.ext_utils.db_handler import Database
 from bot.helper.ext_utils.files_utils import (
     join_files,
     clean_target,
@@ -309,21 +307,15 @@ class TaskListener(TaskConfig):
             if mime_type == "Folder":
                 msg += f"\n<b>SubFolders: </b>{folders}"
                 msg += f"\n<b>Files: </b>{files}"
-            if link or (
-                rclonePath
-                and not self.private_link
-            ):
+            if link or (rclonePath and not self.private_link):
                 buttons = ButtonMaker()
                 if link:
                     buttons.url_button("☁️ Cloud Link", link)
                 else:
                     msg += f"\n\nPath: <code>{rclonePath}</code>"
-                if (
-                    rclonePath
-                    and not self.private_link
-                ):
+                if rclonePath and not self.private_link:
                     remote, path = rclonePath.split(":", 1)
-                    url_path = rutils.quote(f"{path}")
+                    rutils.quote(f"{path}")
                 if not rclonePath and dir_id:
                     INDEX_URL = ""
                     if self.private_link:

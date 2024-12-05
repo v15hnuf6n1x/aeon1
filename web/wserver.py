@@ -1,10 +1,13 @@
-from aria2p import API as ariaAPI, Client as ariaClient
-from flask import Flask, request, render_template, jsonify
-from logging import getLogger, FileHandler, StreamHandler, INFO, basicConfig
-from qbittorrentapi import NotFound404Error, Client as qbClient
 from time import sleep
+from logging import INFO, FileHandler, StreamHandler, getLogger, basicConfig
 
-from web.nodes import extract_file_ids, make_tree
+from flask import Flask, jsonify, request, render_template
+from aria2p import API as ariaAPI
+from aria2p import Client as ariaClient
+from qbittorrentapi import Client as qbClient
+from qbittorrentapi import NotFound404Error
+
+from web.nodes import make_tree, extract_file_ids
 
 app = Flask(__name__)
 
@@ -125,11 +128,11 @@ def handle_torrent():
             selected_files = ",".join(selected_files)
             set_aria2(gid, selected_files)
         content = {
-                "files": [],
-                "engine": "",
-                "error": "",
-                "message": "Your selection has been submitted successfully.",
-            }
+            "files": [],
+            "engine": "",
+            "error": "",
+            "message": "Your selection has been submitted successfully.",
+        }
     else:
         try:
             if len(gid) > 20:
