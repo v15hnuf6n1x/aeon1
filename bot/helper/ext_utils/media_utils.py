@@ -1,4 +1,3 @@
-import suppress
 from os import path as ospath
 from os import cpu_count
 from re import escape
@@ -7,6 +6,7 @@ from time import time
 from asyncio import gather, wait_for, create_subprocess_exec
 from asyncio.subprocess import PIPE
 
+import suppress
 from PIL import Image
 from aioshutil import rmtree
 from aiofiles.os import path as aiopath

@@ -20,8 +20,8 @@ from pyrogram.filters import regex, create, command
 from pyrogram.handlers import MessageHandler, CallbackQueryHandler
 
 from bot import (
-    bot,
     LOGGER,
+    bot,
     intervals,
     task_dict,
     user_data,
