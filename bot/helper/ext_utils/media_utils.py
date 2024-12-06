@@ -1,3 +1,4 @@
+import contextlib
 from asyncio import create_subprocess_exec, gather, wait_for
 from asyncio.subprocess import PIPE
 from os import cpu_count
@@ -6,7 +7,6 @@ from re import escape
 from re import search as re_search
 from time import time
 
-import contextlib
 from aiofiles.os import makedirs, remove
 from aiofiles.os import path as aiopath
 from aioshutil import rmtree
