@@ -50,7 +50,6 @@ class Aria2Status:
     def eta(self):
         return get_readable_time(int(self._download.eta.total_seconds()))
 
-
     def status(self):
         self.update()
         if self._download.is_waiting or self.queued:
