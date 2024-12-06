@@ -111,14 +111,28 @@ def get_readable_file_size(size_in_bytes):
     return f"{size_in_bytes:.2f}{SIZE_UNITS[index]}"
 
 
-def get_readable_time(seconds: int):
-    periods = [("d", 86400), ("h", 3600), ("m", 60), ("s", 1)]
+def get_readable_time(seconds, full_time=False):
+    periods = [
+        ("millennium", 31536000000),
+        ("century", 3153600000),
+        ("decade", 315360000),
+        ("year", 31536000),
+        ("month", 2592000),
+        ("week", 604800),
+        ("day", 86400),
+        ("hour", 3600),
+        ("minute", 60),
+        ("second", 1),
+    ]
     result = ""
     for period_name, period_seconds in periods:
         if seconds >= period_seconds:
             period_value, seconds = divmod(seconds, period_seconds)
-            result += f"{int(period_value)}{period_name}"
-    return result
+            plural_suffix = "s" if period_value > 1 else ""
+            result += f"{int(period_value)} {period_name}{plural_suffix} "
+            if not full_time:
+                break
+    return result.strip()
 
 
 def time_to_seconds(time_duration):
@@ -157,12 +171,13 @@ def speed_string_to_bytes(size_text: str):
 
 
 def get_progress_bar_string(pct):
-    pct = float(pct.strip("%"))
+    if isinstance(pct, str):
+        pct = float(pct.strip("%"))
     p = min(max(pct, 0), 100)
-    cFull = int(p // 8)
-    p_str = "■" * cFull
-    p_str += "□" * (12 - cFull)
-    return f"[{p_str}]"
+    c_full = int((p + 5) // 10)
+    p_str = "●" * c_full
+    p_str += "○" * (10 - c_full)
+    return p_str
 
 
 async def get_readable_message(sid, is_user, page_no=1, status="All", page_step=1):

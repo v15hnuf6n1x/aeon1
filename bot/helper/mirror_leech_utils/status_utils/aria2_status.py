@@ -48,7 +48,8 @@ class Aria2Status:
         return self._download.total_length_string()
 
     def eta(self):
-        return self._download.eta_string()
+        return get_readable_time(int(self._download.eta.total_seconds()))
+
 
     def status(self):
         self.update()
