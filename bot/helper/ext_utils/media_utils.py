@@ -6,7 +6,7 @@ from re import escape
 from re import search as re_search
 from time import time
 
-import suppress
+import contextlib
 from aiofiles.os import makedirs, remove
 from aiofiles.os import path as aiopath
 from aioshutil import rmtree
@@ -493,7 +493,7 @@ async def split_file(
                 except Exception:
                     stderr = "Unable to decode the error!"
 
-                with suppress(Exception):
+                with contextlib.suppress(Exception):
                     await remove(out_path)
 
                 if multi_streams:
