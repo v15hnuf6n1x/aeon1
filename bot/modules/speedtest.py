@@ -12,7 +12,7 @@ from bot.helper.telegram_helper.message_utils import (
     send_message,
 )
 
-from .helper.ext_utils.status_utils import get_readable_file_size
+from bot.helper.ext_utils.status_utils import get_readable_file_size
 
 
 @new_task
