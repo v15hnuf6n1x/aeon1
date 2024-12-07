@@ -22,7 +22,7 @@ from pytz import timezone
 
 class CustomFormatter(Formatter):
     def formatTime(  # noqa: N802
-        self: CustomFormatter,
+        self,
         record: LogRecord,
         datefmt: str | None,
     ) -> str:
@@ -32,7 +32,7 @@ class CustomFormatter(Formatter):
         )
         return dt.strftime(datefmt)
 
-    def format(self: CustomFormatter, record: LogRecord) -> str:
+    def format(self, record: LogRecord) -> str:
         return super().format(record).replace(record.levelname, record.levelname[:1])
 
 
