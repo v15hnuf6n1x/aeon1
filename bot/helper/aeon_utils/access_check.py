@@ -179,7 +179,7 @@ async def token_check(user_id, button=None):
         if expire is not None:
             del data["time"]
         data["token"] = token
-        await Database().update_user_token(user_id, token)
+        await Database.update_user_token(user_id, token)
         user_data[user_id] = data
 
         time_str = get_readable_time(token_timeout, True)

@@ -28,7 +28,7 @@ async def broadcast(_, message):
     updater = time()
     broadcast_message = await send_message(message, "Broadcast in progress...")
 
-    for uid in await Database().get_pm_uids():
+    for uid in await Database.get_pm_uids():
         try:
             await message.reply_to_message.copy(uid)
             successful += 1
@@ -37,7 +37,7 @@ async def broadcast(_, message):
             await message.reply_to_message.copy(uid)
             successful += 1
         except (UserIsBlocked, InputUserDeactivated):
-            await Database().rm_pm_user(uid)
+            await Database.rm_pm_user(uid)
             blocked += 1
         except Exception:
             unsuccessful += 1
