@@ -1,20 +1,18 @@
-from mega import MegaApi
-
 from bot.helper.ext_utils.status_utils import (
     MirrorStatus,
     get_readable_file_size,
-    get_readable_time
+    get_readable_time,
 )
 
 
 class MegaDownloadStatus:
     def __init__(
-            self,
-            listener,
-            obj,
-            gid,
-            status
-        ):
+        self,
+        listener,
+        obj,
+        gid,
+        status,
+    ):
         self.listener = listener
         self._obj = obj
         self._size = self.listener.size
@@ -41,8 +39,7 @@ class MegaDownloadStatus:
 
     def eta(self):
         try:
-            seconds = (self._size - self._obj.downloaded_bytes) / \
-                self._obj.speed
+            seconds = (self._size - self._obj.downloaded_bytes) / self._obj.speed
             return get_readable_time(seconds)
         except ZeroDivisionError:
             return "-"
