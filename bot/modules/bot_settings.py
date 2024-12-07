@@ -151,8 +151,8 @@ async def edit_variable(_, message, pre_message, key):
         value = int(value)
     config_dict[key] = value
     await update_buttons(pre_message, key, "editvar", False)
-    await message.delete()
-    await Database().update_config({key: value})
+    await delete_message(message)
+    # await Database().update_config({key: value})
     if key in ["QUEUE_ALL", "QUEUE_DOWNLOAD", "QUEUE_UPLOAD"]:
         await start_from_queued()
 
