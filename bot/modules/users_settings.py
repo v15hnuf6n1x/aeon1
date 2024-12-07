@@ -204,7 +204,7 @@ Excluded Extensions is <code>{ex_ex}</code>
 YT-DLP Options is <code>{escape(ytopt)}</code>
 FFMPEG Commands is <code>{ffc}</code>"""
 
-    return text, buttons.build_menu(1)
+    return text, buttons.build_menu(2)
 
 
 async def update_user_settings(query):

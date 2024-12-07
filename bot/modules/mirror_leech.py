@@ -18,6 +18,7 @@ from bot.helper.ext_utils.exceptions import DirectDownloadLinkException
 from bot.helper.ext_utils.links_utils import (
     is_gdrive_id,
     is_gdrive_link,
+    is_mega_link,
     is_magnet,
     is_rclone_path,
     is_telegram_link,
@@ -27,6 +28,7 @@ from bot.helper.listeners.task_listener import TaskListener
 from bot.helper.mirror_leech_utils.download_utils.aria2_download import (
     add_aria2c_download,
 )
+from bot.helper.mirror_leech_utils.download_utils.mega_download import add_mega_download
 from bot.helper.mirror_leech_utils.download_utils.direct_downloader import (
     add_direct_download,
 )
@@ -309,7 +311,7 @@ class Mirror(TaskListener):
                 and not is_gdrive_link(self.link)
             )
         ):
-            await send_message(
+            x=await send_message(
                 self.message,
                 COMMAND_USAGE["mirror"][0],
                 COMMAND_USAGE["mirror"][1],
@@ -324,7 +326,7 @@ class Mirror(TaskListener):
         try:
             await self.before_start()
         except Exception as e:
-            await send_message(self.message, e)
+            x=await send_message(self.message, e)
             await self.remove_from_same_dir()
             await delete_links(self.message)
             return await five_minute_del(x)
@@ -354,7 +356,7 @@ class Mirror(TaskListener):
                     if "This link requires a password!" not in e:
                         LOGGER.info(e)
                     if e.startswith("ERROR:"):
-                        await send_message(self.message, e)
+                        x=await send_message(self.message, e)
                         await self.remove_from_same_dir()
                         await delete_links(self.message)
                         return await five_minute_del(x)
@@ -379,6 +381,12 @@ class Mirror(TaskListener):
             return None
         if is_gdrive_link(self.link) or is_gdrive_id(self.link):
             create_task(add_gd_download(self, path))
+            return None
+        if is_mega_link(self.link):
+            create_task(add_mega_download(
+                self,
+                f"{path}/"
+            ))
             return None
         ussr = args["-au"]
         pssw = args["-ap"]

@@ -619,6 +619,12 @@ async def load_config():
     TOKEN_TIMEOUT = environ.get("TOKEN_TIMEOUT", "")
     TOKEN_TIMEOUT = "" if len(TOKEN_TIMEOUT) == 0 else int(TOKEN_TIMEOUT)
 
+    MEGA_EMAIL = environ.get("MEGA_EMAIL", "")
+    MEGA_PASSWORD = environ.get("MEGA_PASSWORD", "")
+    if len(MEGA_EMAIL) == 0 or len(MEGA_PASSWORD) == 0:
+        MEGA_EMAIL = ""
+        MEGA_PASSWORD = ""
+
     drives_ids.clear()
     drives_names.clear()
     index_urls.clear()
@@ -661,6 +667,8 @@ async def load_config():
             "LEECH_FILENAME_PREFIX": LEECH_FILENAME_PREFIX,
             "LEECH_SPLIT_SIZE": LEECH_SPLIT_SIZE,
             "MIXED_LEECH": MIXED_LEECH,
+            "MEGA_EMAIL": MEGA_EMAIL,
+            "MEGA_PASSWORD": MEGA_PASSWORD,
             "NAME_SUBSTITUTE": NAME_SUBSTITUTE,
             "OWNER_ID": OWNER_ID,
             "PAID_CHAT_ID": PAID_CHAT_ID,
