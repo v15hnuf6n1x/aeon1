@@ -3,7 +3,6 @@ from pyrogram.handlers import MessageHandler
 from speedtest import Speedtest
 
 from bot import LOGGER, bot
-from .helper.ext_utils.status_utils import get_readable_file_size
 from bot.helper.ext_utils.bot_utils import new_task
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.filters import CustomFilters
@@ -12,6 +11,8 @@ from bot.helper.telegram_helper.message_utils import (
     edit_message,
     send_message,
 )
+
+from .helper.ext_utils.status_utils import get_readable_file_size
 
 
 @new_task
