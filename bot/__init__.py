@@ -1,10 +1,11 @@
 from asyncio import Lock, new_event_loop, set_event_loop
+from datetime import datetime
 from logging import (
     ERROR,
     INFO,
     FileHandler,
-    LogRecord,
     Formatter,
+    LogRecord,
     StreamHandler,
     basicConfig,
     error,
@@ -28,13 +29,10 @@ from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 from pyrogram import Client as TgClient
 from pyrogram import enums
+from pytz import timezone
 from qbittorrentapi import Client as QbClient
 from tzlocal import get_localzone
 from uvloop import install
-
-from datetime import datetime
-
-from pytz import timezone
 
 # from faulthandler import enable as faulthandler_enable
 # faulthandler_enable()
@@ -57,10 +55,13 @@ set_event_loop(bot_loop)
 
 class CustomFormatter(Formatter):
     def formatTime(  # noqa: N802
-        self: CustomFormatter, record: LogRecord, datefmt: str | None
+        self: CustomFormatter,
+        record: LogRecord,
+        datefmt: str | None,
     ) -> str:
         dt: datetime = datetime.fromtimestamp(
-            record.created, tz=timezone("Asia/Dhaka")
+            record.created,
+            tz=timezone("Asia/Dhaka"),
         )
         return dt.strftime(datefmt)
 

@@ -389,7 +389,7 @@ class Mirror(TaskListener):
                 add_mega_download(
                     self,
                     f"{path}/",
-                )
+                ),
             )
             return None
         ussr = args["-au"]

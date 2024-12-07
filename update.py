@@ -4,8 +4,8 @@ from logging import (
     INFO,
     FileHandler,
     Formatter,
-    StreamHandler,
     LogRecord,
+    StreamHandler,
     basicConfig,
     error,
     getLogger,
@@ -18,15 +18,17 @@ from dotenv import dotenv_values, load_dotenv
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 from pytz import timezone
-from datetime import datetime
 
 
 class CustomFormatter(Formatter):
     def formatTime(  # noqa: N802
-        self: CustomFormatter, record: LogRecord, datefmt: str | None
+        self: CustomFormatter,
+        record: LogRecord,
+        datefmt: str | None,
     ) -> str:
         dt: datetime = datetime.fromtimestamp(
-            record.created, tz=timezone("Asia/Dhaka")
+            record.created,
+            tz=timezone("Asia/Dhaka"),
         )
         return dt.strftime(datefmt)
 

@@ -167,7 +167,7 @@ class MegaAppListener(MegaListener):
         error,
     ):
         LOGGER.error(
-            f"Mega download error in file {transfer.getFileName()}: {error}"
+            f"Mega download error in file {transfer.getFileName()}: {error}",
         )
         if transfer.getState() in [
             1,
