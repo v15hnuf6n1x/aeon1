@@ -8,7 +8,7 @@ from bot import (
     LOGGER,
     OWNER_ID,
     bot,
-    bot_username,
+    bot_name,
     config_dict,
     user_data,
 )
@@ -183,7 +183,7 @@ async def token_check(user_id, button=None):
 
         time_str = get_readable_time(token_timeout, True)
         button = button or ButtonMaker()
-        short_link = await short(f"https://telegram.me/{bot_username}?start={token}")
+        short_link = await short(f"https://telegram.me/{bot_name}?start={token}")
         button.url_button("Collect token", short_link)
         msg = "Your token has expired, please collect a new token"
         if config_dict["PAID_CHAT_ID"] and config_dict["PAID_CHAT_LINK"]:
