@@ -1,5 +1,6 @@
 from base64 import b64encode
 from re import match as re_match
+from asyncio import create_task
 
 from aiofiles.os import path as aiopath
 from pyrogram.filters import command
@@ -21,6 +22,7 @@ from bot.helper.ext_utils.links_utils import (
     is_telegram_link,
     is_url,
 )
+from bot.helper.aeon_utils.access_check import error_check
 from bot.helper.listeners.task_listener import TaskListener
 from bot.helper.mirror_leech_utils.download_utils.aria2_download import (
     add_aria2c_download,
@@ -44,6 +46,8 @@ from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.message_utils import (
     get_tg_link_message,
     send_message,
+    delete_links,
+    five_minute_del,
 )
 
 
@@ -74,6 +78,11 @@ class Mirror(TaskListener):
         self.is_leech = is_leech
 
     async def new_event(self):
+        error_msg, error_button = await error_check(self.message)
+        if error_msg:
+            await delete_links(self.message)
+            error = await send_message(self.message, error_msg, error_button)
+            return await five_minute_del(error)
         text = self.message.text.split("\n")
         input_list = text[0].split(" ")
 
@@ -224,9 +233,10 @@ class Mirror(TaskListener):
             try:
                 reply_to, session = await get_tg_link_message(self.link)
             except Exception as e:
-                await send_message(self.message, f"ERROR: {e}")
+                x = await send_message(self.message, f"ERROR: {e}")
                 await self.remove_from_same_dir()
-                return
+                await delete_links(self.message)
+                return await five_minute_del(x)
 
         if isinstance(reply_to, list):
             self.bulk = reply_to
@@ -252,7 +262,7 @@ class Mirror(TaskListener):
                 self.multi_tag,
                 self.options,
             ).new_event()
-            return
+            return await delete_links(self.message)
 
         if reply_to:
             file_ = (
@@ -279,6 +289,13 @@ class Mirror(TaskListener):
                 self.link = await reply_to.download()
                 file_ = None
 
+        if self.link and (
+            is_magnet(self.link)
+            or self.link.endswith(".torrent")
+            or (file_ and file_.file_name.endswith(".torrent"))
+        ):
+            self.is_qbit = True
+        
         if (
             (not self.link and file_ is None)
             or (is_telegram_link(self.link) and reply_to is None)
@@ -298,7 +315,8 @@ class Mirror(TaskListener):
                 COMMAND_USAGE["mirror"][1],
             )
             await self.remove_from_same_dir()
-            return
+            await delete_links(self.message)
+            return await five_minute_del(x)
 
         if len(self.link) > 0:
             LOGGER.info(self.link)
@@ -308,7 +326,8 @@ class Mirror(TaskListener):
         except Exception as e:
             await send_message(self.message, e)
             await self.remove_from_same_dir()
-            return
+            await delete_links(self.message)
+            return await five_minute_del(x)
 
         if (
             not self.is_qbit
@@ -337,47 +356,38 @@ class Mirror(TaskListener):
                     if e.startswith("ERROR:"):
                         await send_message(self.message, e)
                         await self.remove_from_same_dir()
-                        return
+                        await delete_links(self.message)
+                        return await five_minute_del(x)
 
         if file_ is not None:
-            await TelegramDownloadHelper(self).add_download(
+            create_task(TelegramDownloadHelper(self).add_download(
                 reply_to,
                 f"{path}/",
                 session,
-            )
+            ))
         elif isinstance(self.link, dict):
-            await add_direct_download(self, path)
+            create_task(add_direct_download(self, path))
         elif self.is_qbit:
-            await add_qb_torrent(self, path, ratio, seed_time)
+            create_task(add_qb_torrent(self, path, ratio, seed_time))
         elif is_rclone_path(self.link):
-            await add_rclone_download(self, f"{path}/")
+            create_task(add_rclone_download(self, f"{path}/"))
         elif is_gdrive_link(self.link) or is_gdrive_id(self.link):
-            await add_gd_download(self, path)
+            create_task(add_gd_download(self, path))
         else:
             ussr = args["-au"]
             pssw = args["-ap"]
             if ussr or pssw:
                 auth = f"{ussr}:{pssw}"
                 headers += f" authorization: Basic {b64encode(auth.encode()).decode('ascii')}"
-            await add_aria2c_download(self, path, headers, ratio, seed_time)
+            create_task(add_aria2c_download(self, path, headers, ratio, seed_time))
 
 
 async def mirror(client, message):
     bot_loop.create_task(Mirror(client, message).new_event())
 
 
-async def qb_mirror(client, message):
-    bot_loop.create_task(Mirror(client, message, is_qbit=True).new_event())
-
-
 async def leech(client, message):
     bot_loop.create_task(Mirror(client, message, is_leech=True).new_event())
-
-
-async def qb_leech(client, message):
-    bot_loop.create_task(
-        Mirror(client, message, is_qbit=True, is_leech=True).new_event(),
-    )
 
 
 bot.add_handler(
@@ -391,27 +401,9 @@ bot.add_handler(
 )
 bot.add_handler(
     MessageHandler(
-        qb_mirror,
-        filters=command(
-            BotCommands.QbMirrorCommand,
-        )
-        & CustomFilters.authorized,
-    ),
-)
-bot.add_handler(
-    MessageHandler(
         leech,
         filters=command(
             BotCommands.LeechCommand,
-        )
-        & CustomFilters.authorized,
-    ),
-)
-bot.add_handler(
-    MessageHandler(
-        qb_leech,
-        filters=command(
-            BotCommands.QbLeechCommand,
         )
         & CustomFilters.authorized,
     ),

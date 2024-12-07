@@ -13,15 +13,13 @@ select = [
     "I",        # isort
     "W",        # pycodestyle: warning
     "B",        # flake8-bugbear
-    "G",        # flake8-logging-format
     "N",        # pep8-naming
     "C4",       # flake8-comprehensions
     "UP",       # pyupgrade
     "FA",       # flake8-future-annotations
     "PL",       # pylint
-    "PIE",       # flake8-pie
-    "PYI",       # flake8-pyi
-    "PTH",      # flake8-use-pathlib
+    "PIE",      # flake8-pie
+    "PYI",      # flake8-pyi
     "RET",      # flake8-return
     "RUF",      # ruff
     "SIM",      # flake8-simplify

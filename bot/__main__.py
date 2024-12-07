@@ -58,6 +58,7 @@ from .helper.telegram_helper.message_utils import (
 from .modules import (
     authorize,
     bot_settings,
+    broadcast,
     cancel_task,
     clone,
     exec,
@@ -68,7 +69,9 @@ from .modules import (
     gd_search,
     help,
     mirror_leech,
+    mediainfo,
     shell,
+    speedtest,
     status,
     users_settings,
     ytdlp,
@@ -206,10 +209,8 @@ async def log(_, message):
 help_string = f"""
 NOTE: Try each command without any argument to see more detalis.
 /{BotCommands.MirrorCommand[0]} or /{BotCommands.MirrorCommand[1]}: Start mirroring to cloud.
-/{BotCommands.QbMirrorCommand[0]} or /{BotCommands.QbMirrorCommand[1]}: Start Mirroring to cloud using qBittorrent.
 /{BotCommands.YtdlCommand[0]} or /{BotCommands.YtdlCommand[1]}: Mirror yt-dlp supported link.
 /{BotCommands.LeechCommand[0]} or /{BotCommands.LeechCommand[1]}: Start leeching to Telegram.
-/{BotCommands.QbLeechCommand[0]} or /{BotCommands.QbLeechCommand[1]}: Start leeching using qBittorrent.
 /{BotCommands.YtdlLeechCommand[0]} or /{BotCommands.YtdlLeechCommand[1]}: Leech yt-dlp supported link.
 /{BotCommands.CloneCommand} [drive_url]: Copy file/folder to Google Drive.
 /{BotCommands.CountCommand} [drive_url]: Count file/folder of Google Drive.

@@ -20,7 +20,7 @@ from sys import exit
 from time import time
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from aria2p import API as ariaAPI
+from aria2p import API
 from aria2p import Client as ariaClient
 from dotenv import dotenv_values, load_dotenv
 from pymongo.mongo_client import MongoClient
@@ -86,6 +86,7 @@ queued_up = {}
 non_queued_dl = set()
 non_queued_up = set()
 multi_tags = set()
+shorteners_list = []
 
 try:
     if bool(environ.get("_____REMOVE_THIS_LINE_____")):
@@ -210,6 +211,20 @@ GDRIVE_ID = environ.get("GDRIVE_ID", "")
 if len(GDRIVE_ID) == 0:
     GDRIVE_ID = ""
 
+FSUB_IDS = environ.get("FSUB_IDS", "")
+if len(FSUB_IDS) == 0:
+    FSUB_IDS = ""
+
+PAID_CHAT_ID = environ.get("PAID_CHAT_ID", "")
+PAID_CHAT_ID = "" if len(PAID_CHAT_ID) == 0 else int(PAID_CHAT_ID)
+
+PAID_CHAT_LINK = environ.get("PAID_CHAT_LINK", "")
+if len(PAID_CHAT_LINK) == 0:
+    PAID_CHAT_LINK = ""
+
+TOKEN_TIMEOUT = environ.get("TOKEN_TIMEOUT", "")
+TOKEN_TIMEOUT = "" if len(TOKEN_TIMEOUT) == 0 else int(TOKEN_TIMEOUT)
+
 RCLONE_PATH = environ.get("RCLONE_PATH", "")
 if len(RCLONE_PATH) == 0:
     RCLONE_PATH = ""
@@ -284,9 +299,6 @@ if len(YT_DLP_OPTIONS) == 0:
 LEECH_DUMP_CHAT = environ.get("LEECH_DUMP_CHAT", "")
 LEECH_DUMP_CHAT = "" if len(LEECH_DUMP_CHAT) == 0 else LEECH_DUMP_CHAT
 
-STATUS_LIMIT = environ.get("STATUS_LIMIT", "")
-STATUS_LIMIT = 4 if len(STATUS_LIMIT) == 0 else int(STATUS_LIMIT)
-
 CMD_SUFFIX = environ.get("CMD_SUFFIX", "")
 
 TORRENT_TIMEOUT = environ.get("TORRENT_TIMEOUT", "")
@@ -360,6 +372,7 @@ config_dict = {
     "EXTENSION_FILTER": EXTENSION_FILTER,
     "FFMPEG_CMDS": FFMPEG_CMDS,
     "FILELION_API": FILELION_API,
+    "FSUB_IDS": FSUB_IDS,
     "GDRIVE_ID": GDRIVE_ID,
     "INDEX_URL": INDEX_URL,
     "IS_TEAM_DRIVE": IS_TEAM_DRIVE,
@@ -369,12 +382,13 @@ config_dict = {
     "MIXED_LEECH": MIXED_LEECH,
     "NAME_SUBSTITUTE": NAME_SUBSTITUTE,
     "OWNER_ID": OWNER_ID,
+    "PAID_CHAT_ID": PAID_CHAT_ID,
+    "PAID_CHAT_LINK": PAID_CHAT_LINK,
     "QUEUE_ALL": QUEUE_ALL,
     "QUEUE_DOWNLOAD": QUEUE_DOWNLOAD,
     "QUEUE_UPLOAD": QUEUE_UPLOAD,
     "RCLONE_FLAGS": RCLONE_FLAGS,
     "RCLONE_PATH": RCLONE_PATH,
-    "STATUS_LIMIT": STATUS_LIMIT,
     "STOP_DUPLICATE": STOP_DUPLICATE,
     "STREAMWISH_API": STREAMWISH_API,
     "SUDO_USERS": SUDO_USERS,
@@ -382,6 +396,7 @@ config_dict = {
     "TELEGRAM_HASH": TELEGRAM_HASH,
     "THUMBNAIL_LAYOUT": THUMBNAIL_LAYOUT,
     "TORRENT_TIMEOUT": TORRENT_TIMEOUT,
+    "TOKEN_TIMEOUT": TOKEN_TIMEOUT,
     "USER_TRANSMISSION": USER_TRANSMISSION,
     "UPSTREAM_REPO": UPSTREAM_REPO,
     "UPSTREAM_BRANCH": UPSTREAM_BRANCH,
@@ -436,6 +451,15 @@ with open("a2c.conf", "a+") as a:
 run(["xria", "--conf-path=/usr/src/app/a2c.conf"], check=False)
 
 
+if ospath.exists("shorteners.txt"):
+    with open("shorteners.txt", "r+") as f:
+        lines = f.readlines()
+        for line in lines:
+            temp = line.strip().split()
+            if len(temp) == 2:
+                shorteners_list.append({"domain": temp[0], "api_key": temp[1]})
+
+
 if ospath.exists("accounts.zip"):
     if ospath.exists("accounts"):
         rmtree("accounts")
@@ -448,7 +472,7 @@ if not ospath.exists("accounts"):
 
 alive = Popen(["python3", "alive.py"])
 
-aria2 = ariaAPI(ariaClient(host="http://localhost", port=6800, secret=""))
+aria2 = API(ariaClient(host="http://localhost", port=6800, secret=""))
 
 
 xnox_client = QbClient(

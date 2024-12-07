@@ -5,10 +5,8 @@ class _BotCommands:
     def __init__(self):
         self.StartCommand = f"start{i}"
         self.MirrorCommand = [f"mirror{i}", f"m{i}"]
-        self.QbMirrorCommand = [f"qbmirror{i}", f"qm{i}"]
         self.YtdlCommand = [f"ytdl{i}", f"y{i}"]
         self.LeechCommand = [f"leech{i}", f"l{i}"]
-        self.QbLeechCommand = [f"qbleech{i}", f"ql{i}"]
         self.YtdlLeechCommand = [f"ytdlleech{i}", f"yl{i}"]
         self.CloneCommand = f"clone{i}"
         self.CountCommand = f"count{i}"
@@ -35,6 +33,9 @@ class _BotCommands:
         self.BotSetCommand = [f"botsettings{i}", f"bs{i}"]
         self.UserSetCommand = [f"settings{i}", f"us{i}"]
         self.SelectCommand = f"sel{i}"
+        self.SpeedCommand = f"speedtest{i}"
+        self.MediaInfoCommand: str = f"mediainfo{i}"
+        self.BroadcastCommand: list[str] = [f"broadcast{i}", "broadcastall"]
 
 
 BotCommands = _BotCommands()

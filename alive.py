@@ -18,7 +18,7 @@ PORT = os.environ.get("PORT", None)
 
 def check_status():
     try:
-        requests.get(BASE_URL).status_code
+        requests.get(BASE_URL)
     except Exception as e:
         logging.error(f"alive.py: {e}")
         return False
