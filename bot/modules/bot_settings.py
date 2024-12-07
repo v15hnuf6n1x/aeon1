@@ -36,7 +36,6 @@ from bot import (
 from bot.helper.ext_utils.bot_utils import SetInterval, new_task, sync_to_async
 from bot.helper.ext_utils.db_handler import Database
 from bot.helper.ext_utils.task_manager import start_from_queued
-from bot.helper.mirror_leech_utils.rclone_utils.serve import rclone_serve_booter
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.button_build import ButtonMaker
 from bot.helper.telegram_helper.filters import CustomFilters
@@ -246,8 +245,6 @@ async def update_private_file(_, message, pre_message):
             load_dotenv("config.env", override=True)
             await load_config()
         await delete_message(message)
-    if file_name == "rclone.conf":
-        await rclone_serve_booter()
     await update_buttons(pre_message)
     if config_dict["DATABASE_URL"]:
         await Database.update_private_file(file_name)
