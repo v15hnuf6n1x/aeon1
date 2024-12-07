@@ -365,7 +365,7 @@ class Mirror(TaskListener):
                     reply_to,
                     f"{path}/",
                     session,
-                )
+                ),
             )
             return None
         if isinstance(self.link, dict):
