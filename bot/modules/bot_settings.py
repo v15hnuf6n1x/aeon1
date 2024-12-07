@@ -1,62 +1,51 @@
-from aiofiles import open as aiopen
-from aiofiles.os import remove, rename, path as aiopath
-from aioshutil import rmtree
 from asyncio import (
     create_subprocess_exec,
     create_subprocess_shell,
-    sleep,
     gather,
+    sleep,
 )
-from dotenv import load_dotenv
 from functools import partial
 from io import BytesIO
 from os import environ, getcwd
-from pyrogram.filters import command, regex, create
-from pyrogram.handlers import MessageHandler, CallbackQueryHandler
 from time import time
 
+from aiofiles import open as aiopen
+from aiofiles.os import path as aiopath
+from aiofiles.os import remove, rename
+from aioshutil import rmtree
+from dotenv import load_dotenv
+from pyrogram.filters import command, create, regex
+from pyrogram.handlers import CallbackQueryHandler, MessageHandler
+
 from bot import (
-    MAX_SPLIT_SIZE,
     IS_PREMIUM_USER,
     LOGGER,
+    MAX_SPLIT_SIZE,
+    aria2,
+    aria2_options,
+    bot,
     config_dict,
-    user_data,
     drives_ids,
     drives_names,
-    index_urls,
-    aria2,
     global_extension_filter,
+    index_urls,
     intervals,
-    aria2_options,
-    aria2c_global,
     task_dict,
-    qbit_options,
-    qbittorrent_client,
-    sabnzbd_client,
-    bot,
-    nzb_options,
-    get_nzb_options,
-    get_qb_options,
-    jd_lock,
+    user_data,
 )
-from ..helper.ext_utils.bot_utils import (
-    SetInterval,
-    sync_to_async,
-    new_task,
-)
-from ..helper.ext_utils.db_handler import Database
-from ..helper.ext_utils.jdownloader_booter import jdownloader
-from ..helper.ext_utils.task_manager import start_from_queued
-from ..helper.mirror_leech_utils.rclone_utils.serve import rclone_serve_booter
-from ..helper.telegram_helper.bot_commands import BotCommands
-from ..helper.telegram_helper.button_build import ButtonMaker
-from ..helper.telegram_helper.filters import CustomFilters
-from ..helper.telegram_helper.message_utils import (
-    send_message,
-    send_file,
-    edit_message,
-    update_status_message,
+from bot.helper.ext_utils.bot_utils import SetInterval, new_task, sync_to_async
+from bot.helper.ext_utils.db_handler import Database
+from bot.helper.ext_utils.task_manager import start_from_queued
+from bot.helper.mirror_leech_utils.rclone_utils.serve import rclone_serve_booter
+from bot.helper.telegram_helper.bot_commands import BotCommands
+from bot.helper.telegram_helper.button_build import ButtonMaker
+from bot.helper.telegram_helper.filters import CustomFilters
+from bot.helper.telegram_helper.message_utils import (
     delete_message,
+    edit_message,
+    send_file,
+    send_message,
+    update_status_message,
 )
 
 start = 0
@@ -106,7 +95,9 @@ async def get_buttons(key=None, edit_type=None):
         buttons.data_button("Close", "botset close")
         for x in range(0, len(config_dict), 10):
             buttons.data_button(
-                f"{int(x / 10)}", f"botset start var {x}", position="footer"
+                f"{int(x / 10)}",
+                f"botset start var {x}",
+                position="footer",
             )
         msg = f"Config Variables | Page: {int(start / 10)} | State: {state}"
     elif key == "private":
@@ -200,7 +191,9 @@ async def update_private_file(_, message, pre_message):
         elif file_name in [".netrc", "netrc"]:
             await (await create_subprocess_exec("touch", ".netrc")).wait()
             await (await create_subprocess_exec("chmod", "600", ".netrc")).wait()
-            await (await create_subprocess_exec("cp", ".netrc", "/root/.netrc")).wait()
+            await (
+                await create_subprocess_exec("cp", ".netrc", "/root/.netrc")
+            ).wait()
         await delete_message(message)
     elif doc := message.document:
         file_name = doc.file_name
@@ -212,7 +205,12 @@ async def update_private_file(_, message, pre_message):
                 await rmtree("rclone_sa", ignore_errors=True)
             await (
                 await create_subprocess_exec(
-                    "7z", "x", "-o.", "-aoa", "accounts.zip", "accounts/*.json"
+                    "7z",
+                    "x",
+                    "-o.",
+                    "-aoa",
+                    "accounts.zip",
+                    "accounts/*.json",
                 )
             ).wait()
             await (
@@ -241,7 +239,9 @@ async def update_private_file(_, message, pre_message):
                 await rename("netrc", ".netrc")
                 file_name = ".netrc"
             await (await create_subprocess_exec("chmod", "600", ".netrc")).wait()
-            await (await create_subprocess_exec("cp", ".netrc", "/root/.netrc")).wait()
+            await (
+                await create_subprocess_exec("cp", ".netrc", "/root/.netrc")
+            ).wait()
         elif file_name == "config.env":
             load_dotenv("config.env", override=True)
             await load_config()
@@ -265,11 +265,12 @@ async def event_handler(client, query, pfunc, rfunc, document=False):
         return bool(
             user.id == query.from_user.id
             and event.chat.id == chat_id
-            and (event.text or event.document and document)
+            and (event.text or (event.document and document)),
         )
 
     handler = client.add_handler(
-        MessageHandler(pfunc, filters=create(event_filter)), group=-1
+        MessageHandler(pfunc, filters=create(event_filter)),
+        group=-1,
     )
     while handler_dict[chat_id]:
         await sleep(0.5)
@@ -308,7 +309,9 @@ async def edit_bot_settings(client, query):
                 for key, intvl in list(st.items()):
                     intvl.cancel()
                     intervals["status"][key] = SetInterval(
-                        value, update_status_message, key
+                        value,
+                        update_status_message,
+                        key,
                     )
         elif data[2] == "EXTENSION_FILTER":
             global_extension_filter.clear()
@@ -329,7 +332,9 @@ async def edit_bot_settings(client, query):
             if config_dict["DATABASE_URL"]:
                 await Database.update_aria2("bt-stop-timeout", "0")
         elif data[2] == "BASE_URL":
-            await (await create_subprocess_exec("pkill", "-9", "-f", "gunicorn")).wait()
+            await (
+                await create_subprocess_exec("pkill", "-9", "-f", "gunicorn")
+            ).wait()
         elif data[2] == "GDRIVE_ID":
             if drives_names and drives_names[0] == "Main":
                 drives_names.pop(0)
@@ -366,7 +371,7 @@ async def edit_bot_settings(client, query):
                 out_file.name = f"{data[2]}.txt"
                 await send_file(message, out_file)
             return
-        elif value == "":
+        if value == "":
             value = None
         await query.answer(f"{value}", show_alert=True)
     elif data[1] == "edit":
@@ -437,7 +442,7 @@ async def load_config():
             chat_id, *thread_ids = id_.split("|")
             chat_id = int(chat_id.strip())
             if thread_ids:
-                thread_ids = list(map(lambda x: int(x.strip()), thread_ids))
+                thread_ids = [int(x.strip()) for x in thread_ids]
                 user_data[chat_id] = {"is_auth": True, "thread_ids": thread_ids}
             else:
                 user_data[chat_id] = {"is_auth": True}
@@ -457,7 +462,6 @@ async def load_config():
             if x.strip().startswith("."):
                 x = x.lstrip(".")
             global_extension_filter.append(x.strip().lower())
-
 
     FILELION_API = environ.get("FILELION_API", "")
     if len(FILELION_API) == 0:
@@ -559,7 +563,9 @@ async def load_config():
         RCLONE_SERVE_URL = ""
 
     RCLONE_SERVE_PORT = environ.get("RCLONE_SERVE_PORT", "")
-    RCLONE_SERVE_PORT = 8080 if len(RCLONE_SERVE_PORT) == 0 else int(RCLONE_SERVE_PORT)
+    RCLONE_SERVE_PORT = (
+        8080 if len(RCLONE_SERVE_PORT) == 0 else int(RCLONE_SERVE_PORT)
+    )
 
     RCLONE_SERVE_USER = environ.get("RCLONE_SERVE_USER", "")
     if len(RCLONE_SERVE_USER) == 0:
@@ -591,7 +597,7 @@ async def load_config():
         BASE_URL = ""
     else:
         await create_subprocess_shell(
-            f"gunicorn web.wserver:app --bind 0.0.0.0:{BASE_URL_PORT} --worker-class gevent"
+            f"gunicorn web.wserver:app --bind 0.0.0.0:{BASE_URL_PORT} --worker-class gevent",
         )
 
     UPSTREAM_REPO = environ.get("UPSTREAM_REPO", "")
@@ -681,7 +687,7 @@ async def load_config():
             "USER_SESSION_STRING": USER_SESSION_STRING,
             "USE_SERVICE_ACCOUNTS": USE_SERVICE_ACCOUNTS,
             "YT_DLP_OPTIONS": YT_DLP_OPTIONS,
-        }
+        },
     )
 
     if config_dict["DATABASE_URL"]:
