@@ -3,6 +3,7 @@ from logging import (
     ERROR,
     INFO,
     FileHandler,
+    LogRecord,
     Formatter,
     StreamHandler,
     basicConfig,
@@ -31,6 +32,10 @@ from qbittorrentapi import Client as QbClient
 from tzlocal import get_localzone
 from uvloop import install
 
+from datetime import datetime
+
+from pytz import timezone
+
 # from faulthandler import enable as faulthandler_enable
 # faulthandler_enable()
 
@@ -51,13 +56,21 @@ set_event_loop(bot_loop)
 
 
 class CustomFormatter(Formatter):
-    def format(self, record):
+    def formatTime(  # noqa: N802
+        self: CustomFormatter, record: LogRecord, datefmt: str | None
+    ) -> str:
+        dt: datetime = datetime.fromtimestamp(
+            record.created, tz=timezone("Asia/Dhaka")
+        )
+        return dt.strftime(datefmt)
+
+    def format(self: CustomFormatter, record: LogRecord) -> str:
         return super().format(record).replace(record.levelname, record.levelname[:1])
 
 
 formatter = CustomFormatter(
-    "[%(asctime)s] [%(levelname)s] - %(message)s",
-    datefmt="%d-%b-%y %I:%M:%S %p",
+    "[%(asctime)s] %(levelname)s - %(message)s [%(module)s:%(lineno)d]",
+    datefmt="%d-%b %I:%M:%S %p",
 )
 
 file_handler = FileHandler("log.txt")

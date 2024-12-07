@@ -5,6 +5,7 @@ from logging import (
     FileHandler,
     Formatter,
     StreamHandler,
+    LogRecord,
     basicConfig,
     error,
     getLogger,
@@ -17,21 +18,27 @@ from dotenv import dotenv_values, load_dotenv
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 from pytz import timezone
+from datetime import datetime
 
 
 class CustomFormatter(Formatter):
-    def formatTime(self, record, datefmt):
-        dt = datetime.fromtimestamp(record.created, tz=timezone("Asia/Dhaka"))
+    def formatTime(  # noqa: N802
+        self: CustomFormatter, record: LogRecord, datefmt: str | None
+    ) -> str:
+        dt: datetime = datetime.fromtimestamp(
+            record.created, tz=timezone("Asia/Dhaka")
+        )
         return dt.strftime(datefmt)
 
-    def format(self, record):
+    def format(self: CustomFormatter, record: LogRecord) -> str:
         return super().format(record).replace(record.levelname, record.levelname[:1])
 
 
 formatter = CustomFormatter(
-    "[%(asctime)s] [%(levelname)s] %(message)s | [%(module)s:%(lineno)d]",
+    "[%(asctime)s] %(levelname)s - %(message)s [%(module)s:%(lineno)d]",
     datefmt="%d-%b %I:%M:%S %p",
 )
+
 
 file_handler = FileHandler("log.txt")
 file_handler.setFormatter(formatter)
