@@ -1,7 +1,7 @@
 import asyncio
 from time import time
 
-from pyrogram.errors import FloodWait, UserIsBlocked, InputUserDeactivated
+from pyrogram.errors import FloodWait, InputUserDeactivated, UserIsBlocked
 from pyrogram.filters import command
 from pyrogram.handlers import MessageHandler
 
@@ -9,8 +9,8 @@ from bot import bot
 from bot.helper.ext_utils.bot_utils import new_task
 from bot.helper.ext_utils.db_handler import Database
 from bot.helper.ext_utils.status_utils import get_readable_time
-from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.bot_commands import BotCommands
+from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.message_utils import edit_message, send_message
 
 
@@ -18,7 +18,8 @@ from bot.helper.telegram_helper.message_utils import edit_message, send_message
 async def broadcast(_, message):
     if not message.reply_to_message:
         await send_message(
-            message, "Reply to any message to broadcast messages to users in Bot PM."
+            message,
+            "Reply to any message to broadcast messages to users in Bot PM.",
         )
         return
 
@@ -68,5 +69,5 @@ bot.add_handler(
     MessageHandler(
         broadcast,
         filters=command(BotCommands.BroadcastCommand) & CustomFilters.owner,
-    )
+    ),
 )

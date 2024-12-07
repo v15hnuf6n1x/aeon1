@@ -1,29 +1,29 @@
-from os import path as ospath
 from os import getcwd
+from os import path as ospath
 from re import search as re_search
 from shlex import split as ssplit
 
 import aiohttp
 from aiofiles import open as aiopen
-from aiofiles.os import path as aiopath
 from aiofiles.os import mkdir
+from aiofiles.os import path as aiopath
 from aiofiles.os import remove as aioremove
 from pyrogram.filters import command
 from pyrogram.handlers import MessageHandler
 
 from bot import LOGGER, bot
-from bot.helper.ext_utils.bot_utils import cmd_exec
 from bot.helper.aeon_utils.access_check import token_check
-from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.aeon_utils.gen_mediainfo import parseinfo
+from bot.helper.ext_utils.bot_utils import cmd_exec
 from bot.helper.ext_utils.telegraph_helper import telegraph
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.button_build import ButtonMaker
+from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.message_utils import (
     delete_links,
     edit_message,
-    send_message,
     five_minute_del,
+    send_message,
 )
 
 
@@ -38,7 +38,7 @@ async def gen_mediainfo(message, link=None, media=None, msg=None):
             filename = re_search(".+/(.+)", link).group(1)
             des_path = ospath.join(path, filename)
             headers = {
-                "user-agent": "Mozilla/5.0 (Linux; Android 12; 2201116PI) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Mobile Safari/537.36"
+                "user-agent": "Mozilla/5.0 (Linux; Android 12; 2201116PI) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Mobile Safari/537.36",
             }
             async with aiohttp.ClientSession() as session:
                 async with session.get(link, headers=headers) as response:
@@ -95,7 +95,8 @@ async def mediainfo(_, message):
         await gen_mediainfo(message, link)
     elif reply:
         if file := next(
-            (i for i in [reply.document, reply.video, reply.audio] if i), None
+            (i for i in [reply.document, reply.video, reply.audio] if i),
+            None,
         ):
             await gen_mediainfo(message, None, file, reply)
         else:
@@ -108,5 +109,5 @@ bot.add_handler(
     MessageHandler(
         mediainfo,
         filters=command(BotCommands.MediaInfoCommand) & CustomFilters.authorized,
-    )
+    ),
 )

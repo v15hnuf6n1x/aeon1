@@ -1,5 +1,5 @@
-from random import choice
 from asyncio import sleep
+from random import choice
 from urllib.parse import quote
 
 from aiohttp import ClientSession
@@ -10,11 +10,11 @@ from bot import shorteners_list
 
 async def short(long_url):
     async with ClientSession() as session:
-        for attempt in range(4):
+        for _attempt in range(4):
             shortener_info = choice(shorteners_list)
             try:
                 async with session.get(
-                    f'https://{shortener_info["domain"]}/api?api={shortener_info["api_key"]}&url={quote(long_url)}'
+                    f'https://{shortener_info["domain"]}/api?api={shortener_info["api_key"]}&url={quote(long_url)}',
                 ) as response:
                     result = await response.json()
                     short_url = result.get("shortenedUrl", long_url)
@@ -25,7 +25,7 @@ async def short(long_url):
                 continue
 
         s = Shortener()
-        for attempt in range(4):
+        for _attempt in range(4):
             try:
                 return s.tinyurl.short(long_url)
             except Exception:

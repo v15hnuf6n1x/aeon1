@@ -1,12 +1,13 @@
+from asyncio import create_task
 from base64 import b64encode
 from re import match as re_match
-from asyncio import create_task
 
 from aiofiles.os import path as aiopath
 from pyrogram.filters import command
 from pyrogram.handlers import MessageHandler
 
 from bot import DOWNLOAD_DIR, LOGGER, bot, bot_loop, task_dict_lock
+from bot.helper.aeon_utils.access_check import error_check
 from bot.helper.ext_utils.bot_utils import (
     COMMAND_USAGE,
     arg_parser,
@@ -22,7 +23,6 @@ from bot.helper.ext_utils.links_utils import (
     is_telegram_link,
     is_url,
 )
-from bot.helper.aeon_utils.access_check import error_check
 from bot.helper.listeners.task_listener import TaskListener
 from bot.helper.mirror_leech_utils.download_utils.aria2_download import (
     add_aria2c_download,
@@ -44,10 +44,10 @@ from bot.helper.mirror_leech_utils.download_utils.telegram_download import (
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.message_utils import (
-    get_tg_link_message,
-    send_message,
     delete_links,
     five_minute_del,
+    get_tg_link_message,
+    send_message,
 )
 
 
@@ -215,7 +215,7 @@ class Mirror(TaskListener):
                             self.same_dir[fd_name]["total"] -= 1
         else:
             await self.init_bulk(input_list, bulk_start, bulk_end, Mirror)
-            return
+            return None
 
         if len(self.bulk) != 0:
             del self.bulk[0]
@@ -295,7 +295,7 @@ class Mirror(TaskListener):
             or (file_ and file_.file_name.endswith(".torrent"))
         ):
             self.is_qbit = True
-        
+
         if (
             (not self.link and file_ is None)
             or (is_telegram_link(self.link) and reply_to is None)
@@ -360,26 +360,35 @@ class Mirror(TaskListener):
                         return await five_minute_del(x)
 
         if file_ is not None:
-            create_task(TelegramDownloadHelper(self).add_download(
-                reply_to,
-                f"{path}/",
-                session,
-            ))
-        elif isinstance(self.link, dict):
+            create_task(
+                TelegramDownloadHelper(self).add_download(
+                    reply_to,
+                    f"{path}/",
+                    session,
+                )
+            )
+            return None
+        if isinstance(self.link, dict):
             create_task(add_direct_download(self, path))
-        elif self.is_qbit:
+            return None
+        if self.is_qbit:
             create_task(add_qb_torrent(self, path, ratio, seed_time))
-        elif is_rclone_path(self.link):
+            return None
+        if is_rclone_path(self.link):
             create_task(add_rclone_download(self, f"{path}/"))
-        elif is_gdrive_link(self.link) or is_gdrive_id(self.link):
+            return None
+        if is_gdrive_link(self.link) or is_gdrive_id(self.link):
             create_task(add_gd_download(self, path))
-        else:
-            ussr = args["-au"]
-            pssw = args["-ap"]
-            if ussr or pssw:
-                auth = f"{ussr}:{pssw}"
-                headers += f" authorization: Basic {b64encode(auth.encode()).decode('ascii')}"
-            create_task(add_aria2c_download(self, path, headers, ratio, seed_time))
+            return None
+        ussr = args["-au"]
+        pssw = args["-ap"]
+        if ussr or pssw:
+            auth = f"{ussr}:{pssw}"
+            headers += (
+                f" authorization: Basic {b64encode(auth.encode()).decode('ascii')}"
+            )
+        create_task(add_aria2c_download(self, path, headers, ratio, seed_time))
+        return None
 
 
 async def mirror(client, message):

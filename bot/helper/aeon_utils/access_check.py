@@ -2,20 +2,20 @@ from re import IGNORECASE, escape, search
 from time import time
 from uuid import uuid4
 
-from pyrogram.errors import RPCError, PeerIdInvalid, UserNotParticipant
+from pyrogram.errors import PeerIdInvalid, RPCError, UserNotParticipant
 
 from bot import (
     LOGGER,
     OWNER_ID,
     bot,
-    user_data,
-    config_dict,
     bot_username,
+    config_dict,
+    user_data,
 )
-from bot.helper.ext_utils.db_handler import Database
 from bot.helper.aeon_utils.shorteners import short
-from bot.helper.ext_utils.status_utils import get_readable_time
+from bot.helper.ext_utils.db_handler import Database
 from bot.helper.ext_utils.help_messages import nsfw_keywords
+from bot.helper.ext_utils.status_utils import get_readable_time
 from bot.helper.telegram_helper.button_build import ButtonMaker
 
 
@@ -58,7 +58,8 @@ async def error_check(message):
         }:
             try:
                 temp_msg = await message._client.send_message(
-                    chat_id=user_id, text="<b>Checking Access...</b>"
+                    chat_id=user_id,
+                    text="<b>Checking Access...</b>",
                 )
                 await temp_msg.delete()
             except Exception:

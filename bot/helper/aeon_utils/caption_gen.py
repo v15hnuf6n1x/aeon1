@@ -1,15 +1,15 @@
 import os
-from hashlib import md5
 from contextlib import suppress
+from hashlib import md5
 
-from langcodes import Language
 from aiofiles.os import path as aiopath
+from langcodes import Language
 
 from bot import LOGGER
 from bot.helper.ext_utils.bot_utils import cmd_exec
 from bot.helper.ext_utils.status_utils import (
-    get_readable_time,
     get_readable_file_size,
+    get_readable_time,
 )
 
 
@@ -33,7 +33,7 @@ async def generate_caption(file, dirpath, lcaption):
                 "-show_format",
                 "-show_streams",
                 up_path,
-            ]
+            ],
         )
         if result[1]:
             LOGGER.info(f"Get Media Info: {result[1]}")

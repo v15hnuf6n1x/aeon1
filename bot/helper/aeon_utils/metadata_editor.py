@@ -1,5 +1,5 @@
-import os
 import json
+import os
 from asyncio import create_subprocess_exec
 from asyncio.subprocess import PIPE
 
@@ -31,7 +31,7 @@ async def change_metadata(file, key):
         streams = json.loads(stdout)["streams"]
     except KeyError:
         LOGGER.error(
-            f"No streams found in the ffprobe output: {stdout.decode().strip()}"
+            f"No streams found in the ffprobe output: {stdout.decode().strip()}",
         )
         return
 
@@ -75,7 +75,7 @@ async def change_metadata(file, key):
                     [
                         f"-metadata:s:v:{stream_index}",
                         f"language={languages[stream_index]}",
-                    ]
+                    ],
                 )
         elif stream_type == "audio":
             cmd.extend(
@@ -84,21 +84,21 @@ async def change_metadata(file, key):
                     f"0:{stream_index}",
                     f"-metadata:s:a:{audio_index}",
                     f"title={key}",
-                ]
+                ],
             )
             if stream_index in languages:
                 cmd.extend(
                     [
                         f"-metadata:s:a:{audio_index}",
                         f"language={languages[stream_index]}",
-                    ]
+                    ],
                 )
             audio_index += 1
         elif stream_type == "subtitle":
             codec_name = stream.get("codec_name", "unknown")
             if codec_name in ["webvtt", "unknown"]:
                 LOGGER.warning(
-                    f"Skipping unsupported subtitle metadata modification: {codec_name} for stream {stream_index}"
+                    f"Skipping unsupported subtitle metadata modification: {codec_name} for stream {stream_index}",
                 )
             else:
                 cmd.extend(
@@ -107,14 +107,14 @@ async def change_metadata(file, key):
                         f"0:{stream_index}",
                         f"-metadata:s:s:{subtitle_index}",
                         f"title={key}",
-                    ]
+                    ],
                 )
                 if stream_index in languages:
                     cmd.extend(
                         [
                             f"-metadata:s:s:{subtitle_index}",
                             f"language={languages[stream_index]}",
-                        ]
+                        ],
                     )
                 subtitle_index += 1
         else:

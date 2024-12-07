@@ -8,7 +8,6 @@ from psutil import cpu_percent, disk_usage, virtual_memory
 from bot import (
     DOWNLOAD_DIR,
     bot_start_time,
-    config_dict,
     status_dict,
     task_dict,
     task_dict_lock,
