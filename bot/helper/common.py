@@ -5,6 +5,7 @@ from os import path as ospath
 from os import walk
 from re import IGNORECASE, sub
 from secrets import token_urlsafe
+from natsort import natsorted
 
 from aiofiles.os import makedirs, remove
 from aiofiles.os import path as aiopath
@@ -876,7 +877,7 @@ class TaskConfig:
                             checked = True
                             LOGGER.info("Creating Sample videos: %s", self.name)
                         async with task_dict_lock:
-                            task_dict[self.mid] = FFMpegStatus(
+                            task_dict[self.mid] = FFmpegStatus(
                                 self, gid, "Sample Video", samvid
                             )
                         res = await samvid.create(f_path)

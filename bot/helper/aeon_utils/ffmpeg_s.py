@@ -1,3 +1,4 @@
+import re
 import contextlib
 from ast import literal_eval
 from asyncio import create_subprocess_exec, gather, sleep
