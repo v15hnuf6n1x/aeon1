@@ -81,11 +81,11 @@ class FFProgress:
 
     async def progress(self, status: str = ""):
         start_time = time()
-        async for line in self.readlines(self.listener.suproc.stderr):
+        async for line in self.readlines(self.listener.subproc.stderr):
             if (
                 self.is_cancel
-                or self.listener.suproc == "cancelled"
-                or self.listener.suproc.returncode is not None
+                or self.listener.subproc == "cancelled"
+                or self.listener.subproc.returncode is not None
             ):
                 return
             if status == "direct":
@@ -174,15 +174,15 @@ class SampleVideo(FFProgress):
             self.outfile,
         ]
 
-        if self.listener.suproc == "cancelled":
+        if self.listener.subproc == "cancelled":
             return False
 
         self.name, self.size = (
             ospath.basename(video_file),
             await get_path_size(video_file),
         )
-        self.listener.suproc = await create_subprocess_exec(*cmd, stderr=PIPE)
-        _, code = await gather(self.progress(), self.listener.suproc.wait())
+        self.listener.subproc = await create_subprocess_exec(*cmd, stderr=PIPE)
+        _, code = await gather(self.progress(), self.listener.subproc.wait())
 
         if code == -9:
             return False
@@ -199,7 +199,7 @@ class SampleVideo(FFProgress):
 
         LOGGER.error(
             "%s. Something went wrong while creating sample video, mostly file is corrupted. Path: %s",
-            (await self.listener.suproc.stderr.read()).decode().strip(),
+            (await self.listener.subproc.stderr.read()).decode().strip(),
             video_file,
         )
         return video_file
