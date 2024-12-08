@@ -68,16 +68,20 @@ class FFProgress:
 
     @property
     def speed(self):
-        return self._processed_bytes / (time() - self._start_time)
+        elapsed = time() - self._start_time
+        return self._processed_bytes / elapsed if elapsed > 0 else 0
 
     async def readlines(self, stream):
-        data = bytearray()
+        """Efficiently read lines from a stream."""
+        buffer = bytearray()
         while not stream.at_eof():
-            lines = re.split(rb"[\r\n]+", data)
-            data[:] = lines.pop(-1)
+            chunk = await stream.read(1024)
+            if not chunk:
+                break
+            buffer.extend(chunk)
+            *lines, buffer = buffer.split(b"\n")
             for line in lines:
-                yield line
-            data.extend(await stream.read(1024))
+                yield line.strip()
 
     async def progress(self, status: str = ""):
         start_time = time()
@@ -92,27 +96,29 @@ class FFProgress:
                 self._processed_bytes = await get_path_size(self.outfile)
                 await sleep(0.5)
                 continue
-            if progress := dict(
-                re.findall(
-                    r"(frame|fps|size|time|bitrate|speed)\s*\=\s*(\S+)",
-                    line.decode("utf-8"),
-                ),
-            ):
-                if not self._duration:
-                    self._duration = (await get_media_info(self.path))[0]
-                try:
-                    hh, mm, sms = progress["time"].split(":")
-                except ValueError:
-                    hh, mm, sms = 0, 0, 0
-                time_to_second = (int(hh) * 3600) + (int(mm) * 60) + float(sms)
-                self._processed_bytes = int(progress["size"].rstrip("kB")) * 1024
-                self._percentage = (
-                    f"{round((time_to_second / self._duration) * 100, 2)}%"
+            try:
+                progress = dict(
+                    re.findall(
+                        r"(frame|fps|size|time|bitrate|speed)\s*=\s*(\S+)",
+                        line.decode("utf-8"),
+                    )
                 )
-                with contextlib.suppress(Exception):
-                    self._eta = (
-                        self._duration / float(progress["speed"].strip("x"))
-                    ) - (time() - start_time)
+            except Exception:
+                continue
+
+            if not self._duration:
+                self._duration = (await get_media_info(self.path))[0]
+
+            time_data = progress.get("time", "0:0:0").split(":")
+            hh, mm, ss = map(float, time_data) if len(time_data) == 3 else (0, 0, 0)
+
+            time_to_second = hh * 3600 + mm * 60 + ss
+            self._processed_bytes = int(progress.get("size", "0kB").strip("kB")) * 1024
+            self._percentage = f"{(time_to_second / self._duration) * 100:.2f}%"
+            with contextlib.suppress(Exception):
+                self._eta = (
+                    self._duration / float(progress.get("speed", "1x").strip("x"))
+                ) - (time() - start_time)
 
 
 class SampleVideo(FFProgress):
@@ -133,12 +139,15 @@ class SampleVideo(FFProgress):
         self.path = video_file
         dir, name = video_file.rsplit("/", 1)
         self.outfile = ospath.join(dir, f"SAMPLE.{name}")
-        segments = [(0, self._part_duration)]
         duration = (await get_media_info(video_file))[0]
+
+        # Create segment timings dynamically
+        segments = [(0, self._part_duration)]
         remaining_duration = duration - (self._part_duration * 2)
-        parts = (self._duration - (self._part_duration * 2)) // self._part_duration
+        parts = max((remaining_duration // self._part_duration), 1)
         time_interval = remaining_duration // parts
         next_segment = time_interval
+
         for _ in range(parts):
             segments.append((next_segment, next_segment + self._part_duration))
             next_segment += time_interval
@@ -147,14 +156,9 @@ class SampleVideo(FFProgress):
         for i, (start, end) in enumerate(segments):
             filter_complex += (
                 f"[0:v]trim=start={start}:end={end},setpts=PTS-STARTPTS[v{i}]; "
-            )
-            filter_complex += (
                 f"[0:a]atrim=start={start}:end={end},asetpts=PTS-STARTPTS[a{i}]; "
             )
-
-        for i in range(len(segments)):
-            filter_complex += f"[v{i}][a{i}]"
-
+        filter_complex += "".join(f"[v{i}][a{i}]" for i in range(len(segments)))
         filter_complex += f"concat=n={len(segments)}:v=1:a=1[vout][aout]"
 
         cmd = [
@@ -173,7 +177,7 @@ class SampleVideo(FFProgress):
             "-c:a",
             "aac",
             "-threads",
-            f"{cpu_count()//2}",
+            f"{cpu_count() // 2}",
             self.outfile,
         ]
 
@@ -191,13 +195,13 @@ class SampleVideo(FFProgress):
             return False
         if code == 0:
             if on_file:
-                newDir, _ = ospath.splitext(video_file)
-                await makedirs(newDir, exist_ok=True)
+                new_dir, _ = ospath.splitext(video_file)
+                await makedirs(new_dir, exist_ok=True)
                 await gather(
-                    move(video_file, ospath.join(newDir, name)),
-                    move(self.outfile, ospath.join(newDir, f"SAMPLE.{name}")),
+                    move(video_file, ospath.join(new_dir, name)),
+                    move(self.outfile, ospath.join(new_dir, f"SAMPLE.{name}")),
                 )
-                return newDir
+                return new_dir
             return True
 
         LOGGER.error(
