@@ -1,4 +1,4 @@
-from secrets import token_urlsafe
+from secrets import token_hex
 
 from bot import (
     LOGGER,
@@ -34,7 +34,7 @@ async def add_direct_download(listener, path):
         await listener.on_download_error(msg, button)
         return
 
-    gid = token_urlsafe(10)
+    gid = token_hex(4)
     add_to_queue, event = await check_running_tasks(listener)
     if add_to_queue:
         LOGGER.info(f"Added to Queue/Download: {listener.name}")

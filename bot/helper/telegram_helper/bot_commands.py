@@ -12,8 +12,7 @@ class _BotCommands:
         self.CloneCommand = f"clone{i}"
         self.CountCommand = f"count{i}"
         self.DeleteCommand = f"del{i}"
-        self.CancelTaskCommand = [f"cancel{i}", f"c{i}"]
-        self.CancelAllCommand = f"cancelall{i}"
+        self.CancelAllCommand = f"stopall{i}"
         self.ForceStartCommand = [f"forcestart{i}", f"fs{i}"]
         self.ListCommand = f"list{i}"
         self.StatusCommand = f"status{i}"

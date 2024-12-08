@@ -4,7 +4,7 @@ from asyncio.subprocess import PIPE
 from os import path as ospath
 from os import walk
 from re import IGNORECASE, sub
-from secrets import token_urlsafe
+from secrets import token_hex
 
 from aiofiles.os import makedirs, remove
 from aiofiles.os import path as aiopath
@@ -441,7 +441,7 @@ class TaskConfig:
     async def run_multi(self, input_list, obj):
         await sleep(7)
         if not self.multi_tag and self.multi > 1:
-            self.multi_tag = token_urlsafe(3)
+            self.multi_tag = token_hex(2)
             multi_tags.add(self.multi_tag)
         elif self.multi <= 1:
             if self.multi_tag in multi_tags:
@@ -462,7 +462,7 @@ class TaskConfig:
             msg.append(f"{self.bulk[0]} -i {self.multi - 1} {self.options}")
             msgts = " ".join(msg)
             if self.multi > 2:
-                msgts += f"\nCancel Multi: <code>/{BotCommands.CancelTaskCommand[1]} {self.multi_tag}</code>"
+                msgts += f"\nCancel Multi: <code>/stop_{self.multi_tag}</code>"
             nextmsg = await send_message(self.message, msgts)
         else:
             msg = [s.strip() for s in input_list]
@@ -474,7 +474,7 @@ class TaskConfig:
             )
             msgts = " ".join(msg)
             if self.multi > 2:
-                msgts += f"\nCancel Multi: <code>/{BotCommands.CancelTaskCommand[1]} {self.multi_tag}</code>"
+                msgts += f"\nCancel Multi: <code>/stop_{self.multi_tag}</code>"
             nextmsg = await send_message(nextmsg, msgts)
         nextmsg = await self.client.get_messages(
             chat_id=self.message.chat.id,
@@ -512,9 +512,9 @@ class TaskConfig:
             b_msg.append(f"{self.bulk[0]} -i {len(self.bulk)} {self.options}")
             msg = " ".join(b_msg)
             if len(self.bulk) > 2:
-                self.multi_tag = token_urlsafe(3)
+                self.multi_tag = token_hex(2)
                 multi_tags.add(self.multi_tag)
-                msg += f"\nCancel Multi: <code>/{BotCommands.CancelTaskCommand[1]} {self.multi_tag}</code>"
+                msg += f"\nCancel Multi: <code>/stop_{self.multi_tag}</code>"
             nextmsg = await send_message(self.message, msg)
             nextmsg = await self.client.get_messages(
                 chat_id=self.message.chat.id,
@@ -839,63 +839,6 @@ class TaskConfig:
                     else:
                         m_size.append(f_size)
                         o_files.append(f_path)
-
-    async def generate_sample_video_x(self, dl_path, gid, unwanted_files, ft_delete):
-        data = (
-            self.sample_video.split(":")
-            if isinstance(self.sample_video, str)
-            else ""
-        )
-        if data:
-            sample_duration = int(data[0]) if data[0] else 60
-            part_duration = int(data[1]) if len(data) > 1 else 4
-        else:
-            sample_duration, part_duration = 60, 4
-
-        samvid = SampleVideoCreator(self, sample_duration, part_duration, gid)
-
-        async with cpu_eater_lock:
-            checked = False
-            if await aiopath.isfile(dl_path):
-                if (await get_document_type(dl_path))[0]:
-                    if not checked:
-                        checked = True
-                        LOGGER.info("Creating Sample video: %s", self.name)
-                    async with task_dict_lock:
-                        task_dict[self.mid] = FFmpegStatus(
-                            self,
-                            gid,
-                            "Sample Video",
-                            samvid,
-                        )
-                    return await samvid.create_sample(dl_path, True)
-                return None
-            for dirpath, _, files in await sync_to_async(
-                walk,
-                dl_path,
-                topdown=False,
-            ):
-                for file_ in natsorted(files):
-                    f_path = ospath.join(dirpath, file_)
-                    if f_path in unwanted_files:
-                        continue
-                    if (await get_document_type(f_path))[0]:
-                        if not checked:
-                            checked = True
-                            LOGGER.info("Creating Sample videos: %s", self.name)
-                        async with task_dict_lock:
-                            task_dict[self.mid] = FFmpegStatus(
-                                self,
-                                gid,
-                                "Sample Video",
-                                samvid,
-                            )
-                        res = await samvid.create_sample(f_path)
-                        if res:
-                            ft_delete.append(res)
-                        if not res:
-                            return res
-            return dl_path
 
     async def generate_sample_video(self, dl_path, gid, unwanted_files, ft_delete):
         data = (

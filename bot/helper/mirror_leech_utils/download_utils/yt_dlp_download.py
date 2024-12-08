@@ -3,7 +3,7 @@ from logging import getLogger
 from os import listdir
 from os import path as ospath
 from re import search as re_search
-from secrets import token_urlsafe
+from secrets import token_hex
 
 from yt_dlp import DownloadError, YoutubeDL
 
@@ -203,7 +203,7 @@ class YoutubeDLHelper:
             self.opts["ignoreerrors"] = True
             self.is_playlist = True
 
-        self._gid = token_urlsafe(10)
+        self._gid = token_hex(4)
 
         await self._on_download_start()
 

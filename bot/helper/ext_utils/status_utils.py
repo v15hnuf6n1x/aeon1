@@ -212,6 +212,7 @@ async def get_readable_message(sid, is_user, page_no=1, status="All", page_step=
             MirrorStatus.STATUS_CONVERT,
             MirrorStatus.STATUS_FFMPEG,
             MirrorStatus.STATUS_QUEUEUP,
+            MirrorStatus.STATUS_SAMVID,
         ]:
             progress = (
                 await task.progress()
@@ -232,7 +233,7 @@ async def get_readable_message(sid, is_user, page_no=1, status="All", page_step=
             msg += f" | <b>Time: </b>{task.seeding_time()}"
         else:
             msg += f"\n<b>Size: </b>{task.size()}"
-        msg += f"\n<b>Gid: </b><code>{task.gid()}</code>\n\n"
+        msg += f"\n<b>Gid: </b><code>/stop_{task.gid()}</code>\n\n"
 
     if len(msg) == 0:
         if status == "All":

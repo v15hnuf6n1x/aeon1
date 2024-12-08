@@ -1,5 +1,5 @@
 from asyncio import sleep
-from secrets import token_urlsafe
+from secrets import token_hex
 
 from telegraph.aio import Telegraph
 from telegraph.exceptions import RetryAfterError
@@ -17,7 +17,7 @@ class TelegraphHelper:
         LOGGER.info("Creating Telegraph Account")
         try:
             await self._telegraph.create_account(
-                short_name=token_urlsafe(8),
+                short_name=token_hex(4),
                 author_name=self._author_name,
                 author_url=self._author_url,
             )
