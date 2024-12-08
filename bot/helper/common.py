@@ -29,7 +29,7 @@ from bot import (
     user_data,
 )
 
-from .aeon_utils.ffmpeg_s import SampleVideo
+from .aeon_utils.ffmpeg_s import SampleVideoCreator
 from .ext_utils.bot_utils import get_size_bytes, new_task, sync_to_async
 from .ext_utils.bulk_links import extract_bulk_links
 from .ext_utils.exceptions import NotSupportedExtractionArchive
@@ -852,7 +852,7 @@ class TaskConfig:
         else:
             sample_duration, part_duration = 60, 4
 
-        samvid = SampleVideo(self, sample_duration, part_duration, gid)
+        samvid = SampleVideoCreator(self, sample_duration, part_duration, gid)
 
         async with cpu_eater_lock:
             checked = False
@@ -868,7 +868,7 @@ class TaskConfig:
                             "Sample Video",
                             samvid,
                         )
-                    return await samvid.create(dl_path, True)
+                    return await samvid.create_sample(dl_path, True)
                 return None
             for dirpath, _, files in await sync_to_async(
                 walk,
@@ -890,7 +890,7 @@ class TaskConfig:
                                 "Sample Video",
                                 samvid,
                             )
-                        res = await samvid.create(f_path)
+                        res = await samvid.create_sample(f_path)
                         if res:
                             ft_delete.append(res)
                         if not res:
