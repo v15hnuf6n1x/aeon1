@@ -1,5 +1,5 @@
-import re
 import contextlib
+import re
 from ast import literal_eval
 from asyncio import create_subprocess_exec, gather, sleep
 from asyncio.subprocess import PIPE
@@ -27,7 +27,7 @@ async def get_media_info(path):
                 "json",
                 "-show_format",
                 path,
-            ]
+            ],
         )
         if res := result[1]:
             LOGGER.warning("Get Media Info: %s", res)
@@ -96,7 +96,7 @@ class FFProgress:
                 re.findall(
                     r"(frame|fps|size|time|bitrate|speed)\s*\=\s*(\S+)",
                     line.decode("utf-8"),
-                )
+                ),
             ):
                 if not self._duration:
                     self._duration = (await get_media_info(self.path))[0]

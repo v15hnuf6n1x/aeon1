@@ -5,11 +5,11 @@ from os import path as ospath
 from os import walk
 from re import IGNORECASE, sub
 from secrets import token_urlsafe
-from natsort import natsorted
 
 from aiofiles.os import makedirs, remove
 from aiofiles.os import path as aiopath
 from aioshutil import copy2, move
+from natsort import natsorted
 from pyrogram.enums import ChatAction
 
 from bot import (
@@ -861,12 +861,17 @@ class TaskConfig:
                         LOGGER.info("Creating Sample video: %s", self.name)
                     async with task_dict_lock:
                         task_dict[self.mid] = FFmpegStatus(
-                            self, gid, "Sample Video", samvid
+                            self,
+                            gid,
+                            "Sample Video",
+                            samvid,
                         )
                     return await samvid.create(dl_path, True)
                 return None
             for dirpath, _, files in await sync_to_async(
-                walk, dl_path, topdown=False
+                walk,
+                dl_path,
+                topdown=False,
             ):
                 for file_ in natsorted(files):
                     f_path = ospath.join(dirpath, file_)
@@ -878,7 +883,10 @@ class TaskConfig:
                             LOGGER.info("Creating Sample videos: %s", self.name)
                         async with task_dict_lock:
                             task_dict[self.mid] = FFmpegStatus(
-                                self, gid, "Sample Video", samvid
+                                self,
+                                gid,
+                                "Sample Video",
+                                samvid,
                             )
                         res = await samvid.create(f_path)
                         if res:
