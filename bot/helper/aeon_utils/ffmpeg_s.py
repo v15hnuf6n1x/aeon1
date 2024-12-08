@@ -16,7 +16,6 @@ from bot.helper.ext_utils.files_utils import get_path_size
 
 
 async def get_media_info(path):
-    """Retrieve media information using ffprobe."""
     try:
         result = await cmd_exec(
             [
@@ -32,25 +31,21 @@ async def get_media_info(path):
         )
         if res := result[1]:
             LOGGER.warning("Get Media Info: %s", res)
-        fields = literal_eval(result[0]).get("format")
-        if fields is None:
-            LOGGER.error("Get Media Info: %s", result)
-            return 0, None, None
-
-        duration = round(float(fields.get("duration", 0)))
-        tags = fields.get("tags", {})
-        artist = tags.get("artist") or tags.get("ARTIST") or tags.get("Artist")
-        title = tags.get("title") or tags.get("TITLE") or tags.get("Title")
-        return duration, artist, title
-
     except Exception as e:
         LOGGER.error("Get Media Info: %s. Mostly File not found!", e)
         return 0, None, None
+    fields = literal_eval(result[0]).get("format")
+    if fields is None:
+        LOGGER.error("Get_media_info: %s", result)
+        return 0, None, None
+    duration = round(float(fields.get("duration", 0)))
+    tags = fields.get("tags", {})
+    artist = tags.get("artist") or tags.get("ARTIST") or tags.get("Artist")
+    title = tags.get("title") or tags.get("TITLE") or tags.get("Title")
+    return duration, artist, title
 
 
 class FFProgress:
-    """Class to track progress of FFmpeg operations."""
-
     def __init__(self):
         self.is_cancel = False
         self._duration = 0
@@ -73,11 +68,9 @@ class FFProgress:
 
     @property
     def speed(self):
-        elapsed = time() - self._start_time
-        return self._processed_bytes / elapsed if elapsed > 0 else 0
+        return self._processed_bytes / (time() - self._start_time)
 
     async def readlines(self, stream):
-        """Asynchronously read lines from a stream."""
         data = bytearray()
         while not stream.at_eof():
             lines = re.split(rb"[\r\n]+", data)
@@ -86,54 +79,51 @@ class FFProgress:
                 yield line
             data.extend(await stream.read(1024))
 
-    async def update_progress(self, line, status):
-        """Update progress metrics from FFmpeg output."""
-        progress = dict(
-            re.findall(r"(frame|fps|size|time|bitrate|speed)\s*=\s*(\S+)", line),
-        )
-        if not progress:
-            return
-
-        if not self._duration:
-            self._duration = (await get_media_info(self.path))[0]
-
-        try:
-            hh, mm, sms = progress["time"].split(":")
-            time_to_second = (int(hh) * 3600) + (int(mm) * 60) + float(sms)
-            self._percentage = (
-                f"{round((time_to_second / self._duration) * 100, 2)}%"
-            )
-        except (ValueError, KeyError):
-            self._percentage = "0%"
-
-        try:
-            self._processed_bytes = int(progress["size"].rstrip("kB")) * 1024
-        except ValueError:
-            self._processed_bytes = 0
-
-        with contextlib.suppress(Exception):
-            elapsed = time() - self._start_time
-            self._eta = (
-                self._duration / float(progress["speed"].strip("x")) - elapsed
-            )
-
-    async def progress(self, status=""):
-        """Track FFmpeg progress."""
+    async def progress(self, status: str = ""):
+        start_time = time()
         async for line in self.readlines(self.listener.subproc.stderr):
-            if self.is_cancel or self.listener.subproc.returncode is not None:
+            if (
+                self.is_cancel
+                or self.listener.subproc == "cancelled"
+                or self.listener.subproc.returncode is not None
+            ):
                 return
             if status == "direct":
                 self._processed_bytes = await get_path_size(self.outfile)
                 await sleep(0.5)
-            else:
-                await self.update_progress(line.decode("utf-8"), status)
+                continue
+            if progress := dict(
+                re.findall(
+                    r"(frame|fps|size|time|bitrate|speed)\s*\=\s*(\S+)",
+                    line.decode("utf-8"),
+                ),
+            ):
+                LOGGER.info(progress)
+                if not self._duration:
+                    self._duration = (await get_media_info(self.path))[0]
+                try:
+                    hh, mm, sms = progress["time"].split(":")
+                except ValueError:
+                    hh, mm, sms = 0, 0, 0
+                time_to_second = (int(hh) * 3600) + (int(mm) * 60) + float(sms)
+                try:
+                    self._processed_bytes = int(progress["size"].rstrip("kB")) * 1024
+                except ValueError:
+                    self._processed_bytes = 0
+                try:
+                    self._percentage = (
+                        f"{round((time_to_second / self._duration) * 100, 2)}%"
+                    )
+                except ValueError:
+                    self._percentage = "0%"
+                with contextlib.suppress(Exception):
+                    self._eta = (
+                        self._duration / float(progress["speed"].strip("x"))
+                    ) - (time() - start_time)
 
 
 class SampleVideo(FFProgress):
-    """Class to create a sample video using FFmpeg."""
-
     def __init__(self, listener, duration, part_duration, gid):
-        super().__init__()
         self.listener = listener
         self.path = ""
         self.name = ""
@@ -142,41 +132,37 @@ class SampleVideo(FFProgress):
         self._duration = duration
         self._part_duration = part_duration
         self._gid = gid
+        self._start_time = time()
+        super().__init__()
 
-    def _generate_segments(self, duration):
-        """Generate segments for sampling."""
+    async def create(self, video_file: str, on_file: bool = False):
+        filter_complex = ""
+        self.path = video_file
+        dir, name = video_file.rsplit("/", 1)
+        self.outfile = ospath.join(dir, f"SAMPLE.{name}")
         segments = [(0, self._part_duration)]
+        duration = (await get_media_info(video_file))[0]
         remaining_duration = duration - (self._part_duration * 2)
-        parts = remaining_duration // self._part_duration
+        parts = (self._duration - (self._part_duration * 2)) // self._part_duration
         time_interval = remaining_duration // parts
-        next_segment = self._part_duration
-
+        next_segment = time_interval
         for _ in range(parts):
             segments.append((next_segment, next_segment + self._part_duration))
             next_segment += time_interval
-
         segments.append((duration - self._part_duration, duration))
-        return segments
 
-    def _build_filter_complex(self, segments):
-        """Build FFmpeg filter_complex string."""
-        filter_complex = ""
         for i, (start, end) in enumerate(segments):
             filter_complex += (
                 f"[0:v]trim=start={start}:end={end},setpts=PTS-STARTPTS[v{i}]; "
+            )
+            filter_complex += (
                 f"[0:a]atrim=start={start}:end={end},asetpts=PTS-STARTPTS[a{i}]; "
             )
-        filter_complex += f"concat=n={len(segments)}:v=1:a=1[vout][aout]"
-        return filter_complex
 
-    async def create(self, video_file, on_file=False):
-        """Create a sample video."""
-        self.path = video_file
-        dir_name, file_name = ospath.split(video_file)
-        self.outfile = ospath.join(dir_name, f"SAMPLE.{file_name}")
-        duration = (await get_media_info(video_file))[0]
-        segments = self._generate_segments(duration)
-        filter_complex = self._build_filter_complex(segments)
+        for i in range(len(segments)):
+            filter_complex += f"[v{i}][a{i}]"
+
+        filter_complex += f"concat=n={len(segments)}:v=1:a=1[vout][aout]"
 
         cmd = [
             "xtra",
@@ -194,31 +180,36 @@ class SampleVideo(FFProgress):
             "-c:a",
             "aac",
             "-threads",
-            str(cpu_count() // 2),
+            f"{cpu_count()//2}",
             self.outfile,
         ]
 
         if self.listener.subproc == "cancelled":
             return False
 
-        self.name, self.size = file_name, await get_path_size(video_file)
+        self.name, self.size = (
+            ospath.basename(video_file),
+            await get_path_size(video_file),
+        )
         self.listener.subproc = await create_subprocess_exec(*cmd, stderr=PIPE)
         _, code = await gather(self.progress(), self.listener.subproc.wait())
 
+        if code == -9:
+            return False
         if code == 0:
             if on_file:
-                new_dir = ospath.splitext(video_file)[0]
-                await makedirs(new_dir, exist_ok=True)
+                newDir, _ = ospath.splitext(video_file)
+                await makedirs(newDir, exist_ok=True)
                 await gather(
-                    move(video_file, ospath.join(new_dir, file_name)),
-                    move(self.outfile, ospath.join(new_dir, f"SAMPLE.{file_name}")),
+                    move(video_file, ospath.join(newDir, name)),
+                    move(self.outfile, ospath.join(newDir, f"SAMPLE.{name}")),
                 )
-                return new_dir
+                return newDir
             return True
 
         LOGGER.error(
-            "Error creating sample video: %s. Path: %s",
+            "%s. Something went wrong while creating sample video, mostly file is corrupted. Path: %s",
             (await self.listener.subproc.stderr.read()).decode().strip(),
             video_file,
         )
-        return False
+        return video_file
