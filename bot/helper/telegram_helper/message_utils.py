@@ -31,9 +31,9 @@ async def send_message(
     buttons=None,
     block=True,
     photo=None,
-    MARKDOWN=False,
+    markdown=False,
 ):
-    parse_mode = enums.ParseMode.MARKDOWN if MARKDOWN else enums.ParseMode.HTML
+    parse_mode = enums.ParseMode.MARKDOWN if markdown else enums.ParseMode.HTML
     try:
         if isinstance(message, int):
             return await bot.send_message(
@@ -65,7 +65,7 @@ async def send_message(
         LOGGER.warning(str(f))
         if block:
             await sleep(f.value * 1.2)
-            return await send_message(message, text, buttons, block, photo, MARKDOWN)
+            return await send_message(message, text, buttons, block, photo, markdown)
         return str(f)
     except Exception as e:
         LOGGER.error(str(e))
@@ -78,9 +78,9 @@ async def edit_message(
     buttons=None,
     block=True,
     photo=None,
-    MARKDOWN=False,
+    markdown=False,
 ):
-    parse_mode = enums.ParseMode.MARKDOWN if MARKDOWN else enums.ParseMode.HTML
+    parse_mode = enums.ParseMode.MARKDOWN if markdown else enums.ParseMode.HTML
     try:
         if message.media:
             if photo:
@@ -104,7 +104,7 @@ async def edit_message(
         LOGGER.warning(str(f))
         if block:
             await sleep(f.value * 1.2)
-            return await edit_message(message, text, buttons, block, photo, MARKDOWN)
+            return await edit_message(message, text, buttons, block, photo, markdown)
     except (MessageNotModified, MessageEmpty):
         pass
     except Exception as e:

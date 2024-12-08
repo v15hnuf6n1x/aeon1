@@ -137,7 +137,7 @@ async def clean_unwanted(path, custom_list=None):
                 await remove(f_path)
         if dirpath.endswith((".unwanted", "splited_files", "copied_files")):
             await aiormtree(dirpath, ignore_errors=True)
-    for dirpath, _, files in await sync_to_async(walk, path, topdown=False):
+    for dirpath, _, __ in await sync_to_async(walk, path, topdown=False):
         if not await listdir(dirpath):
             await rmdir(dirpath)
 

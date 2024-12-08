@@ -1,3 +1,4 @@
+# ruff: noqa: N811
 from bot import CMD_SUFFIX as i
 
 

@@ -584,7 +584,7 @@ async def load_config():
     FFMPEG_CMDS = environ.get("FFMPEG_CMDS", "")
     try:
         FFMPEG_CMDS = [] if len(FFMPEG_CMDS) == 0 else eval(FFMPEG_CMDS)
-    except:
+    except Exception:
         LOGGER.error(f"Wrong FFMPEG_CMDS format: {FFMPEG_CMDS}")
         FFMPEG_CMDS = []
 

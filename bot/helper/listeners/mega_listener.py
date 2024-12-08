@@ -23,16 +23,16 @@ class AsyncExecutor:
 async def mega_login(
     executor,
     api,
-    MAIL,
-    PASS,
+    email,
+    password,
 ):
-    if MAIL and PASS:
+    if email and password:
         await sync_to_async(
             executor.do,
             api.login,
             (
-                MAIL,
-                PASS,
+                email,
+                password,
             ),
         )
 
@@ -81,7 +81,7 @@ class MegaAppListener(MegaListener):
     def downloaded_bytes(self):
         return self._bytes_transferred
 
-    def onRequestFinish(
+    def onRequestFinish( # noqa: N802
         self,
         api,
         request,
@@ -112,10 +112,10 @@ class MegaAppListener(MegaListener):
         ):
             self.continue_event.set()
 
-    def onRequestTemporaryError(
+    def onRequestTemporaryError( # noqa: N802
         self,
-        api,
-        request,
+        _,
+        __,
         error: MegaError,
     ):
         LOGGER.error(f"Mega Request error in {error}")
@@ -128,7 +128,7 @@ class MegaAppListener(MegaListener):
         self.error = error.toString()
         self.continue_event.set()
 
-    def onTransferUpdate(
+    def onTransferUpdate( # noqa: N802
         self,
         api: MegaApi,
         transfer: MegaTransfer,
@@ -143,11 +143,11 @@ class MegaAppListener(MegaListener):
         self._speed = transfer.getSpeed()
         self._bytes_transferred = transfer.getTransferredBytes()
 
-    def onTransferFinish(
+    def onTransferFinish( # noqa: N802
         self,
-        api: MegaApi,
+        _: MegaApi,
         transfer: MegaTransfer,
-        error,
+        __,
     ):
         try:
             if self.is_cancelled:
@@ -160,9 +160,9 @@ class MegaAppListener(MegaListener):
         except Exception as e:
             LOGGER.error(e)
 
-    def onTransferTemporaryError(
+    def onTransferTemporaryError( # noqa: N802
         self,
-        api,
+        _,
         transfer,
         error,
     ):

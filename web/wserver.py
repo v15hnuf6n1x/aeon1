@@ -1,11 +1,8 @@
-from logging import INFO, FileHandler, StreamHandler, basicConfig, getLogger
+from aria2p import API, Client as ariaClient
+from flask import Flask, request, render_template, jsonify
+from logging import getLogger, FileHandler, StreamHandler, INFO, basicConfig
+from qbittorrentapi import NotFound404Error, Client as qbClient
 from time import sleep
-
-from aria2p import API as ariaAPI
-from aria2p import Client as ariaClient
-from flask import Flask, jsonify, render_template, request
-from qbittorrentapi import Client as qbClient
-from qbittorrentapi import NotFound404Error
 
 from web.nodes import extract_file_ids, make_tree
 
@@ -19,7 +16,7 @@ xnox_client = qbClient(
     HTTPADAPTER_ARGS={"pool_maxsize": 200, "pool_block": True},
 )
 
-aria2 = ariaAPI(ariaClient(host="http://localhost", port=6800, secret=""))
+aria2 = API(ariaClient(host="http://localhost", port=6800, secret=""))
 
 basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -122,21 +119,47 @@ def handle_torrent():
             },
         )
     if request.method == "POST":
+        if not (mode := request.args.get("mode")):
+            return jsonify(
+                {
+                    "files": [],
+                    "engine": "",
+                    "error": "Mode is not specified",
+                    "message": "Mode is not specified",
+                }
+            )
         data = request.get_json(cache=False, force=True)
-        selected_files, unselected_files = extract_file_ids(data)
-        if len(gid) > 20:
-            selected_files = "|".join(selected_files)
-            unselected_files = "|".join(unselected_files)
-            set_qbittorrent(gid, selected_files, unselected_files)
+        if mode == "rename":
+            if len(gid) > 20:
+                handle_rename(gid, data)
+                content = {
+                    "files": [],
+                    "engine": "",
+                    "error": "",
+                    "message": "Rename successfully.",
+                }
+            else:
+                content = {
+                    "files": [],
+                    "engine": "",
+                    "error": "Rename failed.",
+                    "message": "Cannot rename aria2c torrent file",
+                }
         else:
-            selected_files = ",".join(selected_files)
-            set_aria2(gid, selected_files)
-        content = {
-            "files": [],
-            "engine": "",
-            "error": "",
-            "message": "Your selection has been submitted successfully.",
-        }
+            selected_files, unselected_files = extract_file_ids(data)
+            if len(gid) > 20:
+                selected_files = "|".join(selected_files)
+                unselected_files = "|".join(unselected_files)
+                set_qbittorrent(gid, selected_files, unselected_files)
+            else:
+                selected_files = ",".join(selected_files)
+                set_aria2(gid, selected_files)
+            content = {
+                "files": [],
+                "engine": "",
+                "error": "",
+                "message": "Your selection has been submitted successfully.",
+            }
     else:
         try:
             if len(gid) > 20:
@@ -154,6 +177,20 @@ def handle_torrent():
                 "message": str(e),
             }
     return jsonify(content)
+
+
+def handle_rename(gid, data):
+    try:
+        _type = data["type"]
+        del data["type"]
+        if _type == "file":
+            xnox_client.torrents_rename_file(torrent_hash=gid, **data)
+        else:
+            xnox_client.torrents_rename_folder(torrent_hash=gid, **data)
+    except NotFound404Error as e:
+        raise NotFound404Error from e
+    except Exception as e:
+        LOGGER.error(f"{e} Errored in renaming")
 
 
 def set_qbittorrent(gid, selected_files, unselected_files):

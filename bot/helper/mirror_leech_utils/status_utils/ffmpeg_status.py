@@ -34,7 +34,7 @@ class FFmpegStatus:
         except Exception:
             try:
                 progress_raw = self._obj.processed_bytes / self._obj.size * 100
-            except:
+            except Exception:
                 progress_raw = 0
             return f"{round(progress_raw, 2)}%"
 
@@ -63,7 +63,7 @@ class FFmpegStatus:
                 return get_readable_time(
                     (self._obj.size - self._obj.processed_bytes) / self._obj.speed,
                 )
-            except:
+            except Exception:
                 return "-"
 
     def status(self):

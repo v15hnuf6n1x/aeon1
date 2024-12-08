@@ -25,7 +25,7 @@ class MegaDownloadStatus:
     def progress_raw(self):
         try:
             return round(self._obj.downloaded_bytes / self._size * 100, 2)
-        except:
+        except Exception:
             return 0.0
 
     def progress(self):

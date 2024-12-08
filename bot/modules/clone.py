@@ -7,6 +7,7 @@ from pyrogram.filters import command
 from pyrogram.handlers import MessageHandler
 
 from bot import LOGGER, bot, bot_loop, task_dict, task_dict_lock
+from bot.helper.aeon_utils.access_check import error_check
 from bot.helper.ext_utils.bot_utils import (
     COMMAND_USAGE,
     arg_parser,
@@ -38,6 +39,8 @@ from bot.helper.telegram_helper.message_utils import (
     delete_message,
     send_message,
     send_status_message,
+    five_minute_del,
+    delete_links,
 )
 
 
@@ -67,6 +70,11 @@ class Clone(TaskListener):
         self.is_clone = True
 
     async def new_event(self):
+        error_msg, error_button = await error_check(self.message)
+        if error_msg:
+            await delete_links(self.message)
+            error = await send_message(self.message, error_msg, error_button)
+            return await five_minute_del(error)
         text = self.message.text.split("\n")
         input_list = text[0].split(" ")
 
