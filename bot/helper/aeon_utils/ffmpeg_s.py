@@ -105,10 +105,16 @@ class FFProgress:
                 except ValueError:
                     hh, mm, sms = 0, 0, 0
                 time_to_second = (int(hh) * 3600) + (int(mm) * 60) + float(sms)
-                self._processed_bytes = int(progress["size"].rstrip("kB")) * 1024
-                self._percentage = (
-                    f"{round((time_to_second / self._duration) * 100, 2)}%"
-                )
+                try:
+                    self._processed_bytes = int(progress["size"].rstrip("kB")) * 1024
+                except ValueError:
+                    self._processed_bytes = 0
+                try:
+                    self._percentage = (
+                        f"{round((time_to_second / self._duration) * 100, 2)}%"
+                    )
+                except ValueError:
+                    self._percentage = "0%"
                 with contextlib.suppress(Exception):
                     self._eta = (
                         self._duration / float(progress["speed"].strip("x"))
