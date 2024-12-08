@@ -1,3 +1,4 @@
+# ruff: noqa: ARG005
 import contextlib
 from logging import getLogger
 from os import listdir

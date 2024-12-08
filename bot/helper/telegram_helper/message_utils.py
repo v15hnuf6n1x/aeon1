@@ -277,13 +277,11 @@ async def update_status_message(sid, force=False):
         page_no = status_dict[sid]["page_no"]
         status = status_dict[sid]["status"]
         is_user = status_dict[sid]["is_user"]
-        page_step = status_dict[sid]["page_step"]
         text, buttons = await get_readable_message(
             sid,
             is_user,
             page_no,
             status,
-            page_step,
         )
         if text is None:
             del status_dict[sid]
@@ -322,13 +320,11 @@ async def send_status_message(msg, user_id=0):
         if sid in list(status_dict.keys()):
             page_no = status_dict[sid]["page_no"]
             status = status_dict[sid]["status"]
-            page_step = status_dict[sid]["page_step"]
             text, buttons = await get_readable_message(
                 sid,
                 is_user,
                 page_no,
                 status,
-                page_step,
             )
             if text is None:
                 del status_dict[sid]

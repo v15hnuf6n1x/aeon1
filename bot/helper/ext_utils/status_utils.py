@@ -1,3 +1,4 @@
+import contextlib
 from asyncio import iscoroutinefunction
 from html import escape
 from time import time
@@ -269,11 +270,11 @@ def source(self):
     )
 
 
-async def get_readable_message(sid, is_user, page_no=1, status="All", page_step=1):
+async def get_readable_message(sid, is_user, page_no=1, status="All"):
     msg = ""
     button = None
 
-    tasks = await sync_to_async(getSpecificTasks, status, sid if is_user else None)
+    tasks = await sync_to_async(get_specific_tasks, status, sid if is_user else None)
 
     STATUS_LIMIT = 4
     tasks_no = len(tasks)
@@ -310,7 +311,7 @@ async def get_readable_message(sid, is_user, page_no=1, status="All", page_step=
             msg += f"\n{task.processed_bytes()} of {task.size()}"
             msg += f"\n<b>Speed:</b> {task.speed()}\n<b>Estimated:</b> {task.eta()}"
             if hasattr(task, "seeders_num"):
-                with suppress(Exception):
+                with contextlib.suppress(Exception):
                     msg += f"\n<b>Seeders:</b> {task.seeders_num()} <b>Leechers:</b> {task.leechers_num()}"
         elif tstatus == MirrorStatus.STATUS_SEEDING:
             msg += f"\n<b>Size: </b>{task.size()}"

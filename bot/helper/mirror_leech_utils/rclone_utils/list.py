@@ -272,9 +272,9 @@ class RcloneList:
 
     async def get_path(self, itype=""):
         if itype:
-            self.item_type == itype
+            self.item_type = itype
         elif self.list_status == "rcu":
-            self.item_type == "--dirs-only"
+            self.item_type = "--dirs-only"
         cmd = [
             "xone",
             "lsjson",

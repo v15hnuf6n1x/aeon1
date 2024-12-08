@@ -239,9 +239,9 @@ class GoogleDriveList(GoogleDriveHelper):
 
     async def get_items(self, itype=""):
         if itype:
-            self.item_type == itype
+            self.item_type = itype
         elif self.list_status == "gdu":
-            self.item_type == "folders"
+            self.item_type = "folders"
         try:
             files = self.get_files_by_folder_id(self.id, self.item_type)
             if self.listener.is_cancelled:
