@@ -199,7 +199,7 @@ bot.add_handler(
     MessageHandler(
         cancel_task,
         filters=regex(r"^/stop(_\w+)?(?!all)") & CustomFilters.authorized,
-    )
+    ),
 )
 bot.add_handler(
     MessageHandler(
