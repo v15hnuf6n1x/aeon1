@@ -98,6 +98,7 @@ class FFProgress:
                     line.decode("utf-8"),
                 ),
             ):
+                LOGGER.info(progress)
                 if not self._duration:
                     self._duration = (await get_media_info(self.path))[0]
                 try:
