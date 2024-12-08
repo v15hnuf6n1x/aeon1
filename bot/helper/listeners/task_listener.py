@@ -212,7 +212,7 @@ class TaskListener(TaskConfig):
             self.size = await get_path_size(up_dir)
 
         if self.sample_video:
-            up_path = await self.generate_sample_video_x(
+            up_path = await self.generate_sample_video(
                 up_path,
                 gid,
                 unwanted_files,
