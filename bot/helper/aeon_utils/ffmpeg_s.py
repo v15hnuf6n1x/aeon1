@@ -89,7 +89,7 @@ class FFProgress:
     async def update_progress(self, line, status):
         """Update progress metrics from FFmpeg output."""
         progress = dict(
-            re.findall(r"(frame|fps|size|time|bitrate|speed)\s*=\s*(\S+)", line)
+            re.findall(r"(frame|fps|size|time|bitrate|speed)\s*=\s*(\S+)", line),
         )
         if not progress:
             return
@@ -100,7 +100,9 @@ class FFProgress:
         try:
             hh, mm, sms = progress["time"].split(":")
             time_to_second = (int(hh) * 3600) + (int(mm) * 60) + float(sms)
-            self._percentage = f"{round((time_to_second / self._duration) * 100, 2)}%"
+            self._percentage = (
+                f"{round((time_to_second / self._duration) * 100, 2)}%"
+            )
         except (ValueError, KeyError):
             self._percentage = "0%"
 
@@ -111,7 +113,9 @@ class FFProgress:
 
         with contextlib.suppress(Exception):
             elapsed = time() - self._start_time
-            self._eta = self._duration / float(progress["speed"].strip("x")) - elapsed
+            self._eta = (
+                self._duration / float(progress["speed"].strip("x")) - elapsed
+            )
 
     async def progress(self, status=""):
         """Track FFmpeg progress."""
