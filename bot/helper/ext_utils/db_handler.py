@@ -49,7 +49,7 @@ class DbManager:
 
     async def db_load(self):
         if self._db is None:
-            await self.aconnect()
+            await self.connect()
         if self._return:
             return
         # Save bot settings
