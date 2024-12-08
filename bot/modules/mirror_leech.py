@@ -231,7 +231,11 @@ class Mirror(TaskListener):
 
         path = f"{DOWNLOAD_DIR}{self.mid}{self.folder_name}"
 
-        if not self.link and (reply_to := self.message.reply_to_message) and reply_to.text:
+        if (
+            not self.link
+            and (reply_to := self.message.reply_to_message)
+            and reply_to.text
+        ):
             self.link = reply_to.text.split("\n", 1)[0].strip()
         if is_telegram_link(self.link):
             try:

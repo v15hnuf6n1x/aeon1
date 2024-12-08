@@ -259,7 +259,7 @@ async def restart_notification():
 
         commit_link = result[0]
 
-        async with aiopen(".restartmsg", mode="r") as f:
+        async with aiopen(".restartmsg") as f:
             content = await f.read()
             chat_id, msg_id = map(int, content.splitlines())
 

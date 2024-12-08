@@ -36,11 +36,11 @@ from bot.helper.mirror_leech_utils.status_utils.rclone_status import RcloneStatu
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.message_utils import (
+    delete_links,
     delete_message,
+    five_minute_del,
     send_message,
     send_status_message,
-    five_minute_del,
-    delete_links,
 )
 
 
@@ -114,7 +114,7 @@ class Clone(TaskListener):
 
         if is_bulk:
             await self.init_bulk(input_list, bulk_start, bulk_end, Clone)
-            return
+            return None
 
         await self.get_tag(text)
 
@@ -129,14 +129,15 @@ class Clone(TaskListener):
                 COMMAND_USAGE["clone"][0],
                 COMMAND_USAGE["clone"][1],
             )
-            return
+            return None
         LOGGER.info(self.link)
         try:
             await self.before_start()
         except Exception as e:
             await send_message(self.message, e)
-            return
+            return None
         await self._proceed_to_clone(sync)
+        return None
 
     async def _proceed_to_clone(self, sync):
         if is_share_link(self.link):

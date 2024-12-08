@@ -1,8 +1,11 @@
-from aria2p import API, Client as ariaClient
-from flask import Flask, request, render_template, jsonify
-from logging import getLogger, FileHandler, StreamHandler, INFO, basicConfig
-from qbittorrentapi import NotFound404Error, Client as qbClient
+from logging import INFO, FileHandler, StreamHandler, basicConfig, getLogger
 from time import sleep
+
+from aria2p import API
+from aria2p import Client as ariaClient
+from flask import Flask, jsonify, render_template, request
+from qbittorrentapi import Client as qbClient
+from qbittorrentapi import NotFound404Error
 
 from web.nodes import extract_file_ids, make_tree
 
@@ -126,7 +129,7 @@ def handle_torrent():
                     "engine": "",
                     "error": "Mode is not specified",
                     "message": "Mode is not specified",
-                }
+                },
             )
         data = request.get_json(cache=False, force=True)
         if mode == "rename":

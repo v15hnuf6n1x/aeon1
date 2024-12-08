@@ -81,7 +81,7 @@ class MegaAppListener(MegaListener):
     def downloaded_bytes(self):
         return self._bytes_transferred
 
-    def onRequestFinish( # noqa: N802
+    def onRequestFinish(  # noqa: N802
         self,
         api,
         request,
@@ -112,7 +112,7 @@ class MegaAppListener(MegaListener):
         ):
             self.continue_event.set()
 
-    def onRequestTemporaryError( # noqa: N802
+    def onRequestTemporaryError(  # noqa: N802
         self,
         _,
         __,
@@ -128,7 +128,7 @@ class MegaAppListener(MegaListener):
         self.error = error.toString()
         self.continue_event.set()
 
-    def onTransferUpdate( # noqa: N802
+    def onTransferUpdate(  # noqa: N802
         self,
         api: MegaApi,
         transfer: MegaTransfer,
@@ -143,7 +143,7 @@ class MegaAppListener(MegaListener):
         self._speed = transfer.getSpeed()
         self._bytes_transferred = transfer.getTransferredBytes()
 
-    def onTransferFinish( # noqa: N802
+    def onTransferFinish(  # noqa: N802
         self,
         _: MegaApi,
         transfer: MegaTransfer,
@@ -160,7 +160,7 @@ class MegaAppListener(MegaListener):
         except Exception as e:
             LOGGER.error(e)
 
-    def onTransferTemporaryError( # noqa: N802
+    def onTransferTemporaryError(  # noqa: N802
         self,
         _,
         transfer,

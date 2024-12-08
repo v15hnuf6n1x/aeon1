@@ -28,11 +28,11 @@ from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.button_build import ButtonMaker
 from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.message_utils import (
+    delete_links,
     delete_message,
     edit_message,
-    send_message,
     five_minute_del,
-    delete_links,
+    send_message,
 )
 
 
@@ -416,7 +416,7 @@ class YtDlp(TaskListener):
                             self.same_dir[fd_name]["total"] -= 1
         else:
             await self.init_bulk(input_list, bulk_start, bulk_end, YtDlp)
-            return
+            return None
 
         if len(self.bulk) != 0:
             del self.bulk[0]
@@ -437,7 +437,7 @@ class YtDlp(TaskListener):
                 COMMAND_USAGE["yt"][1],
             )
             await self.remove_from_same_dir()
-            return
+            return None
 
         if "mdisk.me" in self.link:
             self.name, self.link = await _mdisk(self.link, self.name)
@@ -447,7 +447,7 @@ class YtDlp(TaskListener):
         except Exception as e:
             await send_message(self.message, e)
             await self.remove_from_same_dir()
-            return
+            return None
 
         options = {"usenetrc": True, "cookiefile": "cookies.txt"}
         if opt:
@@ -483,7 +483,7 @@ class YtDlp(TaskListener):
             msg = str(e).replace("<", " ").replace(">", " ")
             await send_message(self.message, f"{self.tag} {msg}")
             await self.remove_from_same_dir()
-            return
+            return None
         finally:
             await self.run_multi(input_list, YtDlp)
 
@@ -491,12 +491,13 @@ class YtDlp(TaskListener):
             qual = await YtSelection(self).get_quality(result)
             if qual is None:
                 await self.remove_from_same_dir()
-                return
+                return None
 
         LOGGER.info(f"Downloading with YT-DLP: {self.link}")
         playlist = "entries" in result
         ydl = YoutubeDLHelper(self)
         await ydl.add_download(path, qual, playlist, opt)
+        return None
 
 
 async def ytdl(client, message):
