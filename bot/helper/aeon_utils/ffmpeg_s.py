@@ -101,7 +101,7 @@ class FFProgress:
                     re.findall(
                         r"(frame|fps|size|time|bitrate|speed)\s*=\s*(\S+)",
                         line.decode("utf-8"),
-                    )
+                    ),
                 )
             except Exception:
                 continue
@@ -113,7 +113,9 @@ class FFProgress:
             hh, mm, ss = map(float, time_data) if len(time_data) == 3 else (0, 0, 0)
 
             time_to_second = hh * 3600 + mm * 60 + ss
-            self._processed_bytes = int(progress.get("size", "0kB").strip("kB")) * 1024
+            self._processed_bytes = (
+                int(progress.get("size", "0kB").strip("kB")) * 1024
+            )
             self._percentage = f"{(time_to_second / self._duration) * 100:.2f}%"
             with contextlib.suppress(Exception):
                 self._eta = (
