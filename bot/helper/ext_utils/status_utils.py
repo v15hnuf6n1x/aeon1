@@ -212,7 +212,6 @@ async def get_readable_message(sid, is_user, page_no=1, status="All", page_step=
             MirrorStatus.STATUS_CONVERT,
             MirrorStatus.STATUS_FFMPEG,
             MirrorStatus.STATUS_QUEUEUP,
-            MirrorStatus.STATUS_SAMVID,
         ]:
             progress = (
                 await task.progress()
