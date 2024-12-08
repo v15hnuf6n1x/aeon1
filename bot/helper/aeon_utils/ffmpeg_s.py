@@ -100,6 +100,7 @@ class FFProgress:
             ):
                 if not self._duration:
                     self._duration = (await get_media_info(self.path))[0]
+                LOGGER.info(progress["time"])
                 hh, mm, sms = progress["time"].split(":")
                 time_to_second = (int(hh) * 3600) + (int(mm) * 60) + float(sms)
                 self._processed_bytes = int(progress["size"].rstrip("kB")) * 1024
