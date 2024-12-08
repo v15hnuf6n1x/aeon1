@@ -842,7 +842,7 @@ class TaskConfig:
 
     async def generate_sample_video_x(self, dl_path, gid, unwanted_files, ft_delete):
         data = (
-            self.sample_video.split(":") if isinstance(self.sampleVideo, str) else ""
+            self.sample_video.split(":") if isinstance(self.sample_video, str) else ""
         )
         if data:
             sample_duration = int(data[0]) if data[0] else 60
