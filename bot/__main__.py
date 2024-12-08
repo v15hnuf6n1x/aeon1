@@ -286,7 +286,7 @@ async def aeon_callback(_, query):
 
         def parseline(line):
             try:
-                return "[" + line.split("] [", 1)[1]
+                return line.split("] ", 1)[1]
             except IndexError:
                 return line
 

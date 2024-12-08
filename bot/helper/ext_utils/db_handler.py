@@ -2,7 +2,8 @@ from aiofiles import open as aiopen
 from aiofiles.os import makedirs
 from aiofiles.os import path as aiopath
 from dotenv import dotenv_values
-from motor.motor_asyncio import AsyncIOMotorClient
+# from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo import AsyncMongoClient
 from pymongo.errors import PyMongoError
 from pymongo.server_api import ServerApi
 
@@ -27,7 +28,7 @@ class DbManager:
             if config_dict["DATABASE_URL"]:
                 if self._conn is not None:
                     await self._conn.close()
-                self._conn = AsyncIOMotorClient(
+                self._conn = AsyncMongoClient(
                     config_dict["DATABASE_URL"],
                     server_api=ServerApi("1"),
                 )
@@ -47,7 +48,7 @@ class DbManager:
 
     async def db_load(self):
         if self._db is None:
-            await self.connect()
+            await self.aconnect()
         if self._return:
             return
         # Save bot settings

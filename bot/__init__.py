@@ -444,7 +444,7 @@ if ospath.exists("list_drives.txt"):
             else:
                 index_urls.append("")
 
-PORT = environ.get("PORT")
+PORT = environ.get("BASE_URL_PORT") or environ.get("PORT")
 Popen(
     f"gunicorn web.wserver:app --bind 0.0.0.0:{PORT} --worker-class gevent",
     shell=True,

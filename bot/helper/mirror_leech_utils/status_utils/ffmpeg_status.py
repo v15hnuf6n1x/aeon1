@@ -1,22 +1,60 @@
+from time import time
 from bot import LOGGER, subprocess_lock
 from bot.helper.ext_utils.status_utils import MirrorStatus, get_readable_file_size
 
+from bot.helper.ext_utils.bot_utils import async_to_sync
+from bot.helper.ext_utils.files_utils import get_path_size
+from bot.helper.ext_utils.status_utils import get_readable_file_size, MirrorStatus, get_readable_time
 
 class FFmpegStatus:
-    def __init__(self, listener, gid, status=""):
+    def __init__(self, listener, gid, status="", obj=None):
         self.listener = listener
         self._gid = gid
         self._size = self.listener.size
         self.cstatus = status
+        self._obj = obj
+        self._time = time()
+
+    def elapsed(self):
+        return get_readable_time(time() - self._time)
+
+    def processed_bytes(self):
+        return get_readable_file_size(self._obj.processed_bytes)
 
     def gid(self):
         return self._gid
 
+    def progress(self):
+        try:
+            return self._obj.percentage
+        except Exception:
+            try:
+                progress_raw = self._obj.processed_bytes / self._obj.size * 100
+            except:
+                progress_raw = 0
+            return f'{round(progress_raw, 2)}%'
+
+    def speed(self):
+        return f'{get_readable_file_size(self._obj.speed)}/s'
+
     def name(self):
-        return self.listener.name
+        return self._obj.name if self._obj else self.listener.name
 
     def size(self):
-        return get_readable_file_size(self._size)
+        size = self._obj.size if self._obj else async_to_sync(get_path_size, self.listener.dir)
+        return get_readable_file_size(size)
+
+    def timeout(self):
+        return get_readable_time(180 - (time()-self._time))
+
+    def eta(self):
+        try:
+            return get_readable_time(self._obj.eta)
+        except Exception:
+            try:
+                return get_readable_time((self._obj.size - self._obj.processed_bytes) / self._obj.speed)
+            except:
+                return '-'
 
     def status(self):
         if self.cstatus == "Convert":

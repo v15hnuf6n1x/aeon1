@@ -209,7 +209,6 @@ async def get_readable_message(sid, is_user, page_no=1, status="All", page_step=
         if tstatus not in [
             MirrorStatus.STATUS_SPLIT,
             MirrorStatus.STATUS_SEED,
-            MirrorStatus.STATUS_SAMVID,
             MirrorStatus.STATUS_CONVERT,
             MirrorStatus.STATUS_FFMPEG,
             MirrorStatus.STATUS_QUEUEUP,

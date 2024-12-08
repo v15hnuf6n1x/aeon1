@@ -28,6 +28,7 @@ from bot import (
     user_data,
 )
 
+from .aeon_utils.ffmpeg_s import SampleVideo
 from .ext_utils.bot_utils import get_size_bytes, new_task, sync_to_async
 from .ext_utils.bulk_links import extract_bulk_links
 from .ext_utils.exceptions import NotSupportedExtractionArchive
@@ -837,6 +838,46 @@ class TaskConfig:
                     else:
                         m_size.append(f_size)
                         o_files.append(f_path)
+
+    async def generate_sample_video_x(self, dl_path, gid, unwanted_files, ft_delete):
+        data = self.sample_video.split(':') if isinstance(self.sampleVideo, str) else ''
+        if data:
+            sample_duration = int(data[0]) if data[0] else 60
+            part_duration = int(data[1]) if len(data) > 1 else 4
+        else:
+            sample_duration, part_duration = 60, 4
+
+        samvid = SampleVideo(self, sample_duration, part_duration, gid)
+
+        async with cpu_eater_lock:
+            checked = False
+            if await aiopath.isfile(dl_path):
+                if (await get_document_type(dl_path))[0]:
+                    if not checked:
+                        checked = True
+                        LOGGER.info('Creating Sample video: %s', self.name)
+                    async with task_dict_lock:
+                        task_dict[self.mid] = FFmpegStatus(self, gid, 'Sample Video', samvid)
+                    return await samvid.create(dl_path, True)
+            else:
+                for dirpath, _, files in await sync_to_async(walk, dl_path, topdown=False):
+                    for file_ in natsorted(files):
+                        f_path = ospath.join(dirpath, file_)
+                        if f_path in unwanted_files:
+                            continue
+                        if (await get_document_type(f_path))[0]:
+                            if not checked:
+                                checked = True
+                                LOGGER.info('Creating Sample videos: %s', self.name)
+                            async with task_dict_lock:
+                                task_dict[self.mid] = FFMpegStatus(self, gid, 'Sample Video', samvid)
+                            res = await samvid.create(f_path)
+                            if res:
+                                ft_delete.append(res)
+                            if not res:
+                                return res
+                return dl_path
+
 
     async def generate_sample_video(self, dl_path, gid, unwanted_files, ft_delete):
         data = (
