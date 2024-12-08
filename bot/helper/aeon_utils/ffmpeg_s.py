@@ -7,9 +7,7 @@ from dataclasses import dataclass, field
 from os import cpu_count
 from os import path as ospath
 from time import time
-from typing import List, Optional, Tuple, Union
 
-import aiofiles.os
 import aioshutil
 from aiofiles.os import makedirs
 
@@ -18,59 +16,76 @@ from bot.helper.ext_utils.files_utils import get_path_size
 
 LOGGER = logging.getLogger(__name__)
 
+
 class MediaInfoError(Exception):
     """Custom exception for media info extraction errors."""
-    pass
 
-async def extract_media_info(path: str) -> Tuple[int, Optional[str], Optional[str]]:
+
+async def extract_media_info(path: str) -> tuple[int, str | None, str | None]:
     """
     Extract media information using ffprobe.
-    
+
     Args:
         path (str): Path to the media file.
-    
+
     Returns:
         Tuple containing duration, artist, and title.
-    
+
     Raises:
         MediaInfoError: If media info cannot be extracted.
     """
     try:
-        result = await cmd_exec([
-            "ffprobe",
-            "-hide_banner",
-            "-loglevel", "error",
-            "-print_format", "json",
-            "-show_format",
-            path
-        ])
-        
+        result = await cmd_exec(
+            [
+                "ffprobe",
+                "-hide_banner",
+                "-loglevel",
+                "error",
+                "-print_format",
+                "json",
+                "-show_format",
+                path,
+            ]
+        )
+
         if result[1]:
             LOGGER.warning(f"Get Media Info: {result[1]}")
-        
+
         media_data = literal_eval(result[0])
         media_format = media_data.get("format")
-        
+
         if media_format is None:
             raise MediaInfoError(f"No format information found: {result}")
-        
+
         duration = round(float(media_format.get("duration", 0)))
         tags = media_format.get("tags", {})
-        
-        artist = next((tags.get(key) for key in ["artist", "ARTIST", "Artist"] if tags.get(key)), None)
-        title = next((tags.get(key) for key in ["title", "TITLE", "Title"] if tags.get(key)), None)
-        
+
+        artist = next(
+            (
+                tags.get(key)
+                for key in ["artist", "ARTIST", "Artist"]
+                if tags.get(key)
+            ),
+            None,
+        )
+        title = next(
+            (tags.get(key) for key in ["title", "TITLE", "Title"] if tags.get(key)),
+            None,
+        )
+
         return duration, artist, title
-    
+
     except Exception as e:
         LOGGER.error(f"Get Media Info Error: {e}")
         raise MediaInfoError(f"Failed to extract media info: {e}")
+
 
 @dataclass
 class ProgressTracker:
     """
     Track progress of media processing with various metrics.
     """
+
     _duration: int = 0
     _start_time: float = field(default_factory=time)
     _eta: float = 0
@@ -95,15 +110,15 @@ class ProgressTracker:
         return self._processed_bytes / (time() - self._start_time)
 
     async def track_progress(
-        self, 
-        stream, 
-        path: str, 
-        subproc, 
-        start_time: float
+        self,
+        stream,
+        path: str,
+        subproc,
+        start_time: float,
     ) -> None:
         """
         Asynchronously track processing progress.
-        
+
         Args:
             stream: Subprocess stderr stream
             path (str): Path to the media file
@@ -112,36 +127,42 @@ class ProgressTracker:
         """
         data = bytearray()
         while not stream.at_eof():
-            if (self.is_cancelled or 
-                subproc == "cancelled" or 
-                subproc.returncode is not None):
+            if (
+                self.is_cancelled
+                or subproc == "cancelled"
+                or subproc.returncode is not None
+            ):
                 return
 
             lines = re.split(rb"[\r\n]+", data)
             data[:] = lines.pop(-1)
-            
+
             for line in lines:
-                progress = dict(re.findall(
-                    r"(size|time|speed)\s*\=\s*(\S+)", 
-                    line.decode("utf-8")
-                ))
-                
+                progress = dict(
+                    re.findall(
+                        r"(size|time|speed)\s*\=\s*(\S+)",
+                        line.decode("utf-8"),
+                    )
+                )
+
                 if progress:
                     await self._update_progress(
-                        progress, path, start_time
+                        progress,
+                        path,
+                        start_time,
                     )
 
             data.extend(await stream.read(1024))
 
     async def _update_progress(
-        self, 
-        progress: dict, 
-        path: str, 
-        start_time: float
+        self,
+        progress: dict,
+        path: str,
+        start_time: float,
     ) -> None:
         """
         Update progress metrics.
-        
+
         Args:
             progress (dict): Processing progress metrics
             path (str): Path to the media file
@@ -160,13 +181,17 @@ class ProgressTracker:
 
         # Update processed bytes
         try:
-            self._processed_bytes = int(progress.get("size", "0").rstrip("kB")) * 1024
+            self._processed_bytes = (
+                int(progress.get("size", "0").rstrip("kB")) * 1024
+            )
         except ValueError:
             self._processed_bytes = 0
 
         # Calculate percentage
         try:
-            self._percentage = f"{round((time_to_second / self._duration) * 100, 2)}%"
+            self._percentage = (
+                f"{round((time_to_second / self._duration) * 100, 2)}%"
+            )
         except (ValueError, ZeroDivisionError):
             self._percentage = "0%"
 
@@ -175,16 +200,18 @@ class ProgressTracker:
             speed = float(progress.get("speed", "1").strip("x"))
             self._eta = (self._duration / speed) - (time() - start_time)
 
+
 class SampleVideoCreator:
     """
     Create sample videos with configurable parameters.
     """
+
     def __init__(
-        self, 
-        listener, 
-        duration: int, 
-        part_duration: int, 
-        gid: str
+        self,
+        listener,
+        duration: int,
+        part_duration: int,
+        gid: str,
     ):
         self.listener = listener
         self.path = ""
@@ -197,41 +224,48 @@ class SampleVideoCreator:
         self._progress_tracker = ProgressTracker()
 
     async def create_sample(
-        self, 
-        video_file: str, 
-        on_file: bool = False
-    ) -> Union[str, bool]:
+        self,
+        video_file: str,
+        on_file: bool = False,
+    ) -> str | bool:
         """
         Create a sample video from the input file.
-        
+
         Args:
             video_file (str): Path to the source video
             on_file (bool, optional): Whether to process in-place. Defaults to False.
-        
+
         Returns:
             Union[str, bool]: New directory path or success status
         """
         self.path = video_file
         dir_path, name = video_file.rsplit("/", 1)
         self.outfile = ospath.join(dir_path, f"SAMPLE.{name}")
-        
+
         # Compute video segments
         segments = self._compute_segments(video_file)
-        
+
         # Build complex filter for video processing
         filter_complex = self._build_filter_complex(segments)
-        
+
         cmd = [
-            "ffmpeg", 
-            "-hide_banner", 
-            "-i", video_file,
-            "-filter_complex", filter_complex,
-            "-map", "[vout]",
-            "-map", "[aout]",
-            "-c:v", "libx264",
-            "-c:a", "aac",
-            "-threads", str(cpu_count()//2),
-            self.outfile
+            "ffmpeg",
+            "-hide_banner",
+            "-i",
+            video_file,
+            "-filter_complex",
+            filter_complex,
+            "-map",
+            "[vout]",
+            "-map",
+            "[aout]",
+            "-c:v",
+            "libx264",
+            "-c:a",
+            "aac",
+            "-threads",
+            str(cpu_count() // 2),
+            self.outfile,
         ]
 
         # Early cancellation check
@@ -241,55 +275,57 @@ class SampleVideoCreator:
         # Prepare metadata
         self.name = ospath.basename(video_file)
         self.size = await get_path_size(video_file)
-        
+
         # Execute processing
-        self.listener.subproc = await asyncio.create_subprocess_exec(*cmd, stderr=asyncio.subprocess.PIPE)
-        
+        self.listener.subproc = await asyncio.create_subprocess_exec(
+            *cmd, stderr=asyncio.subprocess.PIPE
+        )
+
         _, code = await asyncio.gather(
             self._progress_tracker.track_progress(
-                self.listener.subproc.stderr, 
-                self.path, 
-                self.listener.subproc, 
-                time()
+                self.listener.subproc.stderr,
+                self.path,
+                self.listener.subproc,
+                time(),
             ),
-            self.listener.subproc.wait()
+            self.listener.subproc.wait(),
         )
 
         # Process results
         return await self._handle_result(code, video_file, name, on_file)
 
-    def _compute_segments(self, video_file: str) -> List[Tuple[float, float]]:
+    def _compute_segments(self, video_file: str) -> list[tuple[float, float]]:
         """
         Compute video segments for sampling.
-        
+
         Args:
             video_file (str): Path to the source video
-        
+
         Returns:
             List of segment tuples (start_time, end_time)
         """
         duration = extract_media_info(video_file)[0]
         segments = [(0, self._part_duration)]
-        
+
         remaining_duration = duration - (self._part_duration * 2)
         parts = (self._duration - (self._part_duration * 2)) // self._part_duration
         time_interval = remaining_duration // parts
-        
+
         next_segment = time_interval
         for _ in range(parts):
             segments.append((next_segment, next_segment + self._part_duration))
             next_segment += time_interval
-        
+
         segments.append((duration - self._part_duration, duration))
         return segments
 
-    def _build_filter_complex(self, segments: List[Tuple[float, float]]) -> str:
+    def _build_filter_complex(self, segments: list[tuple[float, float]]) -> str:
         """
         Build complex filter for ffmpeg processing.
-        
+
         Args:
             segments (List[Tuple[float, float]]): Video segments
-        
+
         Returns:
             str: Complex filter string
         """
@@ -302,38 +338,40 @@ class SampleVideoCreator:
 
         filter_complex += "".join(f"[v{i}][a{i}]" for i in range(len(segments)))
         filter_complex += f"concat=n={len(segments)}:v=1:a=1[vout][aout]"
-        
+
         return filter_complex
 
     async def _handle_result(
-        self, 
-        code: int, 
-        video_file: str, 
-        name: str, 
-        on_file: bool
-    ) -> Union[str, bool]:
+        self,
+        code: int,
+        video_file: str,
+        name: str,
+        on_file: bool,
+    ) -> str | bool:
         """
         Handle processing result.
-        
+
         Args:
             code (int): Processing return code
             video_file (str): Path to source video
             name (str): Video file name
             on_file (bool): Whether processing was in-place
-        
+
         Returns:
             Union[str, bool]: New directory or success status
         """
         if code == -9:
             return False
-        
+
         if code == 0:
             if on_file:
                 new_dir, _ = ospath.splitext(video_file)
                 await makedirs(new_dir, exist_ok=True)
                 await asyncio.gather(
                     aioshutil.move(video_file, ospath.join(new_dir, name)),
-                    aioshutil.move(self.outfile, ospath.join(new_dir, f"SAMPLE.{name}"))
+                    aioshutil.move(
+                        self.outfile, ospath.join(new_dir, f"SAMPLE.{name}")
+                    ),
                 )
                 return new_dir
             return True
@@ -341,6 +379,6 @@ class SampleVideoCreator:
         LOGGER.error(
             f"Sample video creation failed. "
             f"Error: {await self.listener.subproc.stderr.read().decode().strip()}. "
-            f"Path: {video_file}"
+            f"Path: {video_file}",
         )
         return video_file
