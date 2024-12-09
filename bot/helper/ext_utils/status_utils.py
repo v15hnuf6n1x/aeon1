@@ -320,8 +320,8 @@ async def get_readable_message(sid, is_user, page_no=1, status="All"):
             msg += f"\n<b>Ratio: </b>{task.ratio()}"
         else:
             msg += f"\n<b>Size: </b>{task.size()}"
-        msg += f"\n<b>Elapsed: </b>{get_readable_time(time() - task.message.date.timestamp())}"
-        msg += f"\n<b>By: {source (task.listener)}</b>"
+        msg += f"\n<b>Elapsed: </b>{get_readable_time(time() - task.listener.message.date.timestamp())}"
+        msg += f"\n<b>By: {source(task.listener)}</b>"
         msg += f"\n/stop_{task.gid()[:7]}\n\n"
 
     if len(msg) == 0:

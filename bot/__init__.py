@@ -1,3 +1,4 @@
+import subprocess
 from asyncio import Lock, new_event_loop, set_event_loop
 from datetime import datetime
 from logging import (
@@ -13,11 +14,10 @@ from logging import (
     info,
     warning,
 )
-from os import environ, remove
+from os import environ, remove, getcwd
 from os import path as ospath
 from shutil import rmtree
 from socket import setdefaulttimeout
-from subprocess import Popen, check_output, run
 from sys import exit
 from time import time
 
@@ -445,20 +445,21 @@ if ospath.exists("list_drives.txt"):
                 index_urls.append("")
 
 PORT = environ.get("BASE_URL_PORT") or environ.get("PORT")
-Popen(
+subprocess.Popen(
     f"gunicorn web.wserver:app --bind 0.0.0.0:{PORT} --worker-class gevent",
     shell=True,
 )
 
-run(["xnox", "-d", "--profile=."], check=False)
+subprocess.run(["xnox", "-d", f"--profile={getcwd()}"], check=False)
+
 if not ospath.exists(".netrc"):
     with open(".netrc", "w"):
         pass
-run(["chmod", "600", ".netrc"], check=False)
-run(["cp", ".netrc", "/root/.netrc"], check=False)
+subprocess.run(["chmod", "600", ".netrc"], check=False)
+subprocess.run(["cp", ".netrc", "/root/.netrc"], check=False)
 
 trackers = (
-    check_output(
+    subprocess.check_output(
         "curl -Ns https://raw.githubusercontent.com/XIU2/TrackersListCollection/master/all.txt https://ngosang.github.io/trackerslist/trackers_all_http.txt https://newtrackon.com/api/all https://raw.githubusercontent.com/hezhijie0327/Trackerslist/main/trackerslist_tracker.txt | awk '$0' | tr '\n\n' ','",
         shell=True,
     )
@@ -470,7 +471,7 @@ with open("a2c.conf", "a+") as a:
     if TORRENT_TIMEOUT is not None:
         a.write(f"bt-stop-timeout={TORRENT_TIMEOUT}\n")
     a.write(f"bt-tracker=[{trackers}]")
-run(["xria", "--conf-path=/usr/src/app/a2c.conf"], check=False)
+subprocess.run(["xria", "--conf-path=/usr/src/app/a2c.conf"], check=False)
 
 
 if ospath.exists("shorteners.txt"):
@@ -485,16 +486,14 @@ if ospath.exists("shorteners.txt"):
 if ospath.exists("accounts.zip"):
     if ospath.exists("accounts"):
         rmtree("accounts")
-    run(["7z", "x", "-o.", "-aoa", "accounts.zip", "accounts/*.json"], check=False)
-    run(["chmod", "-R", "777", "accounts"], check=False)
+    subprocess.run(["7z", "x", "-o.", "-aoa", "accounts.zip", "accounts/*.json"], check=False)
+    subprocess.run(["chmod", "-R", "777", "accounts"], check=False)
     remove("accounts.zip")
 if not ospath.exists("accounts"):
     config_dict["USE_SERVICE_ACCOUNTS"] = False
 
 
-alive = Popen(["python3", "alive.py"])
-
-aria2 = API(ariaClient(host="http://localhost", port=6800, secret=""))
+alive = subprocess.Popen(["python3", "alive.py"])
 
 
 xnox_client = QbClient(
@@ -526,22 +525,30 @@ aria2c_global = [
     "server-stat-of",
 ]
 
+aria2 = API(ariaClient(host="http://localhost", port=6800, secret=""))
+
 if not aria2_options:
     aria2_options = aria2.client.get_global_option()
 else:
     a2c_glo = {op: aria2_options[op] for op in aria2c_global if op in aria2_options}
     aria2.set_global_options(a2c_glo)
 
-if not qbit_options:
-    qbit_options = dict(xnox_client.app_preferences())
-    del qbit_options["listen_port"]
-    for k in list(qbit_options.keys()):
-        if k.startswith("rss"):
-            del qbit_options[k]
-else:
-    qb_opt = {**qbit_options}
-    xnox_client.app_set_preferences(qb_opt)
+def get_qb_options():
+    global qbit_options
+    if not qbit_options:
+        qbit_options = dict(xnox_client.app_preferences())
+        del qbit_options["listen_port"]
+        for k in list(qbit_options.keys()):
+            if k.startswith("rss"):
+                del qbit_options[k]
+        xnox_client.app_set_preferences({"web_ui_password": "mltbmltb"})
+    else:
+        qbit_options["web_ui_password"] = "mltbmltb"
+        qb_opt = {**qbit_options}
+        xnox_client.app_set_preferences(qb_opt)
 
+
+get_qb_options()
 
 info("Creating client from BOT_TOKEN")
 bot = TgClient(
