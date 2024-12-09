@@ -14,7 +14,7 @@ from logging import (
     info,
     warning,
 )
-from os import environ, remove, getcwd
+from os import environ, getcwd, remove
 from os import path as ospath
 from shutil import rmtree
 from socket import setdefaulttimeout
@@ -486,7 +486,9 @@ if ospath.exists("shorteners.txt"):
 if ospath.exists("accounts.zip"):
     if ospath.exists("accounts"):
         rmtree("accounts")
-    subprocess.run(["7z", "x", "-o.", "-aoa", "accounts.zip", "accounts/*.json"], check=False)
+    subprocess.run(
+        ["7z", "x", "-o.", "-aoa", "accounts.zip", "accounts/*.json"], check=False
+    )
     subprocess.run(["chmod", "-R", "777", "accounts"], check=False)
     remove("accounts.zip")
 if not ospath.exists("accounts"):
@@ -532,6 +534,7 @@ if not aria2_options:
 else:
     a2c_glo = {op: aria2_options[op] for op in aria2c_global if op in aria2_options}
     aria2.set_global_options(a2c_glo)
+
 
 def get_qb_options():
     global qbit_options
