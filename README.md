@@ -71,3 +71,7 @@ This project is licensed under the MIT License. Refer to the [LICENSE](LICENSE) 
 
 - Special thanks to the original developers of the [Mirror-Leech-Telegram-Bot](https://github.com/anasty17/mirror-leech-telegram-bot).
 - Gratitude to contributors from various repositories whose features have been integrated into Aeon.
+
+
+## Recent activity [![Time period](https://images.repography.com/58464391/AeonOrg/Aeon-MLTB/recent-activity/MUUzwqnoU_5n6kL3Jc8TTWcA3UxPyCHC2emNNSTGJh8/4gYNvj3-wi0i5zQVemeNAbqB7TrkUx_7BxZxhReSIVg_badge.svg)](https://repography.com)
+[![Timeline graph](https://images.repography.com/58464391/AeonOrg/Aeon-MLTB/recent-activity/MUUzwqnoU_5n6kL3Jc8TTWcA3UxPyCHC2emNNSTGJh8/4gYNvj3-wi0i5zQVemeNAbqB7TrkUx_7BxZxhReSIVg_timeline.svg)](https://github.com/AeonOrg/Aeon-MLTB/commits)

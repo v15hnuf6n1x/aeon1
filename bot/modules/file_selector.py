@@ -84,7 +84,7 @@ async def select(_, message):
             if not task.queued:
                 await sync_to_async(task.update)
                 id_ = task.hash()
-                await sync_to_async(xnox_client.torrents_pause, torrent_hashes=id_)
+                await sync_to_async(xnox_client.torrents_stop, torrent_hashes=id_)
         elif not task.queued:
             await sync_to_async(task.update)
             try:
@@ -139,7 +139,7 @@ async def get_confirm(_, query):
                                     await remove(f_path)
                 if not task.queued:
                     await sync_to_async(
-                        xnox_client.torrents_resume,
+                        xnox_client.torrents_start,
                         torrent_hashes=id_,
                     )
             else:

@@ -90,7 +90,6 @@ class TaskConfig:
         self.is_qbit = False
         self.is_clone = False
         self.is_ytdlp = False
-        self.equal_splits = False
         self.user_transmission = False
         self.mixed_leech = False
         self.extract = False
@@ -375,9 +374,6 @@ class TaskConfig:
                 self.split_size
                 or self.user_dict.get("split_size")
                 or config_dict["LEECH_SPLIT_SIZE"]
-            )
-            self.equal_splits = self.user_dict.get("equal_splits") or (
-                config_dict["EQUAL_SPLITS"] and "equal_splits" not in self.user_dict
             )
             self.max_split_size = (
                 MAX_SPLIT_SIZE if self.user_transmission else 2097152000
@@ -731,11 +727,7 @@ class TaskConfig:
         async with task_dict_lock:
             task_dict[self.mid] = SevenZStatus(self, gid, "Zip")
         size = await get_path_size(dl_path)
-        if self.equal_splits:
-            parts = -(-size // self.split_size)
-            split_size = (size // parts) + (size % parts)
-        else:
-            split_size = self.split_size
+        split_size = self.split_size
         cmd = [
             "7z",
             f"-v{split_size}b",
