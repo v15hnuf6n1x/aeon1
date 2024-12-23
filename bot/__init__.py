@@ -483,7 +483,8 @@ if ospath.exists("accounts.zip"):
     if ospath.exists("accounts"):
         rmtree("accounts")
     subprocess.run(
-        ["7z", "x", "-o.", "-aoa", "accounts.zip", "accounts/*.json"], check=False
+        ["7z", "x", "-o.", "-aoa", "accounts.zip", "accounts/*.json"],
+        check=False,
     )
     subprocess.run(["chmod", "-R", "777", "accounts"], check=False)
     remove("accounts.zip")
