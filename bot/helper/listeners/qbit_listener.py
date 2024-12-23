@@ -192,7 +192,7 @@ async def _qb_listener():
                         qb_torrents[tag]["uploaded"] = True
                         await _on_download_complete(tor_info)
                     elif (
-                        state in ["stoppedUP", "stoppedDL"]]
+                        state in ["stoppedUP", "stoppedDL"]
                         and qb_torrents[tag]["seeding"]
                     ):
                         qb_torrents[tag]["seeding"] = False
