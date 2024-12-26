@@ -68,7 +68,8 @@ if DATABASE_URL := config_file.get("DATABASE_URL", "").strip():
         log_error(f"Database ERROR: {e}")
 
 UPSTREAM_REPO = config_file.get(
-    "UPSTREAM_REPO", "https://github.com/AeonOrg/Aeon-MLTB"
+    "UPSTREAM_REPO",
+    "https://github.com/AeonOrg/Aeon-MLTB",
 ).strip()
 
 UPSTREAM_BRANCH = config_file.get("UPSTREAM_BRANCH", "").strip() or "beta"
