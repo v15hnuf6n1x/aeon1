@@ -1,12 +1,7 @@
-from pyrogram.filters import command
-from pyrogram.handlers import MessageHandler
-
-from bot import LOGGER, bot
+from bot import LOGGER
 from bot.helper.ext_utils.bot_utils import new_task, sync_to_async
 from bot.helper.ext_utils.links_utils import is_gdrive_link
 from bot.helper.mirror_leech_utils.gdrive_utils.delete import GoogleDriveDelete
-from bot.helper.telegram_helper.bot_commands import BotCommands
-from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.message_utils import (
     auto_delete_message,
     send_message,
@@ -14,7 +9,7 @@ from bot.helper.telegram_helper.message_utils import (
 
 
 @new_task
-async def deletefile(_, message):
+async def delete_file(_, message):
     args = message.text.split()
     user = message.from_user or message.sender_chat
     if len(args) > 1:
@@ -30,14 +25,3 @@ async def deletefile(_, message):
         msg = "Send Gdrive link along with command or by replying to the link by command"
     reply_message = await send_message(message, msg)
     await auto_delete_message(message, reply_message)
-
-
-bot.add_handler(
-    MessageHandler(
-        deletefile,
-        filters=command(
-            BotCommands.DeleteCommand,
-        )
-        & CustomFilters.authorized,
-    ),
-)

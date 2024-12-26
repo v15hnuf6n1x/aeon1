@@ -9,9 +9,9 @@ from pyrogram.filters import regex, user
 from pyrogram.handlers import CallbackQueryHandler
 from tenacity import RetryError
 
-from bot import config_dict
+from bot.core.config_manager import Config
 from bot.helper.ext_utils.bot_utils import new_task, update_user_ldata
-from bot.helper.ext_utils.db_handler import Database
+from bot.helper.ext_utils.db_handler import database
 from bot.helper.ext_utils.status_utils import (
     get_readable_file_size,
     get_readable_time,
@@ -94,8 +94,8 @@ async def id_updates(_, query, obj):
         if id_ != obj.listener.user_dict.get("gdrive_id"):
             update_user_ldata(obj.listener.user_id, "gdrive_id", id_)
             await obj.get_items_buttons()
-            if config_dict["DATABASE_URL"]:
-                await Database.update_user_data(obj.listener.user_id)
+            if Config.DATABASE_URL:
+                await database.update_user_data(obj.listener.user_id)
     elif data[1] == "owner":
         obj.token_path = "token.pickle"
         obj.use_sa = False
@@ -150,7 +150,7 @@ class GoogleDriveList(GoogleDriveHelper):
         )
         try:
             await wait_for(self.event.wait(), timeout=self._timeout)
-        except Exception:
+        except:
             self.id = "Timed Out. Task has been cancelled!"
             self.listener.is_cancelled = True
             self.event.set()
@@ -161,9 +161,7 @@ class GoogleDriveList(GoogleDriveHelper):
         if not self.listener.is_cancelled:
             if self._reply_to is None:
                 self._reply_to = await send_message(
-                    self.listener.message,
-                    msg,
-                    button,
+                    self.listener.message, msg, button
                 )
             else:
                 await edit_message(self._reply_to, msg, button)
@@ -200,9 +198,7 @@ class GoogleDriveList(GoogleDriveHelper):
                 buttons.data_button("Files", "gdq itype files", position="footer")
             else:
                 buttons.data_button(
-                    "Folders",
-                    "gdq itype folders",
-                    position="footer",
+                    "Folders", "gdq itype folders", position="footer"
                 )
         if self.list_status == "gdu" or len(self.items_list) > 0:
             buttons.data_button("Choose Current Path", "gdq cur", position="footer")
@@ -222,9 +218,7 @@ class GoogleDriveList(GoogleDriveHelper):
             else "\nTransfer Type: <i>Upload</i>"
         )
         if self.list_status == "gdu":
-            default_id = (
-                self.listener.user_dict.get("gdrive_id") or config_dict["GDRIVE_ID"]
-            )
+            default_id = self.listener.user_dict.get("gdrive_id") or Config.GDRIVE_ID
             msg += f"\nDefault Gdrive ID: {default_id}" if default_id else ""
         msg += f"\n\nItems: {items_no}"
         if items_no > LIST_LIMIT:
@@ -245,22 +239,22 @@ class GoogleDriveList(GoogleDriveHelper):
         try:
             files = self.get_files_by_folder_id(self.id, self.item_type)
             if self.listener.is_cancelled:
-                return None
+                return
         except Exception as err:
             if isinstance(err, RetryError):
                 LOGGER.info(f"Total Attempts: {err.last_attempt.attempt_number}")
                 err = err.last_attempt.exception()
             self.id = str(err).replace(">", "").replace("<", "")
             self.event.set()
-            return None
+            return
         if len(files) == 0 and itype != self.item_type and self.list_status == "gdd":
             itype = "folders" if self.item_type == "files" else "files"
             self.item_type = itype
-            return await self.get_items(itype)
-        self.items_list = natsorted(files)
-        self.iter_start = 0
-        await self.get_items_buttons()
-        return None
+            await self.get_items(itype)
+        else:
+            self.items_list = natsorted(files)
+            self.iter_start = 0
+            await self.get_items_buttons()
 
     async def list_drives(self):
         self.service = self.authorize()

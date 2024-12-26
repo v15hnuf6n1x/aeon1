@@ -1,13 +1,10 @@
 from asyncio import gather
 from json import loads
-from secrets import token_hex
+from secrets import token_urlsafe
 
 from aiofiles.os import remove
-from pyrogram.filters import command
-from pyrogram.handlers import MessageHandler
 
-from bot import LOGGER, bot, bot_loop, task_dict, task_dict_lock
-from bot.helper.aeon_utils.access_check import error_check
+from bot import LOGGER, bot_loop, task_dict, task_dict_lock
 from bot.helper.ext_utils.bot_utils import (
     COMMAND_USAGE,
     arg_parser,
@@ -33,12 +30,8 @@ from bot.helper.mirror_leech_utils.status_utils.gdrive_status import (
     GoogleDriveStatus,
 )
 from bot.helper.mirror_leech_utils.status_utils.rclone_status import RcloneStatus
-from bot.helper.telegram_helper.bot_commands import BotCommands
-from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.message_utils import (
-    delete_links,
     delete_message,
-    five_minute_del,
     send_message,
     send_status_message,
 )
@@ -70,11 +63,6 @@ class Clone(TaskListener):
         self.is_clone = True
 
     async def new_event(self):
-        error_msg, error_button = await error_check(self.message)
-        if error_msg:
-            await delete_links(self.message)
-            error = await send_message(self.message, error_msg, error_button)
-            return await five_minute_del(error)
         text = self.message.text.split("\n")
         input_list = text[0].split(" ")
 
@@ -92,7 +80,7 @@ class Clone(TaskListener):
 
         try:
             self.multi = int(args["-i"])
-        except Exception:
+        except:
             self.multi = 0
 
         self.up_dest = args["-up"]
@@ -114,7 +102,7 @@ class Clone(TaskListener):
 
         if is_bulk:
             await self.init_bulk(input_list, bulk_start, bulk_end, Clone)
-            return None
+            return
 
         await self.get_tag(text)
 
@@ -129,15 +117,14 @@ class Clone(TaskListener):
                 COMMAND_USAGE["clone"][0],
                 COMMAND_USAGE["clone"][1],
             )
-            return None
+            return
         LOGGER.info(self.link)
         try:
             await self.before_start()
         except Exception as e:
             await send_message(self.message, e)
-            return None
+            return
         await self._proceed_to_clone(sync)
-        return None
 
     async def _proceed_to_clone(self, sync):
         if is_share_link(self.link):
@@ -172,13 +159,13 @@ class Clone(TaskListener):
                 )
             else:
                 msg = ""
-                gid = token_hex(4)
+                gid = token_urlsafe(12)
                 async with task_dict_lock:
                     task_dict[self.mid] = GoogleDriveStatus(self, drive, gid, "cl")
                 if self.multi <= 1:
                     await send_status_message(self.message)
             flink, mime_type, files, folders, dir_id = await sync_to_async(
-                drive.clone,
+                drive.clone
             )
             if msg:
                 await delete_message(msg)
@@ -210,7 +197,7 @@ class Clone(TaskListener):
             else:
                 src_path = self.link
                 cmd = [
-                    "xone",
+                    "rclone",
                     "lsjson",
                     "--fast-list",
                     "--stat",
@@ -218,6 +205,11 @@ class Clone(TaskListener):
                     "--config",
                     config_path,
                     f"{remote}:{src_path}",
+                    "--log-systemd",
+                    "--log-file",
+                    "rlog.txt",
+                    "--log-level",
+                    "ERROR",
                 ]
                 res = await cmd_exec(cmd)
                 if res[2] != 0:
@@ -247,7 +239,7 @@ class Clone(TaskListener):
             LOGGER.info(
                 f"Clone Started: Name: {self.name} - Source: {self.link} - Destination: {self.up_dest}",
             )
-            gid = token_hex(4)
+            gid = token_urlsafe(12)
             async with task_dict_lock:
                 task_dict[self.mid] = RcloneStatus(self, RCTransfer, gid, "cl")
             if self.multi <= 1:
@@ -266,7 +258,7 @@ class Clone(TaskListener):
                 return
             LOGGER.info(f"Cloning Done: {self.name}")
             cmd1 = [
-                "xone",
+                "rclone",
                 "lsf",
                 "--fast-list",
                 "-R",
@@ -276,7 +268,7 @@ class Clone(TaskListener):
                 destination,
             ]
             cmd2 = [
-                "xone",
+                "rclone",
                 "lsf",
                 "--fast-list",
                 "-R",
@@ -286,7 +278,7 @@ class Clone(TaskListener):
                 destination,
             ]
             cmd3 = [
-                "xone",
+                "rclone",
                 "size",
                 "--fast-list",
                 "--json",
@@ -328,16 +320,5 @@ class Clone(TaskListener):
             )
 
 
-async def clone(client, message):
+async def clone_node(client, message):
     bot_loop.create_task(Clone(client, message).new_event())
-
-
-bot.add_handler(
-    MessageHandler(
-        clone,
-        filters=command(
-            BotCommands.CloneCommand,
-        )
-        & CustomFilters.authorized,
-    ),
-)

@@ -7,5 +7,9 @@ class NotSupportedExtractionArchive(Exception):
     """The archive format use is trying to extract is not supported"""
 
 
+class RssShutdownException(Exception):
+    """This exception should be raised when shutdown is called to stop the montior"""
+
+
 class TgLinkException(Exception):
     """No Access granted for this chat"""

@@ -6,13 +6,10 @@ from textwrap import indent
 from traceback import format_exc
 
 from aiofiles import open as aiopen
-from pyrogram.filters import command
-from pyrogram.handlers import MessageHandler
 
-from bot import LOGGER, bot
+from bot import LOGGER
+from bot.core.aeon_client import TgClient
 from bot.helper.ext_utils.bot_utils import new_task, sync_to_async
-from bot.helper.telegram_helper.bot_commands import BotCommands
-from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.message_utils import send_file, send_message
 
 namespaces = {}
@@ -22,7 +19,7 @@ def namespace_of(message):
     if message.chat.id not in namespaces:
         namespaces[message.chat.id] = {
             "__builtins__": globals()["__builtins__"],
-            "bot": bot,
+            "bot": TgClient.bot,
             "message": message,
             "user": message.from_user or message.sender_chat,
             "chat": message.chat,
@@ -90,7 +87,7 @@ async def do(func, message):
             func_return = (
                 await sync_to_async(rfunc) if func == "exec" else await rfunc()
             )
-    except Exception:
+    except:
         value = stdout.getvalue()
         return f"{value}{format_exc()}"
     else:
@@ -115,32 +112,3 @@ async def clear(_, message):
     if message.chat.id in namespaces:
         del namespaces[message.chat.id]
     await send("Locals Cleared.", message)
-
-
-bot.add_handler(
-    MessageHandler(
-        aioexecute,
-        filters=command(
-            BotCommands.AExecCommand,
-        )
-        & CustomFilters.owner,
-    ),
-)
-bot.add_handler(
-    MessageHandler(
-        execute,
-        filters=command(
-            BotCommands.ExecCommand,
-        )
-        & CustomFilters.owner,
-    ),
-)
-bot.add_handler(
-    MessageHandler(
-        clear,
-        filters=command(
-            BotCommands.ClearLocalsCommand,
-        )
-        & CustomFilters.owner,
-    ),
-)

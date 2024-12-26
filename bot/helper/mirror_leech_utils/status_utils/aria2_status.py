@@ -48,7 +48,7 @@ class Aria2Status:
         return self._download.total_length_string()
 
     def eta(self):
-        return get_readable_time(int(self._download.eta.total_seconds()))
+        return self._download.eta_string()
 
     def status(self):
         self.update()
@@ -95,10 +95,7 @@ class Aria2Status:
                 f"Seeding stopped with Ratio: {self.ratio()} and Time: {self.seeding_time()}",
             )
             await sync_to_async(
-                aria2.remove,
-                [self._download],
-                force=True,
-                files=True,
+                aria2.remove, [self._download], force=True, files=True
             )
         elif downloads := self._download.followed_by:
             LOGGER.info(f"Cancelling Download: {self.name()}")
@@ -114,8 +111,5 @@ class Aria2Status:
                 msg = "Download stopped by user!"
             await self.listener.on_download_error(msg)
             await sync_to_async(
-                aria2.remove,
-                [self._download],
-                force=True,
-                files=True,
+                aria2.remove, [self._download], force=True, files=True
             )

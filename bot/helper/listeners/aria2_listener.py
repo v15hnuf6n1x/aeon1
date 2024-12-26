@@ -5,7 +5,8 @@ from time import time
 from aiofiles.os import path as aiopath
 from aiofiles.os import remove
 
-from bot import LOGGER, aria2, config_dict, intervals, task_dict, task_dict_lock
+from bot import LOGGER, aria2, intervals, task_dict, task_dict_lock
+from bot.core.config_manager import Config
 from bot.helper.ext_utils.bot_utils import (
     bt_selection_buttons,
     loop_thread,
@@ -70,7 +71,7 @@ async def _on_download_complete(api, gid):
         LOGGER.info(f"Gid changed from {gid} to {new_gid}")
         if task := await get_task_by_gid(new_gid):
             task.listener.is_torrent = True
-            if config_dict["BASE_URL"] and task.listener.select:
+            if Config.BASE_URL and task.listener.select:
                 if not task.queued:
                     await sync_to_async(api.client.force_pause, new_gid)
                 SBUTTONS = bt_selection_buttons(new_gid)
@@ -150,10 +151,7 @@ async def _on_bt_download_complete(api, gid):
             async with task_dict_lock:
                 if task.listener.mid not in task_dict:
                     await sync_to_async(
-                        api.remove,
-                        [download],
-                        force=True,
-                        files=True,
+                        api.remove, [download], force=True, files=True
                     )
                     return
                 task_dict[task.listener.mid] = Aria2Status(task.listener, gid, True)

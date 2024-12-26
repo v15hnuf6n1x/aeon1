@@ -12,7 +12,8 @@ from aiofiles.os import path as aiopath
 from aioshutil import rmtree as aiormtree
 from magic import Magic
 
-from bot import DOWNLOAD_DIR, LOGGER, aria2, xnox_client
+from bot import LOGGER, aria2, xnox_client
+from bot.core.config_manager import Config
 
 from .bot_utils import cmd_exec, sync_to_async
 from .exceptions import NotSupportedExtractionArchive
@@ -102,10 +103,10 @@ def clean_all():
     xnox_client.torrents_delete(torrent_hashes="all")
     try:
         LOGGER.info("Cleaning Download Directory")
-        rmtree(DOWNLOAD_DIR, ignore_errors=True)
-    except Exception:
+        rmtree(Config.DOWNLOAD_DIR, ignore_errors=True)
+    except:
         pass
-    makedirs(DOWNLOAD_DIR, exist_ok=True)
+    makedirs(Config.DOWNLOAD_DIR, exist_ok=True)
 
 
 def exit_clean_up(_, __):
@@ -173,8 +174,7 @@ async def count_files_and_folders(path, extension_filter, unwanted_files=None):
 
 def get_base_name(orig_path):
     extension = next(
-        (ext for ext in ARCH_EXT if orig_path.lower().endswith(ext)),
-        "",
+        (ext for ext in ARCH_EXT if orig_path.lower().endswith(ext)), ""
     )
     if extension != "":
         return re_split(f"{extension}$", orig_path, maxsplit=1, flags=IGNORECASE)[0]

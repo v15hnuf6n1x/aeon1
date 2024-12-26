@@ -3,13 +3,8 @@ from asyncio import sleep
 from aiofiles.os import path as aiopath
 from aiofiles.os import remove
 
-from bot import (
-    LOGGER,
-    config_dict,
-    task_dict,
-    task_dict_lock,
-    xnox_client,
-)
+from bot import LOGGER, xnox_client, task_dict, task_dict_lock
+from bot.core.config_manager import Config
 from bot.helper.ext_utils.bot_utils import bt_selection_buttons, sync_to_async
 from bot.helper.ext_utils.task_manager import check_running_tasks
 from bot.helper.listeners.qbit_listener import on_download_start
@@ -84,21 +79,20 @@ async def add_qb_torrent(listener, path, ratio, seed_time):
 
         async with task_dict_lock:
             task_dict[listener.mid] = QbittorrentStatus(
-                listener,
-                queued=add_to_queue,
+                listener, queued=add_to_queue
             )
         await on_download_start(f"{listener.mid}")
 
         if add_to_queue:
             LOGGER.info(
-                f"Added to Queue/Download: {tor_info.name} - Hash: {ext_hash}",
+                f"Added to Queue/Download: {tor_info.name} - Hash: {ext_hash}"
             )
         else:
             LOGGER.info(f"QbitDownload started: {tor_info.name} - Hash: {ext_hash}")
 
         await listener.on_download_start()
 
-        if config_dict["BASE_URL"] and listener.select:
+        if Config.BASE_URL and listener.select:
             if listener.link.startswith("magnet:"):
                 metamsg = "Downloading Metadata, wait then you can select files. Use torrent file to avoid this wait."
                 meta = await send_message(listener.message, metamsg)
@@ -119,7 +113,7 @@ async def add_qb_torrent(listener, path, ratio, seed_time):
                         ]:
                             await delete_message(meta)
                             break
-                    except Exception:
+                    except:
                         await delete_message(meta)
                         return
 
@@ -145,7 +139,11 @@ async def add_qb_torrent(listener, path, ratio, seed_time):
                 LOGGER.info(
                     f"Start Queued Download from Qbittorrent: {tor_info.name} - Hash: {ext_hash}",
                 )
-            await sync_to_async(xnox_client.torrents_start, torrent_hashes=ext_hash)
+            await on_download_start(f"{listener.mid}")
+            await sync_to_async(
+                xnox_client.torrents_start,
+                torrent_hashes=ext_hash,
+            )
 
     except Exception as e:
         await listener.on_download_error(f"{e}")

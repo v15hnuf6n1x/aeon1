@@ -7,14 +7,14 @@ from aiofiles.os import remove
 
 from bot import (
     LOGGER,
-    config_dict,
     intervals,
     qb_listener_lock,
     qb_torrents,
+    xnox_client,
     task_dict,
     task_dict_lock,
-    xnox_client,
 )
+from bot.core.config_manager import Config
 from bot.helper.ext_utils.bot_utils import new_task, sync_to_async
 from bot.helper.ext_utils.files_utils import clean_unwanted
 from bot.helper.ext_utils.status_utils import get_readable_time, get_task_by_gid
@@ -58,16 +58,14 @@ async def _on_seed_finish(tor):
 
 @new_task
 async def _stop_duplicate(tor):
-    if (
-        task := await get_task_by_gid(tor.hash[:12])
-    ) and task.listener.stop_duplicate:
-        task.listener.name = tor.content_path.rsplit("/", 1)[-1].rsplit(
-            ".!qB",
-            1,
-        )[0]
-        msg, button = await stop_duplicate_check(task.listener)
-        if msg:
-            _on_download_error(msg, tor, button)
+    if task := await get_task_by_gid(tor.hash[:12]):
+        if task.listener.stop_duplicate:
+            task.listener.name = tor.content_path.rsplit("/", 1)[-1].rsplit(
+                ".!qB", 1
+            )[0]
+            msg, button = await stop_duplicate_check(task.listener)
+            if msg:
+                _on_download_error(msg, tor, button)
 
 
 @new_task
@@ -76,7 +74,10 @@ async def _on_download_complete(tor):
     tag = tor.tags
     if task := await get_task_by_gid(ext_hash[:12]):
         if not task.listener.seed:
-            await sync_to_async(xnox_client.torrents_stop, torrent_hashes=ext_hash)
+            await sync_to_async(
+                xnox_client.torrents_stop,
+                torrent_hashes=ext_hash,
+            )
         if task.listener.select:
             await clean_unwanted(task.listener.dir)
             path = tor.content_path.rsplit("/", 1)[0]
@@ -132,11 +133,11 @@ async def _qb_listener():
                         continue
                     state = tor_info.state
                     if state == "metaDL":
-                        TORRENT_TIMEOUT = config_dict["TORRENT_TIMEOUT"]
                         qb_torrents[tag]["stalled_time"] = time()
                         if (
-                            TORRENT_TIMEOUT
-                            and time() - tor_info.added_on >= TORRENT_TIMEOUT
+                            Config.TORRENT_TIMEOUT
+                            and time() - qb_torrents[tag]["start_time"]
+                            >= Config.TORRENT_TIMEOUT
                         ):
                             await _on_download_error("Dead Torrent!", tor_info)
                         else:
@@ -150,7 +151,6 @@ async def _qb_listener():
                             qb_torrents[tag]["stop_dup_check"] = True
                             await _stop_duplicate(tor_info)
                     elif state == "stalledDL":
-                        TORRENT_TIMEOUT = config_dict["TORRENT_TIMEOUT"]
                         if (
                             not qb_torrents[tag]["rechecked"]
                             and 0.99989999999999999 < tor_info.progress < 1
@@ -165,9 +165,9 @@ async def _qb_listener():
                             )
                             qb_torrents[tag]["rechecked"] = True
                         elif (
-                            TORRENT_TIMEOUT
+                            Config.TORRENT_TIMEOUT
                             and time() - qb_torrents[tag]["stalled_time"]
-                            >= TORRENT_TIMEOUT
+                            >= Config.TORRENT_TIMEOUT
                         ):
                             await _on_download_error("Dead Torrent!", tor_info)
                         else:
@@ -208,6 +208,7 @@ async def _qb_listener():
 async def on_download_start(tag):
     async with qb_listener_lock:
         qb_torrents[tag] = {
+            "start_time": time(),
             "stalled_time": time(),
             "stop_dup_check": False,
             "rechecked": False,

@@ -17,7 +17,7 @@ from tenacity import (
     wait_exponential,
 )
 
-from bot import config_dict
+from bot.core.config_manager import Config
 from bot.helper.ext_utils.links_utils import is_gdrive_id
 
 LOGGER = getLogger(__name__)
@@ -50,13 +50,13 @@ class GoogleDriveHelper:
         self.total_time = 0
         self.status = None
         self.update_interval = 3
-        self.use_sa = config_dict["USE_SERVICE_ACCOUNTS"]
+        self.use_sa = Config.USE_SERVICE_ACCOUNTS
 
     @property
     def speed(self):
         try:
             return self.proc_bytes / self.total_time
-        except Exception:
+        except:
             return 0
 
     @property
@@ -82,7 +82,7 @@ class GoogleDriveHelper:
             self.sa_number = len(json_files)
             self.sa_index = randrange(self.sa_number)
             LOGGER.info(
-                f"Authorizing with {json_files[self.sa_index]} service account",
+                f"Authorizing with {json_files[self.sa_index]} service account"
             )
             credentials = service_account.Credentials.from_service_account_file(
                 f"accounts/{json_files[self.sa_index]}",
@@ -217,10 +217,10 @@ class GoogleDriveHelper:
             .execute()
         )
         file_id = file.get("id")
-        if not config_dict["IS_TEAM_DRIVE"]:
+        if not Config.IS_TEAM_DRIVE:
             self.set_permission(file_id)
         LOGGER.info(
-            f'Created G-Drive Folder:\nName: {file.get("name")}\nID: {file_id}',
+            f'Created G-Drive Folder:\nName: {file.get("name")}\nID: {file_id}'
         )
         return file_id
 

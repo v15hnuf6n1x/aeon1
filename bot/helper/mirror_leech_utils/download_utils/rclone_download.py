@@ -1,6 +1,6 @@
 from asyncio import gather
 from json import loads
-from secrets import token_hex
+from secrets import token_urlsafe
 
 from aiofiles.os import remove
 
@@ -33,7 +33,7 @@ async def add_rclone_download(listener, path):
         rpath = listener.link
 
     cmd1 = [
-        "xone",
+        "rclone",
         "lsjson",
         "--fast-list",
         "--stat",
@@ -42,15 +42,25 @@ async def add_rclone_download(listener, path):
         "--config",
         config_path,
         f"{remote}:{rpath}",
+        "--log-systemd",
+        "--log-file",
+        "rlog.txt",
+        "--log-level",
+        "ERROR",
     ]
     cmd2 = [
-        "xone",
+        "rclone",
         "size",
         "--fast-list",
         "--json",
         "--config",
         config_path,
         f"{remote}:{rpath}",
+        "--log-systemd",
+        "--log-file",
+        "rlog.txt",
+        "--log-level",
+        "ERROR",
     ]
     if rclone_select:
         cmd2.extend(("--files-from", listener.link))
@@ -103,7 +113,7 @@ async def add_rclone_download(listener, path):
         else:
             listener.name = listener.link.rsplit("/", 1)[-1]
     listener.size = rsize["bytes"]
-    gid = token_hex(4)
+    gid = token_urlsafe(12)
 
     if not rclone_select:
         msg, button = await stop_duplicate_check(listener)

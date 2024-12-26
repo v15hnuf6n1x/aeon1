@@ -89,7 +89,7 @@ class GoogleDriveDownload(GoogleDriveHelper):
             elif not ospath.isfile(
                 f"{path}{filename}",
             ) and not filename.lower().endswith(
-                tuple(self.listener.extension_filter),
+                tuple(self.listener.extension_filter)
             ):
                 self._download_file(file_id, path, filename, mime_type)
             if self.listener.is_cancelled:

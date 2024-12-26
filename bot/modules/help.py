@@ -1,15 +1,16 @@
-from pyrogram.filters import regex
-from pyrogram.handlers import CallbackQueryHandler
-
-from bot import bot
 from bot.helper.ext_utils.bot_utils import COMMAND_USAGE, new_task
 from bot.helper.ext_utils.help_messages import (
     CLONE_HELP_DICT,
     MIRROR_HELP_DICT,
     YT_HELP_DICT,
+    help_string,
 )
 from bot.helper.telegram_helper.button_build import ButtonMaker
-from bot.helper.telegram_helper.message_utils import delete_message, edit_message
+from bot.helper.telegram_helper.message_utils import (
+    delete_message,
+    edit_message,
+    send_message,
+)
 
 
 @new_task
@@ -27,9 +28,7 @@ async def arg_usage(_, query):
             )
         elif data[2] == "y":
             await edit_message(
-                message,
-                COMMAND_USAGE["yt"][0],
-                COMMAND_USAGE["yt"][1],
+                message, COMMAND_USAGE["yt"][0], COMMAND_USAGE["yt"][1]
             )
         elif data[2] == "c":
             await edit_message(
@@ -54,4 +53,6 @@ async def arg_usage(_, query):
         await edit_message(message, CLONE_HELP_DICT[data[2]], button)
 
 
-bot.add_handler(CallbackQueryHandler(arg_usage, filters=regex("^help")))
+@new_task
+async def bot_help(_, message):
+    await send_message(message, help_string)

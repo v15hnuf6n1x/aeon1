@@ -3,12 +3,12 @@ from functools import partial
 from time import time
 
 from httpx import AsyncClient
-from pyrogram.filters import command, regex, user
-from pyrogram.handlers import CallbackQueryHandler, MessageHandler
+from pyrogram.filters import regex, user
+from pyrogram.handlers import CallbackQueryHandler
 from yt_dlp import YoutubeDL
 
-from bot import DOWNLOAD_DIR, LOGGER, bot, bot_loop, config_dict, task_dict_lock
-from bot.helper.aeon_utils.access_check import error_check
+from bot import LOGGER, bot_loop, task_dict_lock
+from bot.core.config_manager import Config
 from bot.helper.ext_utils.bot_utils import (
     COMMAND_USAGE,
     arg_parser,
@@ -24,14 +24,10 @@ from bot.helper.listeners.task_listener import TaskListener
 from bot.helper.mirror_leech_utils.download_utils.yt_dlp_download import (
     YoutubeDLHelper,
 )
-from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.button_build import ButtonMaker
-from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.message_utils import (
-    delete_links,
     delete_message,
     edit_message,
-    five_minute_del,
     send_message,
 )
 
@@ -95,7 +91,7 @@ class YtSelection:
         )
         try:
             await wait_for(self.event.wait(), timeout=self._timeout)
-        except Exception:
+        except:
             await edit_message(self._reply_to, "Timed Out. Task has been cancelled!")
             self.qual = None
             self.listener.is_cancelled = True
@@ -300,11 +296,6 @@ class YtDlp(TaskListener):
         self.is_leech = is_leech
 
     async def new_event(self):
-        error_msg, error_button = await error_check(self.message)
-        if error_msg:
-            await delete_links(self.message)
-            error = await send_message(self.message, error_msg, error_button)
-            return await five_minute_del(error)
         text = self.message.text.split("\n")
         input_list = text[0].split(" ")
         qual = ""
@@ -341,7 +332,7 @@ class YtDlp(TaskListener):
 
         try:
             self.multi = int(args["-i"])
-        except Exception:
+        except:
             self.multi = 0
 
         try:
@@ -416,16 +407,16 @@ class YtDlp(TaskListener):
                             self.same_dir[fd_name]["total"] -= 1
         else:
             await self.init_bulk(input_list, bulk_start, bulk_end, YtDlp)
-            return None
+            return
 
         if len(self.bulk) != 0:
             del self.bulk[0]
 
-        path = f"{DOWNLOAD_DIR}{self.mid}{self.folder_name}"
+        path = f"{Config.DOWNLOAD_DIR}{self.mid}{self.folder_name}"
 
         await self.get_tag(text)
 
-        opt = opt or self.user_dict.get("yt_opt") or config_dict["YT_DLP_OPTIONS"]
+        opt = opt or self.user_dict.get("yt_opt") or Config.YT_DLP_OPTIONS
 
         if not self.link and (reply_to := self.message.reply_to_message):
             self.link = reply_to.text.split("\n", 1)[0].strip()
@@ -437,7 +428,7 @@ class YtDlp(TaskListener):
                 COMMAND_USAGE["yt"][1],
             )
             await self.remove_from_same_dir()
-            return None
+            return
 
         if "mdisk.me" in self.link:
             self.name, self.link = await _mdisk(self.link, self.name)
@@ -447,7 +438,7 @@ class YtDlp(TaskListener):
         except Exception as e:
             await send_message(self.message, e)
             await self.remove_from_same_dir()
-            return None
+            return
 
         options = {"usenetrc": True, "cookiefile": "cookies.txt"}
         if opt:
@@ -483,7 +474,7 @@ class YtDlp(TaskListener):
             msg = str(e).replace("<", " ").replace(">", " ")
             await send_message(self.message, f"{self.tag} {msg}")
             await self.remove_from_same_dir()
-            return None
+            return
         finally:
             await self.run_multi(input_list, YtDlp)
 
@@ -491,13 +482,12 @@ class YtDlp(TaskListener):
             qual = await YtSelection(self).get_quality(result)
             if qual is None:
                 await self.remove_from_same_dir()
-                return None
+                return
 
         LOGGER.info(f"Downloading with YT-DLP: {self.link}")
         playlist = "entries" in result
         ydl = YoutubeDLHelper(self)
         await ydl.add_download(path, qual, playlist, opt)
-        return None
 
 
 async def ytdl(client, message):
@@ -506,23 +496,3 @@ async def ytdl(client, message):
 
 async def ytdl_leech(client, message):
     bot_loop.create_task(YtDlp(client, message, is_leech=True).new_event())
-
-
-bot.add_handler(
-    MessageHandler(
-        ytdl,
-        filters=command(
-            BotCommands.YtdlCommand,
-        )
-        & CustomFilters.authorized,
-    ),
-)
-bot.add_handler(
-    MessageHandler(
-        ytdl_leech,
-        filters=command(
-            BotCommands.YtdlLeechCommand,
-        )
-        & CustomFilters.authorized,
-    ),
-)

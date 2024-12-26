@@ -10,7 +10,8 @@ from functools import partial, wraps
 
 from httpx import AsyncClient
 
-from bot import bot_loop, config_dict, user_data
+from bot import bot_loop, user_data
+from bot.core.config_manager import Config
 from bot.helper.telegram_helper.button_build import ButtonMaker
 
 from .help_messages import (
@@ -59,9 +60,14 @@ def bt_selection_buttons(id_):
     gid = id_[:12] if len(id_) > 25 else id_
     pin = "".join([n for n in id_ if n.isdigit()][:4])
     buttons = ButtonMaker()
-    BASE_URL = config_dict["BASE_URL"]
-    buttons.url_button("Select Files", f"{BASE_URL}/app/files?gid={id_}")
-    buttons.data_button("Pincode", f"sel pin {gid} {pin}")
+    if Config.WEB_PINCODE:
+        buttons.url_button("Select Files", f"{Config.BASE_URL}/app/files?gid={id_}")
+        buttons.data_button("Pincode", f"sel pin {gid} {pin}")
+    else:
+        buttons.url_button(
+            "Select Files",
+            f"{Config.BASE_URL}/app/files?gid={id_}&pin={pin}",
+        )
     buttons.data_button("Done Selecting", f"sel done {gid} {id_}")
     buttons.data_button("Cancel", f"sel cancel {gid}")
     return buttons.build_menu(2)

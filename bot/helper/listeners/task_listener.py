@@ -7,10 +7,8 @@ from aioshutil import move
 from requests import utils as rutils
 
 from bot import (
-    DOWNLOAD_DIR,
     LOGGER,
     aria2,
-    config_dict,
     intervals,
     non_queued_dl,
     non_queued_up,
@@ -21,8 +19,10 @@ from bot import (
     task_dict,
     task_dict_lock,
 )
+from bot.core.config_manager import Config
 from bot.helper.common import TaskConfig
 from bot.helper.ext_utils.bot_utils import sync_to_async
+from bot.helper.ext_utils.db_handler import database
 from bot.helper.ext_utils.files_utils import (
     clean_download,
     clean_target,
@@ -74,7 +74,16 @@ class TaskListener(TaskConfig):
                 self.same_dir[self.folder_name]["total"] -= 1
 
     async def on_download_start(self):
-        pass
+        if (
+            self.is_super_chat
+            and Config.INCOMPLETE_TASK_NOTIFIER
+            and Config.DATABASE_URL
+        ):
+            await database.add_incomplete_task(
+                self.message.chat.id,
+                self.message.link,
+                self.tag,
+            )
 
     async def on_download_complete(self):
         await sleep(2)
@@ -100,14 +109,12 @@ class TaskListener(TaskConfig):
                                 self.same_dir[self.folder_name]["total"] -= 1
                                 spath = f"{self.dir}{self.folder_name}"
                                 des_id = next(
-                                    iter(self.same_dir[self.folder_name]["tasks"]),
+                                    iter(self.same_dir[self.folder_name]["tasks"])
                                 )
-                                des_path = (
-                                    f"{DOWNLOAD_DIR}{des_id}{self.folder_name}"
-                                )
+                                des_path = f"{Config.DOWNLOAD_DIR}{des_id}{self.folder_name}"
                                 await makedirs(des_path, exist_ok=True)
                                 LOGGER.info(
-                                    f"Moving files from {self.mid} to {des_id}",
+                                    f"Moving files from {self.mid} to {des_id}"
                                 )
                                 for item in await listdir(spath):
                                     if item.endswith((".aria2", ".!qB")):
@@ -159,7 +166,7 @@ class TaskListener(TaskConfig):
 
         up_path = f"{self.dir}/{self.name}"
         self.size = await get_path_size(up_path)
-        if not config_dict["QUEUE_ALL"]:
+        if not Config.QUEUE_ALL:
             async with queue_dict_lock:
                 if self.mid in non_queued_dl:
                     non_queued_dl.remove(self.mid)
@@ -238,10 +245,7 @@ class TaskListener(TaskConfig):
 
         if self.is_leech and not self.compress:
             await self.proceed_split(
-                up_dir,
-                unwanted_files_size,
-                unwanted_files,
-                gid,
+                up_dir, unwanted_files_size, unwanted_files, gid
             )
             if self.is_cancelled:
                 return
@@ -298,6 +302,12 @@ class TaskListener(TaskConfig):
         rclone_path="",
         dir_id="",
     ):
+        if (
+            self.is_super_chat
+            and Config.INCOMPLETE_TASK_NOTIFIER
+            and Config.DATABASE_URL
+        ):
+            await database.rm_complete_task(self.message.link)
         msg = f"<b>Name: </b><code>{escape(self.name)}</code>\n\n<b>Size: </b>{get_readable_file_size(self.size)}"
         LOGGER.info(f"Task Done: {self.name}")
         if self.is_leech:
@@ -322,21 +332,27 @@ class TaskListener(TaskConfig):
             if mime_type == "Folder":
                 msg += f"\n<b>SubFolders: </b>{folders}"
                 msg += f"\n<b>Files: </b>{files}"
-            if link or (rclone_path and not self.private_link):
+            if link or (
+                rclone_path and Config.RCLONE_SERVE_URL and not self.private_link
+            ):
                 buttons = ButtonMaker()
                 if link:
                     buttons.url_button("☁️ Cloud Link", link)
                 else:
                     msg += f"\n\nPath: <code>{rclone_path}</code>"
-                if rclone_path and not self.private_link:
+                if rclone_path and Config.RCLONE_SERVE_URL and not self.private_link:
                     remote, path = rclone_path.split(":", 1)
-                    rutils.quote(f"{path}")
+                    url_path = rutils.quote(f"{path}")
+                    share_url = f"{Config.RCLONE_SERVE_URL}/{remote}/{url_path}"
+                    if mime_type == "Folder":
+                        share_url += "/"
+                    buttons.url_button("🔗 Rclone Link", share_url)
                 if not rclone_path and dir_id:
                     INDEX_URL = ""
                     if self.private_link:
                         INDEX_URL = self.user_dict.get("index_url", "") or ""
-                    elif config_dict["INDEX_URL"]:
-                        INDEX_URL = config_dict["INDEX_URL"]
+                    elif Config.INDEX_URL:
+                        INDEX_URL = Config.INDEX_URL
                     if INDEX_URL:
                         share_url = f"{INDEX_URL}findpath?id={dir_id}"
                         buttons.url_button("⚡ Index Link", share_url)
@@ -386,6 +402,13 @@ class TaskListener(TaskConfig):
         else:
             await update_status_message(self.message.chat.id)
 
+        if (
+            self.is_super_chat
+            and Config.INCOMPLETE_TASK_NOTIFIER
+            and Config.DATABASE_URL
+        ):
+            await database.rm_complete_task(self.message.link)
+
         async with queue_dict_lock:
             if self.mid in queued_dl:
                 queued_dl[self.mid].set()
@@ -416,6 +439,13 @@ class TaskListener(TaskConfig):
             await self.clean()
         else:
             await update_status_message(self.message.chat.id)
+
+        if (
+            self.is_super_chat
+            and Config.INCOMPLETE_TASK_NOTIFIER
+            and Config.DATABASE_URL
+        ):
+            await database.rm_complete_task(self.message.link)
 
         async with queue_dict_lock:
             if self.mid in queued_dl:

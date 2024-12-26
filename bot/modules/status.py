@@ -1,18 +1,9 @@
 from time import time
 
 from psutil import cpu_percent, disk_usage, virtual_memory
-from pyrogram.filters import command, regex
-from pyrogram.handlers import CallbackQueryHandler, MessageHandler
 
-from bot import (
-    DOWNLOAD_DIR,
-    bot,
-    bot_start_time,
-    intervals,
-    status_dict,
-    task_dict,
-    task_dict_lock,
-)
+from bot import bot_start_time, intervals, status_dict, task_dict, task_dict_lock
+from bot.core.config_manager import Config
 from bot.helper.ext_utils.bot_utils import new_task, sync_to_async
 from bot.helper.ext_utils.status_utils import (
     MirrorStatus,
@@ -22,7 +13,6 @@ from bot.helper.ext_utils.status_utils import (
 )
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.button_build import ButtonMaker
-from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.message_utils import (
     auto_delete_message,
     delete_message,
@@ -34,12 +24,12 @@ from bot.helper.telegram_helper.message_utils import (
 
 
 @new_task
-async def mirror_status(_, message):
+async def task_status(_, message):
     async with task_dict_lock:
         count = len(task_dict)
     if count == 0:
         currentTime = get_readable_time(time() - bot_start_time)
-        free = get_readable_file_size(disk_usage(DOWNLOAD_DIR).free)
+        free = get_readable_file_size(disk_usage(Config.DOWNLOAD_DIR).free)
         msg = f"No Active Tasks!\nEach user can get status for his tasks by adding me or user_id after cmd: /{BotCommands.StatusCommand} me"
         msg += (
             f"\n<b>CPU:</b> {cpu_percent()}% | <b>FREE:</b> {free}"
@@ -155,15 +145,3 @@ async def status_pages(_, query):
         button = ButtonMaker()
         button.data_button("Back", f"status {data[1]} ref")
         await edit_message(message, msg, button.build_menu())
-
-
-bot.add_handler(
-    MessageHandler(
-        mirror_status,
-        filters=command(
-            BotCommands.StatusCommand,
-        )
-        & CustomFilters.authorized,
-    ),
-)
-bot.add_handler(CallbackQueryHandler(status_pages, filters=regex("^status")))

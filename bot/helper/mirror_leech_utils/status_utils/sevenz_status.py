@@ -28,7 +28,7 @@ class SevenZStatus:
         await self.processed_raw()
         try:
             return self._proccessed_bytes / self._size * 100
-        except Exception:
+        except:
             return 0
 
     async def progress(self):
@@ -47,7 +47,7 @@ class SevenZStatus:
         try:
             seconds = (self._size - self._proccessed_bytes) / self.speed_raw()
             return get_readable_time(seconds)
-        except Exception:
+        except:
             return "-"
 
     def status(self):

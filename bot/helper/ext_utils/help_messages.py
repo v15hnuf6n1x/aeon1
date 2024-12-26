@@ -1,32 +1,4 @@
-nsfw_keywords = [
-    "porn",
-    "onlyfans",
-    "nsfw",
-    "Brazzers",
-    "adult",
-    "xnxx",
-    "xvideos",
-    "nsfwcherry",
-    "hardcore",
-    "Pornhub",
-    "xvideos2",
-    "youporn",
-    "pornrip",
-    "playboy",
-    "hentai",
-    "erotica",
-    "blowjob",
-    "redtube",
-    "stripchat",
-    "camgirl",
-    "nude",
-    "fetish",
-    "cuckold",
-    "orgy",
-    "horny",
-    "swingers",
-    "ullu",
-]
+from bot.helper.telegram_helper.bot_commands import BotCommands
 
 mirror = """<b>Send link along with command line or </b>
 
@@ -269,13 +241,12 @@ list of lists of ffmpeg commands. You can set multiple ffmpeg commands for all f
 Notes:
 1. Add <code>-del</code> to the list(s) which you want from the bot to delete the original files after command run complete!
 2. Seed will get disbaled while using this option
-3. It must be list of list(s) event of one list added like [["-i", "file.mkv", "-c", "copy", "-c:s", "srt", "file.mkv", "-del"]]
-Examples: [["-i", "file.mkv", "-c", "copy", "-c:s", "srt", "file.mkv", "-del"], ["-i", "file.video", "-c", "copy", "-c:s", "srt", "file"], ["-i", "file.m4a", "-c:a", "libmp3lame", "-q:a", "2", "file.mp3"], ["-i", "file.audio", "-c:a", "libmp3lame", "-q:a", "2", "file.mp3"]]
-Here I will explain how to use file.* which is reference to files you want to work on.
-1. First cmd: the input is file.mkv so this cmd will work only on mkv videos and the output is file.mkv also so all outputs is mkv. -del will delete the original media after complete run of the cmd.
-2. Second cmd: the input is file.video so this cmd will work on all videos and the output is only file so the extenstion is same as input files.
-3. Third cmd: the input in file.m4a so this cmd will work only on m4a audios and the output is file.mp3 so the output extension is mp3.
-4. Fourth cmd: the input is file.audio so this cmd will work on all audios and the output is file.mp3 so the output extension is mp3."""
+Examples: ["-i mltb.mkv -c copy -c:s srt mltb.mkv", "-i mltb.video -c copy -c:s srt mltb", "-i mltb.m4a -c:a libmp3lame -q:a 2 mltb.mp3", "-i mltb.audio -c:a libmp3lame -q:a 2 mltb.mp3"]
+Here I will explain how to use mltb.* which is reference to files you want to work on.
+1. First cmd: the input is mltb.mkv so this cmd will work only on mkv videos and the output is mltb.mkv also so all outputs is mkv. -del will delete the original media after complete run of the cmd.
+2. Second cmd: the input is mltb.video so this cmd will work on all videos and the output is only mltb so the extenstion is same as input files.
+3. Third cmd: the input in mltb.m4a so this cmd will work only on m4a audios and the output is mltb.mp3 so the output extension is mp3.
+4. Fourth cmd: the input is mltb.audio so this cmd will work on all audios and the output is mltb.mp3 so the output extension is mp3."""
 
 YT_HELP_DICT = {
     "main": yt,
@@ -339,10 +310,70 @@ CLONE_HELP_DICT = {
     "Rclone": rclone_cl,
 }
 
+RSS_HELP_MESSAGE = """
+Use this format to add feed url:
+Title1 link (required)
+Title2 link -c cmd -inf xx -exf xx
+Title3 link -c cmd -d ratio:time -z password
+
+-c command -up mrcc:remote:path/subdir -rcf --buffer-size:8M|key|key:value
+-inf For included words filter.
+-exf For excluded words filter.
+-stv true or false (sensitive filter)
+
+Example: Title https://www.rss-url.com -inf 1080 or 720 or 144p|mkv or mp4|hevc -exf flv or web|xxx
+This filter will parse links that its titles contain `(1080 or 720 or 144p) and (mkv or mp4) and hevc` and doesn't contain (flv or web) and xxx words. You can add whatever you want.
+
+Another example: -inf  1080  or 720p|.web. or .webrip.|hvec or x264. This will parse titles that contain ( 1080  or 720p) and (.web. or .webrip.) and (hvec or x264). I have added space before and after 1080 to avoid wrong matching. If this `10805695` number in title it will match 1080 if added 1080 without spaces after it.
+
+Filter Notes:
+1. | means and.
+2. Add `or` between similar keys, you can add it between qualities or between extensions, so don't add filter like this f: 1080|mp4 or 720|web because this will parse 1080 and (mp4 or 720) and web ... not (1080 and mp4) or (720 and web).
+3. You can add `or` and `|` as much as you want.
+4. Take a look at the title if it has a static special character after or before the qualities or extensions or whatever and use them in the filter to avoid wrong match.
+Timeout: 60 sec.
+"""
 
 PASSWORD_ERROR_MESSAGE = """
 <b>This link requires a password!</b>
 - Insert <b>::</b> after the link and write the password after the sign.
 
 <b>Example:</b> link::my password
+"""
+
+
+help_string = f"""
+NOTE: Try each command without any argument to see more detalis.
+/{BotCommands.MirrorCommand[0]} or /{BotCommands.MirrorCommand[1]}: Start mirroring to cloud.
+/{BotCommands.QbMirrorCommand[0]} or /{BotCommands.QbMirrorCommand[1]}: Start Mirroring to cloud using qBittorrent.
+/{BotCommands.YtdlCommand[0]} or /{BotCommands.YtdlCommand[1]}: Mirror yt-dlp supported link.
+/{BotCommands.LeechCommand[0]} or /{BotCommands.LeechCommand[1]}: Start leeching to Telegram.
+/{BotCommands.QbLeechCommand[0]} or /{BotCommands.QbLeechCommand[1]}: Start leeching using qBittorrent.
+/{BotCommands.YtdlLeechCommand[0]} or /{BotCommands.YtdlLeechCommand[1]}: Leech yt-dlp supported link.
+/{BotCommands.CloneCommand} [drive_url]: Copy file/folder to Google Drive.
+/{BotCommands.CountCommand} [drive_url]: Count file/folder of Google Drive.
+/{BotCommands.DeleteCommand} [drive_url]: Delete file/folder from Google Drive (Only Owner & Sudo).
+/{BotCommands.UserSetCommand[0]} or /{BotCommands.UserSetCommand[1]} [query]: Users settings.
+/{BotCommands.BotSetCommand[0]} or /{BotCommands.BotSetCommand[1]} [query]: Bot settings.
+/{BotCommands.SelectCommand}: Select files from torrents or nzb by gid or reply.
+/{BotCommands.CancelTaskCommand[0]} or /{BotCommands.CancelTaskCommand[1]} [gid]: Cancel task by gid or reply.
+/{BotCommands.ForceStartCommand[0]} or /{BotCommands.ForceStartCommand[1]} [gid]: Force start task by gid or reply.
+/{BotCommands.CancelAllCommand} [query]: Cancel all [status] tasks.
+/{BotCommands.ListCommand} [query]: Search in Google Drive(s).
+/{BotCommands.SearchCommand} [query]: Search for torrents with API.
+/{BotCommands.StatusCommand}: Shows a status of all the downloads.
+/{BotCommands.StatsCommand}: Show stats of the machine where the bot is hosted in.
+/{BotCommands.PingCommand}: Check how long it takes to Ping the Bot (Only Owner & Sudo).
+/{BotCommands.AuthorizeCommand}: Authorize a chat or a user to use the bot (Only Owner & Sudo).
+/{BotCommands.UnAuthorizeCommand}: Unauthorize a chat or a user to use the bot (Only Owner & Sudo).
+/{BotCommands.UsersCommand}: show users settings (Only Owner & Sudo).
+/{BotCommands.AddSudoCommand}: Add sudo user (Only Owner).
+/{BotCommands.RmSudoCommand}: Remove sudo users (Only Owner).
+/{BotCommands.RestartCommand}: Restart and update the bot (Only Owner & Sudo).
+/{BotCommands.LogCommand}: Get a log file of the bot. Handy for getting crash reports (Only Owner & Sudo).
+/{BotCommands.ShellCommand}: Run shell commands (Only Owner).
+/{BotCommands.AExecCommand}: Exec async functions (Only Owner).
+/{BotCommands.ExecCommand}: Exec sync functions (Only Owner).
+/{BotCommands.ClearLocalsCommand}: Clear {BotCommands.AExecCommand} or {BotCommands.ExecCommand} locals (Only Owner).
+/{BotCommands.RssCommand}: RSS Menu.
 """

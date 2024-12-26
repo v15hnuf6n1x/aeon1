@@ -15,9 +15,7 @@ from bot.helper.ext_utils.task_manager import (
     stop_duplicate_check,
 )
 from bot.helper.mirror_leech_utils.status_utils.queue_status import QueueStatus
-from bot.helper.mirror_leech_utils.status_utils.yt_dlp_status import (
-    YtDlpStatus,
-)
+from bot.helper.mirror_leech_utils.status_utils.yt_dlp_status import YtDlpStatus
 from bot.helper.telegram_helper.message_utils import send_status_message
 
 LOGGER = getLogger(__name__)
@@ -31,7 +29,10 @@ class MyLogger:
     def debug(self, msg):
         # Hack to fix changing extension
         if not self._obj.is_playlist and (
-            match := re_search(r".Merger..Merging formats into..(.*?).$", msg)
+            match := re_search(
+                r".Merger..Merging formats into..(.*?).$",
+                msg,
+            )
             or re_search(r".ExtractAudio..Destination..(.*?)$", msg)
         ):
             LOGGER.info(msg)
@@ -127,9 +128,7 @@ class YoutubeDLHelper:
     async def _on_download_start(self, from_queue=False):
         async with task_dict_lock:
             task_dict[self._listener.mid] = YtDlpStatus(
-                self._listener,
-                self,
-                self._gid,
+                self._listener, self, self._gid
             )
         if not from_queue:
             await self._listener.on_download_start()
@@ -367,7 +366,7 @@ class YoutubeDLHelper:
             elif value.lower() == "false":
                 value = False
             elif value.startswith(("{", "[", "(")) and value.endswith(
-                ("}", "]", ")"),
+                ("}", "]", ")")
             ):
                 value = eval(value)
 

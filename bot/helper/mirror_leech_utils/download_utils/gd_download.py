@@ -1,4 +1,4 @@
-from secrets import token_hex
+from secrets import token_urlsafe
 
 from bot import LOGGER, task_dict, task_dict_lock
 from bot.helper.ext_utils.bot_utils import sync_to_async
@@ -27,7 +27,7 @@ async def add_gd_download(listener, path):
         return
 
     listener.name = listener.name or name
-    gid = token_hex(4)
+    gid = token_urlsafe(12)
 
     msg, button = await stop_duplicate_check(listener)
     if msg:

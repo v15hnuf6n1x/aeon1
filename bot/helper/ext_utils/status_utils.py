@@ -3,15 +3,10 @@ from asyncio import iscoroutinefunction
 from html import escape
 from time import time
 
-from psutil import disk_usage
+from psutil import cpu_percent, disk_usage, virtual_memory
 
-from bot import (
-    DOWNLOAD_DIR,
-    bot_start_time,
-    status_dict,
-    task_dict,
-    task_dict_lock,
-)
+from bot import bot_start_time, status_dict, task_dict, task_dict_lock
+from bot.core.config_manager import Config
 from bot.helper.telegram_helper.button_build import ButtonMaker
 
 from .bot_utils import sync_to_async
@@ -179,14 +174,13 @@ def get_progress_bar_string(pct):
     return p_str
 
 
-"""
 async def get_readable_message(sid, is_user, page_no=1, status="All", page_step=1):
     msg = ""
     button = None
 
     tasks = await sync_to_async(get_specific_tasks, status, sid if is_user else None)
 
-    STATUS_LIMIT = 4
+    STATUS_LIMIT = Config.STATUS_LIMIT
     tasks_no = len(tasks)
     pages = (max(tasks_no, 1) + STATUS_LIMIT - 1) // STATUS_LIMIT
     if page_no > pages:
@@ -210,10 +204,10 @@ async def get_readable_message(sid, is_user, page_no=1, status="All", page_step=
         if tstatus not in [
             MirrorStatus.STATUS_SPLIT,
             MirrorStatus.STATUS_SEED,
+            MirrorStatus.STATUS_SAMVID,
             MirrorStatus.STATUS_CONVERT,
             MirrorStatus.STATUS_FFMPEG,
             MirrorStatus.STATUS_QUEUEUP,
-            MirrorStatus.STATUS_SAMVID,
         ]:
             progress = (
                 await task.progress()
@@ -234,7 +228,7 @@ async def get_readable_message(sid, is_user, page_no=1, status="All", page_step=
             msg += f" | <b>Time: </b>{task.seeding_time()}"
         else:
             msg += f"\n<b>Size: </b>{task.size()}"
-        msg += f"\n<b>Gid: </b><code>/stop_{task.gid()}</code>\n\n"
+        msg += f"\n<b>Gid: </b><code>{task.gid()}</code>\n\n"
 
     if len(msg) == 0:
         if status == "All":
@@ -256,84 +250,6 @@ async def get_readable_message(sid, is_user, page_no=1, status="All", page_step=
                 buttons.data_button(label, f"status {sid} st {status_value}")
     buttons.data_button("♻️", f"status {sid} ref", position="header")
     button = buttons.build_menu(8)
-    msg += f"<b>CPU:</b> {cpu_percent()}% | <b>FREE:</b> {get_readable_file_size(disk_usage(DOWNLOAD_DIR).free)}"
+    msg += f"<b>CPU:</b> {cpu_percent()}% | <b>FREE:</b> {get_readable_file_size(disk_usage(Config.DOWNLOAD_DIR).free)}"
     msg += f"\n<b>RAM:</b> {virtual_memory().percent}% | <b>UPTIME:</b> {get_readable_time(time() - bot_start_time)}"
-    return msg, button
-"""
-
-
-def source(self):
-    return (
-        sender_chat.title
-        if (sender_chat := self.message.sender_chat)
-        else self.message.from_user.username or self.message.from_user.id
-    )
-
-
-async def get_readable_message(sid, is_user, page_no=1, status="All"):
-    msg = ""
-    button = None
-
-    tasks = await sync_to_async(get_specific_tasks, status, sid if is_user else None)
-
-    STATUS_LIMIT = 4
-    tasks_no = len(tasks)
-    pages = (max(tasks_no, 1) + STATUS_LIMIT - 1) // STATUS_LIMIT
-    if page_no > pages:
-        page_no = (page_no - 1) % pages + 1
-        status_dict[sid]["page_no"] = page_no
-    elif page_no < 1:
-        page_no = pages - (abs(page_no) % pages)
-        status_dict[sid]["page_no"] = page_no
-    start_position = (page_no - 1) * STATUS_LIMIT
-
-    for index, task in enumerate(
-        tasks[start_position : STATUS_LIMIT + start_position],
-        start=1,
-    ):
-        tstatus = await sync_to_async(task.status) if status == "All" else status
-        msg += f"<b>{index + start_position}. {tstatus}:</b>\n"
-        msg += f"{escape(f'{task.name()}')}"
-        if tstatus not in [
-            MirrorStatus.STATUS_SPLIT,
-            MirrorStatus.STATUS_SEED,
-            MirrorStatus.STATUS_CONVERT,
-            MirrorStatus.STATUS_FFMPEG,
-            MirrorStatus.STATUS_QUEUEUP,
-            MirrorStatus.STATUS_SAMVID,
-        ]:
-            progress = (
-                await task.progress()
-                if iscoroutinefunction(task.progress)
-                else task.progress()
-            )
-            msg += f"\n{get_progress_bar_string(progress)} {progress}"
-            msg += f"\n{task.processed_bytes()} of {task.size()}"
-            msg += f"\n<b>Speed:</b> {task.speed()}\n<b>Estimated:</b> {task.eta()}"
-            if hasattr(task, "seeders_num"):
-                with contextlib.suppress(Exception):
-                    msg += f"\n<b>Seeders:</b> {task.seeders_num()} <b>Leechers:</b> {task.leechers_num()}"
-        elif tstatus == MirrorStatus.STATUS_SEEDING:
-            msg += f"\n<b>Size: </b>{task.size()}"
-            msg += f"\n<b>Speed: </b>{task.seed_speed()}"
-            msg += f"\n<b>Uploaded: </b>{task.uploaded_bytes()}"
-            msg += f"\n<b>Ratio: </b>{task.ratio()}"
-        else:
-            msg += f"\n<b>Size: </b>{task.size()}"
-        msg += f"\n<b>Elapsed: </b>{get_readable_time(time() - task.listener.message.date.timestamp())}"
-        msg += f"\n<b>By: {source(task.listener)}</b>"
-        msg += f"\n/stop_{task.gid()[:7]}\n\n"
-
-    if len(msg) == 0:
-        if status == "All":
-            return None, None
-        msg = f"No Active {status} Tasks!\n\n"
-    if tasks_no > STATUS_LIMIT:
-        buttons = ButtonMaker()
-        msg += f"\n<b>Page:</b> {page_no}/{pages} | <b>Tasks:</b> {tasks_no}"
-        buttons.data_button("Prev", f"status {sid} pre", position="header")
-        buttons.data_button("Next", f"status {sid} nex", position="header")
-        button = buttons.build_menu(2)
-    msg += f"<b>\nFree disk:</b> {get_readable_file_size(disk_usage(DOWNLOAD_DIR).free)}"
-    msg += f"\n<b>Bot uptime:</b> {get_readable_time(time() - bot_start_time)}"
     return msg, button

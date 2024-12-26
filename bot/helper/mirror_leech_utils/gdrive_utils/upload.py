@@ -13,7 +13,7 @@ from tenacity import (
     wait_exponential,
 )
 
-from bot import config_dict
+from bot.core.config_manager import Config
 from bot.helper.ext_utils.bot_utils import SetInterval, async_to_sync
 from bot.helper.ext_utils.files_utils import get_mime_type
 from bot.helper.mirror_leech_utils.gdrive_utils.helper import GoogleDriveHelper
@@ -50,7 +50,7 @@ class GoogleDriveUpload(GoogleDriveHelper):
         try:
             if ospath.isfile(self._path):
                 if self._path.lower().endswith(
-                    tuple(self.listener.extension_filter),
+                    tuple(self.listener.extension_filter)
                 ):
                     raise Exception(
                         "This file extension is excluded by extension filter!",
@@ -76,10 +76,7 @@ class GoogleDriveUpload(GoogleDriveHelper):
                     self.listener.up_dest,
                 )
                 result = self._upload_dir(
-                    self._path,
-                    dir_id,
-                    unwanted_files,
-                    ft_delete,
+                    self._path, dir_id, unwanted_files, ft_delete
                 )
                 if result is None:
                     raise Exception("Upload has been manually cancelled!")
@@ -133,7 +130,9 @@ class GoogleDriveUpload(GoogleDriveHelper):
                 self.total_folders += 1
             elif (
                 current_file_name not in unwanted_files
-                and not item.lower().endswith(tuple(self.listener.extension_filter))
+                and not item.lower().endswith(
+                    tuple(self.listener.extension_filter),
+                )
             ):
                 mime_type = get_mime_type(current_file_name)
                 file_name = current_file_name.split("/")[-1]
@@ -179,9 +178,7 @@ class GoogleDriveUpload(GoogleDriveHelper):
 
         if ospath.getsize(file_path) == 0:
             media_body = MediaFileUpload(
-                file_path,
-                mimetype=mime_type,
-                resumable=False,
+                file_path, mimetype=mime_type, resumable=False
             )
             response = (
                 self.service.files()
@@ -192,7 +189,7 @@ class GoogleDriveUpload(GoogleDriveHelper):
                 )
                 .execute()
             )
-            if not config_dict["IS_TEAM_DRIVE"]:
+            if not Config.IS_TEAM_DRIVE:
                 self.set_permission(response["id"])
 
             drive_file = (
@@ -259,7 +256,7 @@ class GoogleDriveUpload(GoogleDriveHelper):
                 remove(file_path)
         self.file_processed_bytes = 0
         # Insert new permissions
-        if not config_dict["IS_TEAM_DRIVE"]:
+        if not Config.IS_TEAM_DRIVE:
             self.set_permission(response["id"])
         # Define file instance and get url for download
         if not in_dir:

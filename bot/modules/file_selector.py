@@ -2,28 +2,22 @@ import contextlib
 
 from aiofiles.os import path as aiopath
 from aiofiles.os import remove
-from pyrogram.filters import command, regex
-from pyrogram.handlers import CallbackQueryHandler, MessageHandler
 
 from bot import (
     LOGGER,
-    OWNER_ID,
     aria2,
-    bot,
-    config_dict,
+    xnox_client,
     task_dict,
     task_dict_lock,
     user_data,
-    xnox_client,
 )
+from bot.core.config_manager import Config
 from bot.helper.ext_utils.bot_utils import (
     bt_selection_buttons,
     new_task,
     sync_to_async,
 )
 from bot.helper.ext_utils.status_utils import MirrorStatus, get_task_by_gid
-from bot.helper.telegram_helper.bot_commands import BotCommands
-from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.message_utils import (
     delete_message,
     send_message,
@@ -33,7 +27,7 @@ from bot.helper.telegram_helper.message_utils import (
 
 @new_task
 async def select(_, message):
-    if not config_dict["BASE_URL"]:
+    if not Config.BASE_URL:
         await send_message(message, "Base URL not defined!")
         return
     user_id = message.from_user.id
@@ -53,13 +47,13 @@ async def select(_, message):
     elif len(msg) == 1:
         msg = (
             "Reply to an active /cmd which was used to start the download or add gid along with cmd\n\n"
-            + "This command mainly for selection incase you decided to select files from already added torrent. "
+            + "This command mainly for selection incase you decided to select files from already added torrent/nzb. "
             + "But you can always use /cmd with arg `s` to select files before download start."
         )
         await send_message(message, msg)
         return
 
-    if user_id not in (OWNER_ID, task.listener.user_id) and (
+    if user_id not in (Config.OWNER_ID, task.listener.user_id) and (
         user_id not in user_data or not user_data[user_id].get("is_sudo")
     ):
         await send_message(message, "This task is not for you!")
@@ -71,7 +65,7 @@ async def select(_, message):
     ]:
         await send_message(
             message,
-            "Task should be in download or pause (incase message deleted by wrong) or queued status (incase you have used torrent!",
+            "Task should be in download or pause (incase message deleted by wrong) or queued status (incase you have used torrent file)!",
         )
         return
     if task.name().startswith("[METADATA]") or task.name().startswith("Trying"):
@@ -84,7 +78,10 @@ async def select(_, message):
             if not task.queued:
                 await sync_to_async(task.update)
                 id_ = task.hash()
-                await sync_to_async(xnox_client.torrents_stop, torrent_hashes=id_)
+                await sync_to_async(
+                    xnox_client.torrents_stop,
+                    torrent_hashes=id_,
+                )
         elif not task.queued:
             await sync_to_async(task.update)
             try:
@@ -94,8 +91,8 @@ async def select(_, message):
                     f"{e} Error in pause, this mostly happens after abuse aria2",
                 )
         task.listener.select = True
-    except Exception:
-        await send_message(message, "This is not a bittorrent task!")
+    except:
+        await send_message(message, "This is not a bittorrent or sabnzbd task!")
         return
 
     SBUTTONS = bt_selection_buttons(id_)
@@ -104,7 +101,7 @@ async def select(_, message):
 
 
 @new_task
-async def get_confirm(_, query):
+async def confirm_selection(_, query):
     user_id = query.from_user.id
     data = query.data.split()
     message = query.message
@@ -123,7 +120,10 @@ async def get_confirm(_, query):
         if hasattr(task, "seeding"):
             if task.listener.is_qbit:
                 tor_info = (
-                    await sync_to_async(xnox_client.torrents_info, torrent_hash=id_)
+                    await sync_to_async(
+                        xnox_client.torrents_info,
+                        torrent_hash=id_,
+                    )
                 )[0]
                 path = tor_info.content_path.rsplit("/", 1)[0]
                 res = await sync_to_async(
@@ -160,15 +160,3 @@ async def get_confirm(_, query):
     else:
         await delete_message(message)
         await task.cancel_task()
-
-
-bot.add_handler(
-    MessageHandler(
-        select,
-        filters=command(
-            BotCommands.SelectCommand,
-        )
-        & CustomFilters.authorized,
-    ),
-)
-bot.add_handler(CallbackQueryHandler(get_confirm, filters=regex("^sel")))

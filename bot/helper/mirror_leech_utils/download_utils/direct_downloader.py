@@ -1,12 +1,6 @@
-from secrets import token_hex
+from secrets import token_urlsafe
 
-from bot import (
-    LOGGER,
-    aria2_options,
-    aria2c_global,
-    task_dict,
-    task_dict_lock,
-)
+from bot import LOGGER, task_dict, task_dict_lock
 from bot.helper.ext_utils.bot_utils import sync_to_async
 from bot.helper.ext_utils.task_manager import (
     check_running_tasks,
@@ -34,7 +28,7 @@ async def add_direct_download(listener, path):
         await listener.on_download_error(msg, button)
         return
 
-    gid = token_hex(4)
+    gid = token_urlsafe(10)
     add_to_queue, event = await check_running_tasks(listener)
     if add_to_queue:
         LOGGER.info(f"Added to Queue/Download: {listener.name}")
@@ -47,12 +41,9 @@ async def add_direct_download(listener, path):
         if listener.is_cancelled:
             return
 
-    a2c_opt = {**aria2_options}
-    [a2c_opt.pop(k) for k in aria2c_global if k in aria2_options]
+    a2c_opt = {"follow-torrent": "false", "follow-metalink": "false"}
     if header := details.get("header"):
         a2c_opt["header"] = header
-    a2c_opt["follow-torrent"] = "false"
-    a2c_opt["follow-metalink"] = "false"
     directListener = DirectListener(path, listener, a2c_opt)
 
     async with task_dict_lock:

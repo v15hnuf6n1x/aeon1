@@ -11,7 +11,7 @@ from aiofiles import open as aiopen
 from aiofiles.os import listdir, makedirs
 from aiofiles.os import path as aiopath
 
-from bot import config_dict
+from bot.core.config_manager import Config
 from bot.helper.ext_utils.bot_utils import cmd_exec, sync_to_async
 from bot.helper.ext_utils.files_utils import (
     clean_unwanted,
@@ -36,7 +36,7 @@ class RcloneTransferHelper:
         self._sa_count = 1
         self._sa_index = 0
         self._sa_number = 0
-        self._use_service_accounts = config_dict["USE_SERVICE_ACCOUNTS"]
+        self._use_service_accounts = Config.USE_SERVICE_ACCOUNTS
         self.rclone_select = False
 
     @property
@@ -63,7 +63,7 @@ class RcloneTransferHelper:
         while not (self._proc is None or self._listener.is_cancelled):
             try:
                 data = (await self._proc.stdout.readline()).decode()
-            except Exception:
+            except:
                 continue
             if not data:
                 break
@@ -192,7 +192,7 @@ class RcloneTransferHelper:
 
         if (
             remote_type == "drive"
-            and not config_dict["RCLONE_FLAGS"]
+            and not Config.RCLONE_FLAGS
             and not self._listener.rc_flags
         ):
             cmd.append("--drive-acknowledge-abuse")
@@ -214,7 +214,7 @@ class RcloneTransferHelper:
             destination = epath
 
         cmd = [
-            "xone",
+            "rclone",
             "lsjson",
             "--fast-list",
             "--no-mimetype",
@@ -222,6 +222,11 @@ class RcloneTransferHelper:
             "--config",
             config_path,
             epath,
+            "--log-systemd",
+            "--log-file",
+            "rlog.txt",
+            "--log-level",
+            "ERROR",
         ]
         res, err, code = await cmd_exec(cmd)
 
@@ -352,11 +357,11 @@ class RcloneTransferHelper:
         )
         if (
             remote_type == "drive"
-            and not config_dict["RCLONE_FLAGS"]
+            and not Config.RCLONE_FLAGS
             and not self._listener.rc_flags
         ):
             cmd.extend(
-                ("--drive-chunk-size", "128M", "--drive-upload-cutoff", "128M"),
+                ("--drive-chunk-size", "128M", "--drive-upload-cutoff", "128M")
             )
 
         result = await self._start_upload(cmd, remote_type)
@@ -378,7 +383,18 @@ class RcloneTransferHelper:
             else:
                 destination = f"{oremote}:{self._listener.name}"
 
-            cmd = ["xone", "link", "--config", oconfig_path, destination]
+            cmd = [
+                "rclone",
+                "link",
+                "--config",
+                oconfig_path,
+                destination,
+                "--log-systemd",
+                "--log-file",
+                "rlog.txt",
+                "--log-level",
+                "ERROR",
+            ]
             res, err, code = await cmd_exec(cmd)
 
             if code == 0:
@@ -387,7 +403,7 @@ class RcloneTransferHelper:
                 if not err:
                     err = "Use <code>/shell cat rlog.txt</code> to see more information"
                 LOGGER.error(
-                    f"while getting link. Path: {destination} | Stderr: {err}",
+                    f"while getting link. Path: {destination} | Stderr: {err}"
                 )
                 link = ""
         if self._listener.is_cancelled:
@@ -427,7 +443,7 @@ class RcloneTransferHelper:
             destination,
             method,
         )
-        if not self._listener.rc_flags and not config_dict["RCLONE_FLAGS"]:
+        if not self._listener.rc_flags and not Config.RCLONE_FLAGS:
             if src_remote_type == "drive" and dst_remote_type != "drive":
                 cmd.append("--drive-acknowledge-abuse")
             elif src_remote_type == "drive":
@@ -464,7 +480,18 @@ class RcloneTransferHelper:
                 f"/{self._listener.name}" if dst_path else self._listener.name
             )
 
-        cmd = ["xone", "link", "--config", config_path, destination]
+        cmd = [
+            "rclone",
+            "link",
+            "--config",
+            config_path,
+            destination,
+            "--log-systemd",
+            "--log-file",
+            "rlog.txt",
+            "--log-level",
+            "ERROR",
+        ]
         res, err, code = await cmd_exec(cmd)
 
         if self._listener.is_cancelled:
@@ -475,7 +502,9 @@ class RcloneTransferHelper:
         if code != -9:
             if not err:
                 err = "Use <code>/shell cat rlog.txt</code> to see more information"
-            LOGGER.error(f"while getting link. Path: {destination} | Stderr: {err}")
+            LOGGER.error(
+                f"while getting link. Path: {destination} | Stderr: {err}",
+            )
             return None, destination
         return None
 
@@ -495,7 +524,7 @@ class RcloneTransferHelper:
         else:
             ext = "*.{" + ",".join(self._listener.extension_filter) + "}"
         cmd = [
-            "xone",
+            "rclone",
             method,
             "--fast-list",
             "--config",
@@ -509,16 +538,17 @@ class RcloneTransferHelper:
             "--low-level-retries",
             "1",
             "-M",
+            "--log-systemd",
             "--log-file",
             "rlog.txt",
             "--log-level",
-            "DEBUG",
+            "ERROR",
         ]
         if self.rclone_select:
             cmd.extend(("--files-from", self._listener.link))
         else:
             cmd.extend(("--exclude", ext))
-        if rcflags := self._listener.rc_flags or config_dict["RCLONE_FLAGS"]:
+        if rcflags := self._listener.rc_flags or Config.RCLONE_FLAGS:
             rcflags = rcflags.split("|")
             for flag in rcflags:
                 if ":" in flag:

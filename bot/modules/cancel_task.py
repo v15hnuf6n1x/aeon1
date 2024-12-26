@@ -1,9 +1,7 @@
 from asyncio import sleep
 
-from pyrogram.filters import command, regex
-from pyrogram.handlers import CallbackQueryHandler, MessageHandler
-
-from bot import OWNER_ID, bot, multi_tags, task_dict, task_dict_lock, user_data
+from bot import multi_tags, task_dict, task_dict_lock, user_data
+from bot.core.aeon_client import Config
 from bot.helper.ext_utils.bot_utils import new_task
 from bot.helper.ext_utils.status_utils import (
     MirrorStatus,
@@ -22,30 +20,35 @@ from bot.helper.telegram_helper.message_utils import (
 
 
 @new_task
-async def cancel_task(_, message):
+async def cancel(_, message):
     user_id = message.from_user.id if message.from_user else message.sender_chat.id
-    msg = message.text.split("_", maxsplit=1)
-    await delete_message(message)
+    msg = message.text.split()
     if len(msg) > 1:
-        gid = msg[1].split("@", maxsplit=1)
-        gid = gid[0]
+        gid = msg[1]
         if len(gid) == 4:
             multi_tags.discard(gid)
             return
         task = await get_task_by_gid(gid)
         if task is None:
-            await delete_message(message)
+            await send_message(message, f"GID: <code>{gid}</code> Not Found.")
             return
     elif reply_to_id := message.reply_to_message_id:
         async with task_dict_lock:
             task = task_dict.get(reply_to_id)
         if task is None:
+            await send_message(message, "This is not an active task!")
             return
     elif len(msg) == 1:
+        msg = (
+            "Reply to an active Command message which was used to start the download"
+            f" or send <code>/{BotCommands.CancelTaskCommand[0]} GID</code> to cancel it!"
+        )
+        await send_message(message, msg)
         return
-    if user_id not in (OWNER_ID, task.listener.user_id) and (
+    if user_id not in (Config.OWNER_ID, task.listener.user_id) and (
         user_id not in user_data or not user_data[user_id].get("is_sudo")
     ):
+        await send_message(message, "This task is not for you!")
         return
     obj = task.task()
     await obj.cancel_task()
@@ -91,12 +94,10 @@ def create_cancel_buttons(is_sudo, user_id=""):
     )
     buttons.data_button("Seeding", f"canall ms {MirrorStatus.STATUS_SEED} {user_id}")
     buttons.data_button(
-        "Spltting",
-        f"canall ms {MirrorStatus.STATUS_SPLIT} {user_id}",
+        "Spltting", f"canall ms {MirrorStatus.STATUS_SPLIT} {user_id}"
     )
     buttons.data_button(
-        "Cloning",
-        f"canall ms {MirrorStatus.STATUS_CLONE} {user_id}",
+        "Cloning", f"canall ms {MirrorStatus.STATUS_CLONE} {user_id}"
     )
     buttons.data_button(
         "Extracting",
@@ -123,12 +124,10 @@ def create_cancel_buttons(is_sudo, user_id=""):
         f"canall ms {MirrorStatus.STATUS_CONVERT} {user_id}",
     )
     buttons.data_button(
-        "FFmpeg",
-        f"canall ms {MirrorStatus.STATUS_FFMPEG} {user_id}",
+        "FFmpeg", f"canall ms {MirrorStatus.STATUS_FFMPEG} {user_id}"
     )
     buttons.data_button(
-        "Paused",
-        f"canall ms {MirrorStatus.STATUS_PAUSED} {user_id}",
+        "Paused", f"canall ms {MirrorStatus.STATUS_PAUSED} {user_id}"
     )
     buttons.data_button("All", f"canall ms All {user_id}")
     if is_sudo:
@@ -141,7 +140,7 @@ def create_cancel_buttons(is_sudo, user_id=""):
 
 
 @new_task
-async def cancell_all_buttons(_, message):
+async def cancel_all_buttons(_, message):
     async with task_dict_lock:
         count = len(task_dict)
     if count == 0:
@@ -193,22 +192,3 @@ async def cancel_all_update(_, query):
         res = await cancel_all(data[1], user_id)
         if not res:
             await send_message(reply_to, f"No matching tasks for {data[1]}!")
-
-
-bot.add_handler(
-    MessageHandler(
-        cancel_task,
-        filters=regex(r"^/stop(_\w+)?(?!all)") & CustomFilters.authorized,
-    ),
-)
-bot.add_handler(
-    MessageHandler(
-        cancell_all_buttons,
-        filters=command(
-            BotCommands.CancelAllCommand,
-        )
-        & CustomFilters.authorized,
-    ),
-)
-bot.add_handler(CallbackQueryHandler(cancel_all_update, filters=regex("^canall")))
-bot.add_handler(CallbackQueryHandler(cancel_multi, filters=regex("^stopm")))
