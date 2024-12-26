@@ -10,9 +10,9 @@ from bot import (
     intervals,
     qb_listener_lock,
     qb_torrents,
-    xnox_client,
     task_dict,
     task_dict_lock,
+    xnox_client,
 )
 from bot.core.config_manager import Config
 from bot.helper.ext_utils.bot_utils import new_task, sync_to_async
@@ -61,7 +61,8 @@ async def _stop_duplicate(tor):
     if task := await get_task_by_gid(tor.hash[:12]):
         if task.listener.stop_duplicate:
             task.listener.name = tor.content_path.rsplit("/", 1)[-1].rsplit(
-                ".!qB", 1
+                ".!qB",
+                1,
             )[0]
             msg, button = await stop_duplicate_check(task.listener)
             if msg:

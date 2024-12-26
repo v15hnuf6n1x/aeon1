@@ -25,19 +25,13 @@ from bot import (
     extension_filter,
     index_urls,
     intervals,
-    jd_lock,
-    nzb_options,
-    qbit_options,
-    xnox_client,
-    sabnzbd_client,
     task_dict,
 )
-from bot.core.config_manager import Config
 from bot.core.aeon_client import TgClient
-from bot.core.startup import update_nzb_options, update_qb_options, update_variables
+from bot.core.config_manager import Config
+from bot.core.startup import update_variables
 from bot.helper.ext_utils.bot_utils import SetInterval, new_task, sync_to_async
 from bot.helper.ext_utils.db_handler import database
-from bot.helper.ext_utils.jdownloader_booter import jdownloader
 from bot.helper.ext_utils.task_manager import start_from_queued
 from bot.helper.mirror_leech_utils.rclone_utils.serve import rclone_serve_booter
 from bot.helper.telegram_helper.button_build import ButtonMaker

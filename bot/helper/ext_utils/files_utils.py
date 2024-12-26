@@ -174,7 +174,8 @@ async def count_files_and_folders(path, extension_filter, unwanted_files=None):
 
 def get_base_name(orig_path):
     extension = next(
-        (ext for ext in ARCH_EXT if orig_path.lower().endswith(ext)), ""
+        (ext for ext in ARCH_EXT if orig_path.lower().endswith(ext)),
+        "",
     )
     if extension != "":
         return re_split(f"{extension}$", orig_path, maxsplit=1, flags=IGNORECASE)[0]

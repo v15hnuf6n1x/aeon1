@@ -36,7 +36,7 @@ class GoogleDriveClone(GoogleDriveHelper):
             self.listener.up_dest = self.listener.up_dest.replace("tp:", "", 1)
             self.use_sa = False
         elif self.listener.up_dest.startswith(
-            "sa:"
+            "sa:",
         ) or self.listener.link.startswith(
             "sa:",
         ):
@@ -62,7 +62,8 @@ class GoogleDriveClone(GoogleDriveHelper):
             mime_type = meta.get("mimeType")
             if mime_type == self.G_DRIVE_DIR_MIME_TYPE:
                 dir_id = self.create_directory(
-                    meta.get("name"), self.listener.up_dest
+                    meta.get("name"),
+                    self.listener.up_dest,
                 )
                 self._clone_folder(meta.get("name"), meta.get("id"), dir_id)
                 durl = self.G_DRIVE_DIR_BASE_DOWNLOAD_URL.format(dir_id)

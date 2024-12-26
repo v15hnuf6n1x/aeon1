@@ -1,3 +1,4 @@
+import subprocess
 from asyncio import Lock, new_event_loop, set_event_loop
 from logging import (
     ERROR,
@@ -10,7 +11,7 @@ from logging import (
 )
 from socket import setdefaulttimeout
 from time import time
-import subprocess
+
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from aria2p import API as ariaAPI
 from aria2p import Client as ariaClient
@@ -109,7 +110,6 @@ if ospath.exists("shorteners.txt"):
             temp = line.strip().split()
             if len(temp) == 2:
                 shorteners_list.append({"domain": temp[0], "api_key": temp[1]})
-
 
 
 scheduler = AsyncIOScheduler(timezone=str(get_localzone()), event_loop=bot_loop)

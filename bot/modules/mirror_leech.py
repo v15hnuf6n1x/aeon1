@@ -195,7 +195,7 @@ class Mirror(TaskListener):
                                 self.folder_name: {
                                     "total": self.multi,
                                     "tasks": {self.mid},
-                                }
+                                },
                             }
                 elif self.same_dir:
                     async with task_dict_lock:
@@ -318,7 +318,8 @@ class Mirror(TaskListener):
         ):
             content_type = await get_content_type(self.link)
             if content_type is None or re_match(
-                r"text/html|text/plain", content_type
+                r"text/html|text/plain",
+                content_type,
             ):
                 try:
                     self.link = await sync_to_async(direct_link_generator, self.link)

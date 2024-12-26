@@ -109,12 +109,12 @@ class TaskListener(TaskConfig):
                                 self.same_dir[self.folder_name]["total"] -= 1
                                 spath = f"{self.dir}{self.folder_name}"
                                 des_id = next(
-                                    iter(self.same_dir[self.folder_name]["tasks"])
+                                    iter(self.same_dir[self.folder_name]["tasks"]),
                                 )
                                 des_path = f"{Config.DOWNLOAD_DIR}{des_id}{self.folder_name}"
                                 await makedirs(des_path, exist_ok=True)
                                 LOGGER.info(
-                                    f"Moving files from {self.mid} to {des_id}"
+                                    f"Moving files from {self.mid} to {des_id}",
                                 )
                                 for item in await listdir(spath):
                                     if item.endswith((".aria2", ".!qB")):
@@ -245,7 +245,10 @@ class TaskListener(TaskConfig):
 
         if self.is_leech and not self.compress:
             await self.proceed_split(
-                up_dir, unwanted_files_size, unwanted_files, gid
+                up_dir,
+                unwanted_files_size,
+                unwanted_files,
+                gid,
             )
             if self.is_cancelled:
                 return

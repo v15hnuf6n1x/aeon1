@@ -82,7 +82,7 @@ class GoogleDriveHelper:
             self.sa_number = len(json_files)
             self.sa_index = randrange(self.sa_number)
             LOGGER.info(
-                f"Authorizing with {json_files[self.sa_index]} service account"
+                f"Authorizing with {json_files[self.sa_index]} service account",
             )
             credentials = service_account.Credentials.from_service_account_file(
                 f"accounts/{json_files[self.sa_index]}",
@@ -220,7 +220,7 @@ class GoogleDriveHelper:
         if not Config.IS_TEAM_DRIVE:
             self.set_permission(file_id)
         LOGGER.info(
-            f'Created G-Drive Folder:\nName: {file.get("name")}\nID: {file_id}'
+            f'Created G-Drive Folder:\nName: {file.get("name")}\nID: {file_id}',
         )
         return file_id
 

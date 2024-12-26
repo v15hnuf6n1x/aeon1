@@ -1,11 +1,10 @@
 from asyncio import gather
 from signal import SIGINT, signal
 
-from .core.config_manager import Config
-
 from . import LOGGER, bot_loop
-from .core.handlers import add_handlers
 from .core.aeon_client import TgClient
+from .core.config_manager import Config
+from .core.handlers import add_handlers
 from .core.startup import (
     load_configurations,
     load_settings,
@@ -25,8 +24,8 @@ from .modules import (
     restart_notification,
 )
 
-
 Config.load()
+
 
 async def main():
     await load_settings()

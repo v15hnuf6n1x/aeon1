@@ -31,8 +31,8 @@ from tenacity import (
     wait_exponential,
 )
 
-from bot.core.config_manager import Config
 from bot.core.aeon_client import TgClient
+from bot.core.config_manager import Config
 from bot.helper.ext_utils.bot_utils import sync_to_async
 from bot.helper.ext_utils.files_utils import (
     clean_unwanted,
@@ -166,7 +166,8 @@ class TelegramUploader:
                 name = get_base_name(file_)
                 ext = file_.split(name, 1)[1]
             elif match := re_match(
-                r".+(?=\..+\.0*\d+$)|.+(?=\.part\d+\..+$)", file_
+                r".+(?=\..+\.0*\d+$)|.+(?=\.part\d+\..+$)",
+                file_,
             ):
                 name = match.group(0)
                 ext = file_.split(name, 1)[1]
@@ -294,7 +295,8 @@ class TelegramUploader:
                             x for v in self._media_dict.values() for x in v
                         ]
                         match = re_match(
-                            r".+(?=\.0*\d+$)|.+(?=\.part\d+\..+$)", f_path
+                            r".+(?=\.0*\d+$)|.+(?=\.part\d+\..+$)",
+                            f_path,
                         )
                         if not match or (
                             match and match.group(0) not in group_lists
@@ -303,7 +305,9 @@ class TelegramUploader:
                                 for subkey, msgs in list(value.items()):
                                     if len(msgs) > 1:
                                         await self._send_media_group(
-                                            subkey, key, msgs
+                                            subkey,
+                                            key,
+                                            msgs,
                                         )
                     if (
                         self._listener.mixed_leech
@@ -377,7 +381,7 @@ class TelegramUploader:
             return
         if self._total_files <= self._corrupted:
             await self._listener.on_upload_error(
-                f"Files Corrupted or unable to upload. {self._error or 'Check logs!'}"
+                f"Files Corrupted or unable to upload. {self._error or 'Check logs!'}",
             )
             return
         LOGGER.info(f"Leech Completed: {self._listener.name}")

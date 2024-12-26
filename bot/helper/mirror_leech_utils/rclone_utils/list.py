@@ -181,7 +181,9 @@ class RcloneList:
         if not self.listener.is_cancelled:
             if self._reply_to is None:
                 self._reply_to = await send_message(
-                    self.listener.message, msg, button
+                    self.listener.message,
+                    msg,
+                    button,
                 )
             else:
                 await edit_message(self._reply_to, msg, button)

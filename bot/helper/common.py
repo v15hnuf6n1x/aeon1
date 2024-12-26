@@ -22,8 +22,8 @@ from bot import (
     task_dict_lock,
     user_data,
 )
-from bot.core.config_manager import Config
 from bot.core.aeon_client import TgClient
+from bot.core.config_manager import Config
 
 from .ext_utils.bot_utils import get_size_bytes, new_task, sync_to_async
 from .ext_utils.bulk_links import extract_bulk_links
@@ -165,19 +165,19 @@ class TaskConfig:
             else ["aria2", "!qB"]
         )
         if self.link not in ["rcl", "gdl"]:
-                if is_rclone_path(self.link):
-                    if not self.link.startswith("mrcc:") and self.user_dict.get(
-                        "user_tokens",
-                        False,
-                    ):
-                        self.link = f"mrcc:{self.link}"
-                    await self.is_token_exists(self.link, "dl")
-                elif is_gdrive_link(self.link):
-                    if not self.link.startswith(
-                        ("mtp:", "tp:", "sa:"),
-                    ) and self.user_dict.get("user_tokens", False):
-                        self.link = f"mtp:{self.link}"
-                    await self.is_token_exists(self.link, "dl")
+            if is_rclone_path(self.link):
+                if not self.link.startswith("mrcc:") and self.user_dict.get(
+                    "user_tokens",
+                    False,
+                ):
+                    self.link = f"mrcc:{self.link}"
+                await self.is_token_exists(self.link, "dl")
+            elif is_gdrive_link(self.link):
+                if not self.link.startswith(
+                    ("mtp:", "tp:", "sa:"),
+                ) and self.user_dict.get("user_tokens", False):
+                    self.link = f"mtp:{self.link}"
+                await self.is_token_exists(self.link, "dl")
         elif self.link == "rcl":
             if not self.is_ytdlp:
                 self.link = await RcloneList(self).get_rclone_path("rcd")
@@ -545,7 +545,9 @@ class TaskConfig:
     async def decompress_zst(self, dl_path, is_dir=False):
         if is_dir:
             for dirpath, _, files in await sync_to_async(
-                walk, dl_path, topdown=False
+                walk,
+                dl_path,
+                topdown=False,
             ):
                 for file_ in files:
                     if file_.endswith(".zst"):
@@ -591,7 +593,7 @@ class TaskConfig:
                 except:
                     stderr = "Unable to decode the error!"
                 LOGGER.error(
-                    f"{stderr}. Unable to extract zst file!. Path: {dl_path}"
+                    f"{stderr}. Unable to extract zst file!. Path: {dl_path}",
                 )
             elif not self.seed:
                 await remove(dl_path)
@@ -890,7 +892,9 @@ class TaskConfig:
                     return new_folder
         else:
             for dirpath, _, files in await sync_to_async(
-                walk, dl_path, topdown=False
+                walk,
+                dl_path,
+                topdown=False,
             ):
                 for file_ in files:
                     f_path = ospath.join(dirpath, file_)
@@ -1019,7 +1023,9 @@ class TaskConfig:
                 return output_file
         else:
             for dirpath, _, files in await sync_to_async(
-                walk, dl_path, topdown=False
+                walk,
+                dl_path,
+                topdown=False,
             ):
                 for file_ in files:
                     if self.is_cancelled:
@@ -1068,7 +1074,9 @@ class TaskConfig:
         else:
             LOGGER.info(f"Creating Screenshot for: {dl_path}")
             for dirpath, _, files in await sync_to_async(
-                walk, dl_path, topdown=False
+                walk,
+                dl_path,
+                topdown=False,
             ):
                 for file_ in files:
                     f_path = ospath.join(dirpath, file_)
@@ -1094,7 +1102,10 @@ class TaskConfig:
                     res = ""
                 try:
                     name = sub(
-                        rf"{pattern}", res, name, flags=IGNORECASE if sen else 0
+                        rf"{pattern}",
+                        res,
+                        name,
+                        flags=IGNORECASE if sen else 0,
                     )
                 except Exception as e:
                     LOGGER.error(
@@ -1213,7 +1224,9 @@ class TaskConfig:
                             checked = True
                             async with task_dict_lock:
                                 task_dict[self.mid] = FFmpegStatus(
-                                    self, gid, "FFmpeg"
+                                    self,
+                                    gid,
+                                    "FFmpeg",
                                 )
                             await cpu_eater_lock.acquire()
                         LOGGER.info(f"Running ffmpeg cmd for: {f_path}")

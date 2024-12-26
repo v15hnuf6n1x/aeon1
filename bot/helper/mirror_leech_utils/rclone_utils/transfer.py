@@ -361,7 +361,7 @@ class RcloneTransferHelper:
             and not self._listener.rc_flags
         ):
             cmd.extend(
-                ("--drive-chunk-size", "128M", "--drive-upload-cutoff", "128M")
+                ("--drive-chunk-size", "128M", "--drive-upload-cutoff", "128M"),
             )
 
         result = await self._start_upload(cmd, remote_type)
@@ -403,7 +403,7 @@ class RcloneTransferHelper:
                 if not err:
                     err = "Use <code>/shell cat rlog.txt</code> to see more information"
                 LOGGER.error(
-                    f"while getting link. Path: {destination} | Stderr: {err}"
+                    f"while getting link. Path: {destination} | Stderr: {err}",
                 )
                 link = ""
         if self._listener.is_cancelled:

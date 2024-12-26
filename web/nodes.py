@@ -112,7 +112,8 @@ def make_tree(res, tool=False):
                         previous_node = current_node
                 try:
                     progress = round(
-                        (int(i["completedLength"]) / int(i["length"])) * 100, 5
+                        (int(i["completedLength"]) / int(i["length"])) * 100,
+                        5,
                     )
                 except:
                     progress = 0

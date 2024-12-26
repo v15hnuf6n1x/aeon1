@@ -24,7 +24,8 @@ async def initiate_search_tools():
         if qb_plugins:
             names = [plugin["name"] for plugin in qb_plugins]
             await sync_to_async(
-                xnox_client.search_uninstall_plugin, names=names
+                xnox_client.search_uninstall_plugin,
+                names=names,
             )
         await sync_to_async(
             xnox_client.search_install_plugin,

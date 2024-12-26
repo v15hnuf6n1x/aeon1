@@ -151,7 +151,10 @@ async def _on_bt_download_complete(api, gid):
             async with task_dict_lock:
                 if task.listener.mid not in task_dict:
                     await sync_to_async(
-                        api.remove, [download], force=True, files=True
+                        api.remove,
+                        [download],
+                        force=True,
+                        files=True,
                     )
                     return
                 task_dict[task.listener.mid] = Aria2Status(task.listener, gid, True)

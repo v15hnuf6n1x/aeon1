@@ -11,8 +11,8 @@ from pyrogram.filters import create
 from pyrogram.handlers import MessageHandler
 
 from bot import extension_filter, user_data
-from bot.core.config_manager import Config
 from bot.core.aeon_client import TgClient
+from bot.core.config_manager import Config
 from bot.helper.ext_utils.bot_utils import (
     get_size_bytes,
     new_task,
@@ -684,7 +684,8 @@ Here I will explain how to use mltb.* which is reference to files you want to wo
         buttons = ButtonMaker()
         if user_dict.get("rclone_path", False):
             buttons.data_button(
-                "Reset Rclone Path", f"userset {user_id} rclone_path"
+                "Reset Rclone Path",
+                f"userset {user_id} rclone_path",
             )
         buttons.data_button("Back", f"userset {user_id} rclone")
         buttons.data_button("Close", f"userset {user_id} close")
@@ -809,7 +810,8 @@ Here I will explain how to use mltb.* which is reference to files you want to wo
         buttons = ButtonMaker()
         if user_dict.get("name_sub", False):
             buttons.data_button(
-                "Remove Name Subtitute", f"userset {user_id} name_sub"
+                "Remove Name Subtitute",
+                f"userset {user_id} name_sub",
             )
         buttons.data_button("Back", f"userset {user_id} back")
         buttons.data_button("Close", f"userset {user_id} close")

@@ -165,7 +165,7 @@ class Clone(TaskListener):
                 if self.multi <= 1:
                     await send_status_message(self.message)
             flink, mime_type, files, folders, dir_id = await sync_to_async(
-                drive.clone
+                drive.clone,
             )
             if msg:
                 await delete_message(msg)

@@ -460,7 +460,8 @@ async def event_handler(client, query, pfunc):
         )
 
     handler = client.add_handler(
-        MessageHandler(pfunc, create(event_filter)), group=-1
+        MessageHandler(pfunc, create(event_filter)),
+        group=-1,
     )
     while handler_dict[user_id]:
         await sleep(0.5)

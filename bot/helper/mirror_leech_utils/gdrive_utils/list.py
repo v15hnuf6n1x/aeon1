@@ -161,7 +161,9 @@ class GoogleDriveList(GoogleDriveHelper):
         if not self.listener.is_cancelled:
             if self._reply_to is None:
                 self._reply_to = await send_message(
-                    self.listener.message, msg, button
+                    self.listener.message,
+                    msg,
+                    button,
                 )
             else:
                 await edit_message(self._reply_to, msg, button)
@@ -198,7 +200,9 @@ class GoogleDriveList(GoogleDriveHelper):
                 buttons.data_button("Files", "gdq itype files", position="footer")
             else:
                 buttons.data_button(
-                    "Folders", "gdq itype folders", position="footer"
+                    "Folders",
+                    "gdq itype folders",
+                    position="footer",
                 )
         if self.list_status == "gdu" or len(self.items_list) > 0:
             buttons.data_button("Choose Current Path", "gdq cur", position="footer")

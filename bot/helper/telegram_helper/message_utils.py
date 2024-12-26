@@ -5,8 +5,8 @@ from time import time
 from pyrogram.errors import FloodPremiumWait, FloodWait
 
 from bot import LOGGER, intervals, status_dict, task_dict_lock
-from bot.core.config_manager import Config
 from bot.core.aeon_client import TgClient
+from bot.core.config_manager import Config
 from bot.helper.ext_utils.bot_utils import SetInterval
 from bot.helper.ext_utils.exceptions import TgLinkException
 from bot.helper.ext_utils.status_utils import get_readable_message
@@ -124,7 +124,7 @@ async def get_tg_link_message(link):
         )
         if not TgClient.user:
             raise TgLinkException(
-                "USER_SESSION_STRING required for this private link!"
+                "USER_SESSION_STRING required for this private link!",
             )
 
     chat = msg[1]
@@ -155,7 +155,8 @@ async def get_tg_link_message(link):
     if not private:
         try:
             message = await TgClient.bot.get_messages(
-                chat_id=chat, message_ids=msg_id
+                chat_id=chat,
+                message_ids=msg_id,
             )
             if message.empty:
                 private = True

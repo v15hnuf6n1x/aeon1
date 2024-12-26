@@ -128,7 +128,9 @@ class YoutubeDLHelper:
     async def _on_download_start(self, from_queue=False):
         async with task_dict_lock:
             task_dict[self._listener.mid] = YtDlpStatus(
-                self._listener, self, self._gid
+                self._listener,
+                self,
+                self._gid,
             )
         if not from_queue:
             await self._listener.on_download_start()
@@ -366,7 +368,7 @@ class YoutubeDLHelper:
             elif value.lower() == "false":
                 value = False
             elif value.startswith(("{", "[", "(")) and value.endswith(
-                ("}", "]", ")")
+                ("}", "]", ")"),
             ):
                 value = eval(value)
 

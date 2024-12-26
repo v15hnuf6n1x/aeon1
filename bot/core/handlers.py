@@ -180,7 +180,7 @@ def add_handlers():
         ),
     )
     TgClient.bot.add_handler(
-        CallbackQueryHandler(rss_listener, filters=regex("^rss"))
+        CallbackQueryHandler(rss_listener, filters=regex("^rss")),
     )
     TgClient.bot.add_handler(
         MessageHandler(

@@ -6,10 +6,10 @@ from aiofiles.os import remove
 from bot import (
     LOGGER,
     aria2,
-    xnox_client,
     task_dict,
     task_dict_lock,
     user_data,
+    xnox_client,
 )
 from bot.core.config_manager import Config
 from bot.helper.ext_utils.bot_utils import (

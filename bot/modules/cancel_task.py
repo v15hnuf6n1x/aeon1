@@ -94,10 +94,12 @@ def create_cancel_buttons(is_sudo, user_id=""):
     )
     buttons.data_button("Seeding", f"canall ms {MirrorStatus.STATUS_SEED} {user_id}")
     buttons.data_button(
-        "Spltting", f"canall ms {MirrorStatus.STATUS_SPLIT} {user_id}"
+        "Spltting",
+        f"canall ms {MirrorStatus.STATUS_SPLIT} {user_id}",
     )
     buttons.data_button(
-        "Cloning", f"canall ms {MirrorStatus.STATUS_CLONE} {user_id}"
+        "Cloning",
+        f"canall ms {MirrorStatus.STATUS_CLONE} {user_id}",
     )
     buttons.data_button(
         "Extracting",
@@ -124,10 +126,12 @@ def create_cancel_buttons(is_sudo, user_id=""):
         f"canall ms {MirrorStatus.STATUS_CONVERT} {user_id}",
     )
     buttons.data_button(
-        "FFmpeg", f"canall ms {MirrorStatus.STATUS_FFMPEG} {user_id}"
+        "FFmpeg",
+        f"canall ms {MirrorStatus.STATUS_FFMPEG} {user_id}",
     )
     buttons.data_button(
-        "Paused", f"canall ms {MirrorStatus.STATUS_PAUSED} {user_id}"
+        "Paused",
+        f"canall ms {MirrorStatus.STATUS_PAUSED} {user_id}",
     )
     buttons.data_button("All", f"canall ms All {user_id}")
     if is_sudo:

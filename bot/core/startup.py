@@ -1,12 +1,11 @@
-from asyncio import create_subprocess_exec, create_subprocess_shell
-
 import subprocess
+from asyncio import create_subprocess_exec, create_subprocess_shell
+from os import environ
 
 from aiofiles import open as aiopen
 from aiofiles.os import makedirs, remove
 from aiofiles.os import path as aiopath
 from aioshutil import rmtree
-from os import environ, getcwd
 
 from bot import (
     LOGGER,
@@ -17,14 +16,14 @@ from bot import (
     extension_filter,
     index_urls,
     qbit_options,
-    xnox_client,
     rss_dict,
     user_data,
+    xnox_client,
 )
 from bot.helper.ext_utils.db_handler import database
 
-from .config_manager import Config
 from .aeon_client import TgClient
+from .config_manager import Config
 
 
 def update_qb_options():
@@ -55,7 +54,7 @@ async def load_settings():
         BOT_ID = Config.BOT_TOKEN.split(":", 1)[0]
         config_file = Config.get_all()
         old_config = await database.db.settings.deployConfig.find_one(
-            {"_id": BOT_ID}
+            {"_id": BOT_ID},
         )
         if old_config is None:
             database.db.settings.deployConfig.replace_one(
@@ -223,9 +222,9 @@ async def load_configurations():
 
     PORT = environ.get("BASE_URL_PORT") or environ.get("PORT")
     await create_subprocess_shell(
-            f"gunicorn web.wserver:app --bind 0.0.0.0:{PORT} --worker-class gevent",
-        )
-    
+        f"gunicorn web.wserver:app --bind 0.0.0.0:{PORT} --worker-class gevent",
+    )
+
     if await aiopath.exists("accounts.zip"):
         if await aiopath.exists("accounts"):
             await rmtree("accounts")

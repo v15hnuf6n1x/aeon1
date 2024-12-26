@@ -50,7 +50,7 @@ class GoogleDriveUpload(GoogleDriveHelper):
         try:
             if ospath.isfile(self._path):
                 if self._path.lower().endswith(
-                    tuple(self.listener.extension_filter)
+                    tuple(self.listener.extension_filter),
                 ):
                     raise Exception(
                         "This file extension is excluded by extension filter!",
@@ -76,7 +76,10 @@ class GoogleDriveUpload(GoogleDriveHelper):
                     self.listener.up_dest,
                 )
                 result = self._upload_dir(
-                    self._path, dir_id, unwanted_files, ft_delete
+                    self._path,
+                    dir_id,
+                    unwanted_files,
+                    ft_delete,
                 )
                 if result is None:
                     raise Exception("Upload has been manually cancelled!")
@@ -178,7 +181,9 @@ class GoogleDriveUpload(GoogleDriveHelper):
 
         if ospath.getsize(file_path) == 0:
             media_body = MediaFileUpload(
-                file_path, mimetype=mime_type, resumable=False
+                file_path,
+                mimetype=mime_type,
+                resumable=False,
             )
             response = (
                 self.service.files()

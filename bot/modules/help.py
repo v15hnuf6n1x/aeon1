@@ -28,7 +28,9 @@ async def arg_usage(_, query):
             )
         elif data[2] == "y":
             await edit_message(
-                message, COMMAND_USAGE["yt"][0], COMMAND_USAGE["yt"][1]
+                message,
+                COMMAND_USAGE["yt"][0],
+                COMMAND_USAGE["yt"][1],
             )
         elif data[2] == "c":
             await edit_message(
