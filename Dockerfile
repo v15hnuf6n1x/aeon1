@@ -1,4 +1,4 @@
-FROM 5hojib/aeon:dev
+FROM 5hojib/aeon:beta
 
 WORKDIR /usr/src/app
 RUN chmod 777 /usr/src/app
