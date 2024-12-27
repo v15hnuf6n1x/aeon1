@@ -69,7 +69,7 @@ extension_filter = ["aria2", "!qB"]
 drives_names = []
 drives_ids = []
 index_urls = []
-shorteners_list = {}
+shorteners_list = []
 
 aria2 = ariaAPI(ariaClient(host="http://localhost", port=6800, secret=""))
 
