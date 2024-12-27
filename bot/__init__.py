@@ -9,7 +9,7 @@ from logging import (
     basicConfig,
     getLogger,
 )
-from os import getcwd
+import os
 from socket import setdefaulttimeout
 from time import time
 
@@ -73,7 +73,7 @@ shorteners_list = {}
 
 aria2 = ariaAPI(ariaClient(host="http://localhost", port=6800, secret=""))
 
-subprocess.run(["xnox", "-d", f"--profile={getcwd()}"], check=False)
+subprocess.run(["xnox", "-d", f"--profile={os.getcwd()}"], check=False)
 
 
 xnox_client = QbClient(
@@ -103,7 +103,7 @@ with open("a2c.conf", "a+") as a:
 subprocess.run(["xria", "--conf-path=/usr/src/app/a2c.conf"], check=False)
 
 
-if ospath.exists("shorteners.txt"):
+if os.path.exists("shorteners.txt"):
     with open("shorteners.txt", "r+") as f:
         lines = f.readlines()
         for line in lines:
