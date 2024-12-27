@@ -1,4 +1,3 @@
-from os import getcwd
 import subprocess
 from asyncio import Lock, new_event_loop, set_event_loop
 from logging import (
@@ -10,6 +9,7 @@ from logging import (
     basicConfig,
     getLogger,
 )
+from os import getcwd
 from socket import setdefaulttimeout
 from time import time
 
@@ -98,7 +98,7 @@ trackers = (
 )
 
 with open("a2c.conf", "a+") as a:
-    a.write(f"bt-stop-timeout=600\n")
+    a.write("bt-stop-timeout=600\n")
     a.write(f"bt-tracker=[{trackers}]")
 subprocess.run(["xria", "--conf-path=/usr/src/app/a2c.conf"], check=False)
 
