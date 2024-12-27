@@ -52,7 +52,6 @@ class Config:
     USER_TRANSMISSION = False
     UPSTREAM_REPO = ""
     UPSTREAM_BRANCH = "master"
-    USENET_SERVERS = []
     USER_SESSION_STRING = ""
     USE_SERVICE_ACCOUNTS = False
     WEB_PINCODE = False
@@ -110,9 +109,6 @@ class Config:
                 elif key == "DOWNLOAD_DIR":
                     if not value.endswith("/"):
                         value = f"{value}/"
-                elif key == "USENET_SERVERS":
-                    if not value[0].get("host"):
-                        continue
                 setattr(cls, key, value)
         for key in ["BOT_TOKEN", "OWNER_ID", "TELEGRAM_API", "TELEGRAM_HASH"]:
             value = getattr(cls, key)
