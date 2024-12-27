@@ -1,3 +1,4 @@
+from os import getcwd
 import subprocess
 from asyncio import Lock, new_event_loop, set_event_loop
 from logging import (
@@ -97,8 +98,7 @@ trackers = (
 )
 
 with open("a2c.conf", "a+") as a:
-    if TORRENT_TIMEOUT is not None:
-        a.write(f"bt-stop-timeout={TORRENT_TIMEOUT}\n")
+    a.write(f"bt-stop-timeout=600\n")
     a.write(f"bt-tracker=[{trackers}]")
 subprocess.run(["xria", "--conf-path=/usr/src/app/a2c.conf"], check=False)
 
