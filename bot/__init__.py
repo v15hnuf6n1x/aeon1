@@ -1,3 +1,4 @@
+import os
 import subprocess
 from asyncio import Lock, new_event_loop, set_event_loop
 from logging import (
@@ -9,7 +10,6 @@ from logging import (
     basicConfig,
     getLogger,
 )
-import os
 from socket import setdefaulttimeout
 from time import time
 
