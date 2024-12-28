@@ -24,7 +24,9 @@ async def restart_bot(_, message):
     buttons.data_button("Cancel", "botrestart cancel")
     button = buttons.build_menu(2)
     await send_message(
-        message, "Are you sure you want to restart the bot ?!", button
+        message,
+        "Are you sure you want to restart the bot ?!",
+        button,
     )
 
 
