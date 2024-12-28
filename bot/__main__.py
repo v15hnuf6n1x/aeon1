@@ -27,6 +27,11 @@ from .modules import (
     initiate_search_tools,
     restart_notification,
 )
+from .helper.telegram_helper.message_utils import (
+    send_message,
+    edit_message,
+    delete_message,
+)
 
 Config.load()
 
