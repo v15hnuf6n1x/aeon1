@@ -1,6 +1,9 @@
 from asyncio import gather
 from signal import SIGINT, signal
 
+from pyrogram.filters import regex
+from pyrogram.handlers import CallbackQueryHandler
+
 from . import LOGGER, bot_loop
 from .core.aeon_client import TgClient
 from .core.config_manager import Config
@@ -13,21 +16,20 @@ from .core.startup import (
     update_qb_options,
     update_variables,
 )
-from .helper.ext_utils.bot_utils import create_help_buttons, sync_to_async, new_task
+from .helper.ext_utils.bot_utils import create_help_buttons, new_task, sync_to_async
 from .helper.ext_utils.files_utils import clean_all, exit_clean_up
 from .helper.ext_utils.telegraph_helper import telegraph
 from .helper.listeners.aria2_listener import start_aria2_listener
 from .helper.mirror_leech_utils.rclone_utils.serve import rclone_serve_booter
+from .helper.telegram_helper.filters import CustomFilters
 from .modules import (
     get_packages_version,
     initiate_search_tools,
     restart_notification,
 )
-from .helper.telegram_helper.filters import CustomFilters
-from pyrogram.filters import regex
-from pyrogram.handlers import CallbackQueryHandler
 
 Config.load()
+
 
 @new_task
 async def restart_sessions_confirm(_, query):
@@ -43,11 +45,12 @@ async def restart_sessions_confirm(_, query):
             CallbackQueryHandler(
                 restart_sessions_confirm,
                 filters=regex("^sessionrestart") & CustomFilters.sudo,
-            )
+            ),
         )
         await edit_message(restart_message, "Session(s) Restarted Successfully!")
     else:
         await delete_message(message)
+
 
 async def main():
     await load_settings()
@@ -73,7 +76,7 @@ async def main():
         CallbackQueryHandler(
             restart_sessions_confirm,
             filters=regex("^sessionrestart") & CustomFilters.sudo,
-        )
+        ),
     )
     LOGGER.info("Bot Started!")
     signal(SIGINT, exit_clean_up)

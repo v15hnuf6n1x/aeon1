@@ -91,7 +91,6 @@ async def get_telegraph_list(telegraph_content):
 
 
 def arg_parser(items, arg_base):
-
     if not items:
         return
 
@@ -116,6 +115,7 @@ def arg_parser(items, arg_base):
         "-doc",
         "-med",
     }
+
     def process_argument_with_values(start_index):
         values = []
         for j in range(start_index + 1, total):

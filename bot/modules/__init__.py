@@ -16,9 +16,9 @@ from .mirror_leech import (
     qb_mirror,
 )
 from .restart import (
+    confirm_restart,
     restart_bot,
     restart_notification,
-    confirm_restart,
     restart_sessions,
 )
 from .rss import get_rss_menu, rss_listener
@@ -47,6 +47,7 @@ __all__ = [
     "cancel_multi",
     "clear",
     "clone_node",
+    "confirm_restart",
     "confirm_selection",
     "count_node",
     "delete_file",
@@ -68,7 +69,6 @@ __all__ = [
     "remove_sudo",
     "restart_bot",
     "restart_notification",
-    "confirm_restart",
     "restart_sessions",
     "rss_listener",
     "run_shell",

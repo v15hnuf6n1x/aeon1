@@ -398,7 +398,11 @@ class TelegramUploader:
         retry=retry_if_exception_type(Exception),
     )
     async def _upload_file(self, cap_mono, file, o_path, force_document=False):
-        if self._thumb is not None and not await aiopath.exists(self._thumb) and self._thumb != "none":
+        if (
+            self._thumb is not None
+            and not await aiopath.exists(self._thumb)
+            and self._thumb != "none"
+        ):
             self._thumb = None
         thumb = self._thumb
         self._is_corrupted = False
