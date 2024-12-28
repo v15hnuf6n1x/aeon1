@@ -7,7 +7,7 @@ from aiofiles import open as aiopen
 from aiofiles.os import path as aiopath
 from aiofiles.os import remove
 
-from bot import LOGGER, intervals, sabnzbd_client, scheduler
+from bot import LOGGER, intervals, scheduler
 from bot.core.config_manager import Config
 from bot.core.mltb_client import TgClient
 from bot.helper.ext_utils.bot_utils import new_task, sync_to_async
@@ -115,12 +115,6 @@ async def confirm_restart(_, query):
             for intvl in list(st.values()):
                 intvl.cancel()
         await sync_to_async(clean_all)
-        if sabnzbd_client.LOGGED_IN:
-            await gather(
-                sabnzbd_client.pause_all(),
-                sabnzbd_client.purge_all(True),
-                sabnzbd_client.delete_history("all", delete_files=True),
-            )
         proc1 = await create_subprocess_exec(
             "pkill",
             "-9",

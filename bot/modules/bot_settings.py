@@ -65,10 +65,6 @@ async def get_buttons(key=None, edit_type=None):
     if key is None:
         buttons.data_button("Config Variables", "botset var")
         buttons.data_button("Private Files", "botset private")
-        buttons.data_button("Qbit Settings", "botset qbit")
-        buttons.data_button("Aria2c Settings", "botset aria")
-        buttons.data_button("Sabnzbd Settings", "botset nzb")
-        buttons.data_button("JDownloader Sync", "botset syncjd")
         buttons.data_button("Close", "botset close")
         msg = "Bot Settings:"
     elif edit_type is not None:
