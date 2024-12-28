@@ -156,9 +156,9 @@ class YoutubeDLHelper:
                     if not entry:
                         continue
                     if "filesize_approx" in entry:
-                        self._listener.size += entry["filesize_approx"]
+                        self._listener.size += entry.get("filesize_approx", 0)
                     elif "filesize" in entry:
-                        self._listener.size += entry["filesize"]
+                        self._listener.size += entry.get("filesize", 0)
                     if not self._listener.name:
                         outtmpl_ = "%(series,playlist_title,channel)s%(season_number& |)s%(season_number&S|)s%(season_number|)02d.%(ext)s"
                         self._listener.name, ext = ospath.splitext(
@@ -197,8 +197,8 @@ class YoutubeDLHelper:
             if self._listener.is_cancelled:
                 return
             async_to_sync(self._listener.on_download_complete)
-        except ValueError:
-            self._on_download_error("Download Stopped by User!")
+        except Exception:
+            pass
 
     async def add_download(self, path, qual, playlist, options):
         if playlist:
@@ -352,7 +352,7 @@ class YoutubeDLHelper:
     async def cancel_task(self):
         self._listener.is_cancelled = True
         LOGGER.info(f"Cancelling Download: {self._listener.name}")
-        await self._listener.on_download_error("Download Cancelled by User!")
+        await self._listener.on_download_error("Stopped by User!")
 
     def _set_options(self, options):
         options = options.split("|")

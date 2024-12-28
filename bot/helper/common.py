@@ -412,7 +412,7 @@ class TaskConfig:
                 )
             )
 
-            if is_telegram_link(self.thumb):
+            if self.thumb != "none" and is_telegram_link(self.thumb):
                 msg = (await get_tg_link_message(self.thumb))[0]
                 self.thumb = (
                     await create_thumb(msg) if msg.photo or msg.document else ""
@@ -1199,6 +1199,9 @@ class TaskConfig:
                 res = await run_ffmpeg_cmd(self, cmd, file_path)
                 if res and delete_files:
                     await remove(file_path)
+                    if "ffmpeg." in res:
+                        newres = res.replace("ffmpeg.", "")
+                        await move(res, newres)
             else:
                 for dirpath, _, files in await sync_to_async(
                     walk,
@@ -1233,6 +1236,9 @@ class TaskConfig:
                         res = await run_ffmpeg_cmd(self, cmd, f_path)
                         if res and delete_files:
                             await remove(f_path)
+                            if "ffmpeg." in res:
+                                newres = res.replace("ffmpeg.", "")
+                                await move(res, newres)
         if checked:
             cpu_eater_lock.release()
         return dl_path

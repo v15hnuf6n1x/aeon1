@@ -13,7 +13,7 @@ from .core.startup import (
     update_qb_options,
     update_variables,
 )
-from .helper.ext_utils.bot_utils import create_help_buttons, sync_to_async
+from .helper.ext_utils.bot_utils import create_help_buttons, sync_to_async, new_task
 from .helper.ext_utils.files_utils import clean_all, exit_clean_up
 from .helper.ext_utils.telegraph_helper import telegraph
 from .helper.listeners.aria2_listener import start_aria2_listener
@@ -23,9 +23,31 @@ from .modules import (
     initiate_search_tools,
     restart_notification,
 )
+from .helper.telegram_helper.filters import CustomFilters
+from pyrogram.filters import regex
+from pyrogram.handlers import CallbackQueryHandler
 
 Config.load()
 
+@new_task
+async def restart_sessions_confirm(_, query):
+    data = query.data.split()
+    message = query.message
+    if data[1] == "confirm":
+        reply_to = message.reply_to_message
+        restart_message = await send_message(reply_to, "Restarting Session(s)...")
+        await delete_message(message)
+        await TgClient.reload()
+        add_handlers()
+        TgClient.bot.add_handler(
+            CallbackQueryHandler(
+                restart_sessions_confirm,
+                filters=regex("^sessionrestart") & CustomFilters.sudo,
+            )
+        )
+        await edit_message(restart_message, "Session(s) Restarted Successfully!")
+    else:
+        await delete_message(message)
 
 async def main():
     await load_settings()
@@ -47,6 +69,12 @@ async def main():
     )
     create_help_buttons()
     add_handlers()
+    TgClient.bot.add_handler(
+        CallbackQueryHandler(
+            restart_sessions_confirm,
+            filters=regex("^sessionrestart") & CustomFilters.sudo,
+        )
+    )
     LOGGER.info("Bot Started!")
     signal(SIGINT, exit_clean_up)
 

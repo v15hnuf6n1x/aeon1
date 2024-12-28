@@ -209,9 +209,6 @@ async def update_variables():
                 else:
                     index_urls.append("")
 
-    if not await aiopath.exists("accounts"):
-        Config.USE_SERVICE_ACCOUNTS = False
-
 
 async def load_configurations():
     if not await aiopath.exists(".netrc"):
@@ -240,3 +237,6 @@ async def load_configurations():
         ).wait()
         await (await create_subprocess_exec("chmod", "-R", "777", "accounts")).wait()
         await remove("accounts.zip")
+
+    if not await aiopath.exists("accounts"):
+        Config.USE_SERVICE_ACCOUNTS = False

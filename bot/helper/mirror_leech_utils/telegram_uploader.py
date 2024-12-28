@@ -94,7 +94,7 @@ class TelegramUploader:
             if "lprefix" not in self._listener.user_dict
             else ""
         )
-        if not await aiopath.exists(self._thumb):
+        if self._thumb != "none" and not await aiopath.exists(self._thumb):
             self._thumb = None
 
     async def _msg_to_reply(self):
@@ -398,7 +398,7 @@ class TelegramUploader:
         retry=retry_if_exception_type(Exception),
     )
     async def _upload_file(self, cap_mono, file, o_path, force_document=False):
-        if self._thumb is not None and not await aiopath.exists(self._thumb):
+        if self._thumb is not None and not await aiopath.exists(self._thumb) and self._thumb != "none":
             self._thumb = None
         thumb = self._thumb
         self._is_corrupted = False
@@ -424,6 +424,8 @@ class TelegramUploader:
 
                 if self._listener.is_cancelled:
                     return None
+                if thumb == "none":
+                    thumb = None
                 self._sent_msg = await self._sent_msg.reply_document(
                     document=self._up_path,
                     quote=True,
@@ -444,7 +446,7 @@ class TelegramUploader:
                     )
                 if thumb is None:
                     thumb = await get_video_thumbnail(self._up_path, duration)
-                if thumb is not None:
+                if thumb is not None and thumb != "none":
                     with Image.open(thumb) as img:
                         width, height = img.size
                 else:
@@ -452,6 +454,8 @@ class TelegramUploader:
                     height = 320
                 if self._listener.is_cancelled:
                     return None
+                if thumb == "none":
+                    thumb = None
                 self._sent_msg = await self._sent_msg.reply_video(
                     video=self._up_path,
                     quote=True,

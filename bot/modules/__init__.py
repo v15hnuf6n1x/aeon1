@@ -15,7 +15,12 @@ from .mirror_leech import (
     qb_leech,
     qb_mirror,
 )
-from .restart import restart_bot, restart_notification
+from .restart import (
+    restart_bot,
+    restart_notification,
+    confirm_restart,
+    restart_sessions,
+)
 from .rss import get_rss_menu, rss_listener
 from .search import initiate_search_tools, torrent_search, torrent_search_update
 from .services import log, ping, start
@@ -63,6 +68,8 @@ __all__ = [
     "remove_sudo",
     "restart_bot",
     "restart_notification",
+    "confirm_restart",
+    "restart_sessions",
     "rss_listener",
     "run_shell",
     "select",

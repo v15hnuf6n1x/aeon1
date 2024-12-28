@@ -84,12 +84,12 @@ class Config:
         for attr in dir(settings):
             if hasattr(cls, attr):
                 value = getattr(settings, attr)
-                if isinstance(value, str):
-                    value = value.strip()
                 if not value:
                     continue
-                if attr == "DEFAULT_UPLOAD" and value != "rc":
-                    value = "gd"
+                if isinstance(value, str):
+                    value = value.strip()
+                if attr == "DEFAULT_UPLOAD" and value != "gd":
+                    value = "rc"
                 elif attr == "DOWNLOAD_DIR" and not value.endswith("/"):
                     value = f"{value}/"
                 setattr(cls, attr, value)
@@ -104,8 +104,8 @@ class Config:
     def load_dict(cls, config_dict):
         for key, value in config_dict.items():
             if hasattr(cls, key):
-                if key == "DEFAULT_UPLOAD" and value != "rc":
-                    value = "gd"
+                if key == "DEFAULT_UPLOAD" and value != "gd":
+                    value = "rc"
                 elif key == "DOWNLOAD_DIR":
                     if not value.endswith("/"):
                         value = f"{value}/"
