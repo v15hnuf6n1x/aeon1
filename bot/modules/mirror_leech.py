@@ -14,9 +14,9 @@ from bot.helper.ext_utils.bot_utils import (
 from bot.helper.ext_utils.exceptions import DirectDownloadLinkException
 from bot.helper.ext_utils.links_utils import (
     is_gdrive_id,
-    is_mega_link,
     is_gdrive_link,
     is_magnet,
+    is_mega_link,
     is_rclone_path,
     is_telegram_link,
     is_url,
@@ -28,13 +28,13 @@ from bot.helper.mirror_leech_utils.download_utils.aria2_download import (
 from bot.helper.mirror_leech_utils.download_utils.direct_downloader import (
     add_direct_download,
 )
-from bot.helper.mirror_leech_utils.download_utils.mega_download import (
-    add_mega_download,
-)
 from bot.helper.mirror_leech_utils.download_utils.direct_link_generator import (
     direct_link_generator,
 )
 from bot.helper.mirror_leech_utils.download_utils.gd_download import add_gd_download
+from bot.helper.mirror_leech_utils.download_utils.mega_download import (
+    add_mega_download,
+)
 from bot.helper.mirror_leech_utils.download_utils.qbit_download import add_qb_torrent
 from bot.helper.mirror_leech_utils.download_utils.rclone_download import (
     add_rclone_download,

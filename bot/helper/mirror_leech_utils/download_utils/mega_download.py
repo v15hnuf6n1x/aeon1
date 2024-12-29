@@ -1,4 +1,5 @@
 from secrets import token_hex
+
 from aiofiles.os import makedirs
 from mega import MegaApi
 
@@ -91,7 +92,9 @@ async def add_mega_download(listener, path):
         from_queue = False
 
     async with task_dict_lock:
-        task_dict[listener.mid] = MegaDownloadStatus(listener, mega_listener, gid, "dl")
+        task_dict[listener.mid] = MegaDownloadStatus(
+            listener, mega_listener, gid, "dl"
+        )
     async with queue_dict_lock:
         non_queued_dl.add(listener.mid)
 
