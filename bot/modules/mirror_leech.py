@@ -87,6 +87,7 @@ class Mirror(TaskListener):
             await delete_links(self.message)
             error = await send_message(self.message, error_msg, error_button)
             return await five_minute_del(error)
+        user_id = self.message.from_user.id if self.message.from_user else ""
         args = {
             "-doc": False,
             "-med": False,
@@ -232,7 +233,7 @@ class Mirror(TaskListener):
                 self.link = reply_to.text.split("\n", 1)[0].strip()
         if is_telegram_link(self.link):
             try:
-                reply_to, session = await get_tg_link_message(self.link)
+                reply_to, session = await get_tg_link_message(self.link, user_id)
             except Exception as e:
                 x = await send_message(self.message, f"ERROR: {e}")
                 await self.remove_from_same_dir()
