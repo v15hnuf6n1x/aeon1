@@ -96,7 +96,8 @@ class TelegramDownloadHelper:
         self.session = session
         if self.session != TgClient.bot:
             message = await self.session.get_messages(
-                chat_id=message.chat.id, message_ids=message.id
+                chat_id=message.chat.id,
+                message_ids=message.id,
             )
 
         media = (

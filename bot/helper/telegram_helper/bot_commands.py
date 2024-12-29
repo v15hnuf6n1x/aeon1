@@ -2,6 +2,7 @@ from bot.core.config_manager import Config
 
 i = Config.CMD_SUFFIX
 
+
 class _BotCommands:
     def __init__(self):
         self.StartCommand = f"start{i}"
