@@ -217,7 +217,7 @@ async def load_configurations():
     subprocess.run(["chmod", "600", ".netrc"], check=False)
     subprocess.run(["cp", ".netrc", "/root/.netrc"], check=False)
 
-    PORT = environ.get("BASE_URL_PORT") or environ.get("PORT")
+    PORT = environ.get("PORT") or environ.get("BASE_URL_PORT", 80)
     await create_subprocess_shell(
         f"gunicorn web.wserver:app --bind 0.0.0.0:{PORT} --worker-class gevent",
     )

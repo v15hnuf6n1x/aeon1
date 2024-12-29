@@ -94,23 +94,10 @@ class TelegramDownloadHelper:
 
     async def add_download(self, message, path, session):
         self.session = session
-        if (
-            self.session is None
-            and self._listener.user_transmission
-            and self._listener.is_super_chat
-        ):
-            self.session = "user"
-            message = await TgClient.user.get_messages(
-                chat_id=message.chat.id,
-                message_ids=message.id,
-            )
-        elif self.session and self.session != TgClient.bot:
+        if self.session != TgClient.bot:
             message = await self.session.get_messages(
-                chat_id=message.chat.id,
-                message_ids=message.id,
+                chat_id=message.chat.id, message_ids=message.id
             )
-        else:
-            self.session = "bot"
 
         media = (
             message.document

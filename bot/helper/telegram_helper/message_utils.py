@@ -188,26 +188,26 @@ async def delete_status():
 async def get_tg_link_message(link, user_id=""):
     message = None
     links = []
-    user_s = None
+    user_session = None
 
     if user_id:
         if user_id in session_cache:
-            user_s = session_cache[user_id]
+            user_session = session_cache[user_id]
         else:
             user_dict = user_data.get(user_id, {})
             session_string = user_dict.get("session_string")
             if session_string:
-                user_s = Client(
+                user_session = Client(
                     f"session_{user_id}",
                     Config.TELEGRAM_API,
                     Config.TELEGRAM_HASH,
                     session_string=session_string,
                     no_updates=True,
                 )
-                await user_s.start()
-                session_cache[user_id] = user_s
+                await user_session.start()
+                session_cache[user_id] = user_session
             else:
-                user_s = TgClient.user
+                user_session = TgClient.user
 
     if link.startswith("https://t.me/"):
         private = False
@@ -221,7 +221,7 @@ async def get_tg_link_message(link, user_id=""):
             r"tg:\/\/openmessage\?user_id=([0-9]+)&message_id=([0-9-]+)",
             link,
         )
-        if not TgClient.user:
+        if not user_session:
             raise TgLinkException(
                 "USER_SESSION_STRING required for this private link!",
             )
@@ -260,21 +260,21 @@ async def get_tg_link_message(link, user_id=""):
                 private = True
         except Exception as e:
             private = True
-            if not user_s:
+            if not user_session:
                 raise e
 
     if not private:
         return (links, TgClient.bot) if links else (message, TgClient.bot)
-    if user_s:
+    if user_session:
         try:
-            user_message = await user_s.get_messages(
+            user_message = await user_session.get_messages(
                 chat_id=chat,
                 message_ids=msg_id,
             )
         except Exception as e:
             raise TgLinkException("We don't have access to this chat!") from e
         if not user_message.empty:
-            return (links, user_s) if links else (user_message, user_s)
+            return (links, user_session) if links else (user_message, user_session)
         return None
     raise TgLinkException("Private: Please report!")
 

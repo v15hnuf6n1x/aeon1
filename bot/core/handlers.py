@@ -28,7 +28,6 @@ def add_handlers():
             BotCommands.BotSetCommand,
             CustomFilters.sudo,
         ),
-        "cancel": (cancel, BotCommands.CancelTaskCommand, CustomFilters.authorized),
         "cancel_all_buttons": (
             cancel_all_buttons,
             BotCommands.CancelAllCommand,
@@ -149,5 +148,11 @@ def add_handlers():
             run_shell,
             filters=command(BotCommands.ShellCommand, case_sensitive=True)
             & CustomFilters.owner,
+        ),
+    )
+    TgClient.bot.add_handler(
+        MessageHandler(
+            cancel,
+            filters=regex(r"^/stop(_\w+)?(?!all)") & CustomFilters.authorized,
         ),
     )

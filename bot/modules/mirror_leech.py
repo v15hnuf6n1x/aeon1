@@ -155,7 +155,7 @@ class Mirror(TaskListener):
         seed_time = None
         reply_to = None
         file_ = None
-        session = ""
+        session = TgClient.bot
 
         try:
             self.multi = int(args["-i"])
