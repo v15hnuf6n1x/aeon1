@@ -20,6 +20,7 @@ from bot.helper.ext_utils.status_utils import (
     get_readable_file_size,
     get_readable_time,
 )
+from bot.helper.aeon_utils.access_check import error_check
 from bot.helper.listeners.task_listener import TaskListener
 from bot.helper.mirror_leech_utils.download_utils.yt_dlp_download import (
     YoutubeDLHelper,
@@ -29,6 +30,8 @@ from bot.helper.telegram_helper.message_utils import (
     delete_message,
     edit_message,
     send_message,
+    delete_links,
+    five_minute_del,
 )
 
 
@@ -299,7 +302,11 @@ class YtDlp(TaskListener):
         text = self.message.text.split("\n")
         input_list = text[0].split(" ")
         qual = ""
-
+        error_msg, error_button = await error_check(self.message)
+        if error_msg:
+            await delete_links(self.message)
+            error = await send_message(self.message, error_msg, error_button)
+            return await five_minute_del(error)
         args = {
             "-doc": False,
             "-med": False,

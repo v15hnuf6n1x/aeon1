@@ -23,6 +23,7 @@ from bot.helper.listeners.task_listener import TaskListener
 from bot.helper.mirror_leech_utils.download_utils.direct_link_generator import (
     direct_link_generator,
 )
+from bot.helper.aeon_utils.access_check import error_check
 from bot.helper.mirror_leech_utils.gdrive_utils.clone import GoogleDriveClone
 from bot.helper.mirror_leech_utils.gdrive_utils.count import GoogleDriveCount
 from bot.helper.mirror_leech_utils.rclone_utils.transfer import RcloneTransferHelper
@@ -65,7 +66,11 @@ class Clone(TaskListener):
     async def new_event(self):
         text = self.message.text.split("\n")
         input_list = text[0].split(" ")
-
+        error_msg, error_button = await error_check(self.message)
+        if error_msg:
+            await delete_links(self.message)
+            error = await send_message(self.message, error_msg, error_button)
+            return await five_minute_del(error)
         args = {
             "link": "",
             "-i": 0,
@@ -197,7 +202,7 @@ class Clone(TaskListener):
             else:
                 src_path = self.link
                 cmd = [
-                    "rclone",
+                    "xone",
                     "lsjson",
                     "--fast-list",
                     "--stat",
@@ -258,7 +263,7 @@ class Clone(TaskListener):
                 return
             LOGGER.info(f"Cloning Done: {self.name}")
             cmd1 = [
-                "rclone",
+                "xone",
                 "lsf",
                 "--fast-list",
                 "-R",
@@ -268,7 +273,7 @@ class Clone(TaskListener):
                 destination,
             ]
             cmd2 = [
-                "rclone",
+                "xone",
                 "lsf",
                 "--fast-list",
                 "-R",
@@ -278,7 +283,7 @@ class Clone(TaskListener):
                 destination,
             ]
             cmd3 = [
-                "rclone",
+                "xone",
                 "size",
                 "--fast-list",
                 "--json",

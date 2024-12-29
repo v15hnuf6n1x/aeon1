@@ -2,7 +2,7 @@ from base64 import b64encode
 from re import match as re_match
 
 from aiofiles.os import path as aiopath
-
+from asyncio import create_task
 from bot import LOGGER, bot_loop, task_dict_lock
 from bot.core.config_manager import Config
 from bot.helper.ext_utils.bot_utils import (
@@ -11,6 +11,7 @@ from bot.helper.ext_utils.bot_utils import (
     get_content_type,
     sync_to_async,
 )
+from bot.helper.aeon_utils.access_check import error_check
 from bot.helper.ext_utils.exceptions import DirectDownloadLinkException
 from bot.helper.ext_utils.links_utils import (
     is_gdrive_id,
@@ -45,6 +46,8 @@ from bot.helper.mirror_leech_utils.download_utils.telegram_download import (
 from bot.helper.telegram_helper.message_utils import (
     get_tg_link_message,
     send_message,
+    delete_links,
+    five_minute_del,
 )
 
 
@@ -77,7 +80,11 @@ class Mirror(TaskListener):
     async def new_event(self):
         text = self.message.text.split("\n")
         input_list = text[0].split(" ")
-
+        error_msg, error_button = await error_check(self.message)
+        if error_msg:
+            await delete_links(self.message)
+            error = await send_message(self.message, error_msg, error_button)
+            return await five_minute_del(error)
         args = {
             "-doc": False,
             "-med": False,
@@ -225,9 +232,10 @@ class Mirror(TaskListener):
             try:
                 reply_to, session = await get_tg_link_message(self.link)
             except Exception as e:
-                await send_message(self.message, f"ERROR: {e}")
+                x = await send_message(self.message, f"ERROR: {e}")
                 await self.remove_from_same_dir()
-                return
+                await delete_links(self.message)
+                return await five_minute_del(x)
 
         if isinstance(reply_to, list):
             self.bulk = reply_to
@@ -253,7 +261,7 @@ class Mirror(TaskListener):
                 self.multi_tag,
                 self.options,
             ).new_event()
-            return
+            return await delete_links(self.message)
 
         if reply_to:
             file_ = (
@@ -293,13 +301,14 @@ class Mirror(TaskListener):
                 and not is_gdrive_link(self.link)
             )
         ):
-            await send_message(
+            x = await send_message(
                 self.message,
                 COMMAND_USAGE["mirror"][0],
                 COMMAND_USAGE["mirror"][1],
             )
             await self.remove_from_same_dir()
-            return
+            await delete_links(self.message)
+            return await five_minute_del(x)
 
         if len(self.link) > 0:
             LOGGER.info(self.link)
@@ -307,9 +316,10 @@ class Mirror(TaskListener):
         try:
             await self.before_start()
         except Exception as e:
-            await send_message(self.message, e)
+            x = await send_message(self.message, e)
             await self.remove_from_same_dir()
-            return
+            await delete_links(self.message)
+            return await five_minute_del(x)
 
         if (
             not self.is_qbit
@@ -336,33 +346,34 @@ class Mirror(TaskListener):
                     if "This link requires a password!" not in e:
                         LOGGER.info(e)
                     if e.startswith("ERROR:"):
-                        await send_message(self.message, e)
+                        x = await send_message(self.message, e)
                         await self.remove_from_same_dir()
-                        return
+                        await delete_links(self.message)
+                        return await five_minute_del(x)
 
         if file_ is not None:
-            await TelegramDownloadHelper(self).add_download(
+            create_task(TelegramDownloadHelper(self).add_download(
                 reply_to,
                 f"{path}/",
                 session,
-            )
+            ))
         elif isinstance(self.link, dict):
-            await add_direct_download(self, path)
+            create_task(add_direct_download(self, path))
         elif self.is_qbit:
-            await add_qb_torrent(self, path, ratio, seed_time)
+            create_task(add_qb_torrent(self, path, ratio, seed_time))
         elif is_rclone_path(self.link):
-            await add_rclone_download(self, f"{path}/")
+            create_task(add_rclone_download(self, f"{path}/"))
         elif is_mega_link(self.link):
-            await add_mega_download(self, f"{path}/")
+            create_task(add_mega_download(self, f"{path}/"))
         elif is_gdrive_link(self.link) or is_gdrive_id(self.link):
-            await add_gd_download(self, path)
+            create_task(add_gd_download(self, path))
         else:
             ussr = args["-au"]
             pssw = args["-ap"]
             if ussr or pssw:
                 auth = f"{ussr}:{pssw}"
                 headers += f" authorization: Basic {b64encode(auth.encode()).decode('ascii')}"
-            await add_aria2c_download(self, path, headers, ratio, seed_time)
+            create_task(add_aria2c_download(self, path, headers, ratio, seed_time))
 
 
 async def mirror(client, message):

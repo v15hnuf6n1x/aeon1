@@ -6,26 +6,25 @@ from pyrogram.errors import PeerIdInvalid, RPCError, UserNotParticipant
 
 from bot import (
     LOGGER,
-    OWNER_ID,
-    bot,
     bot_name,
-    config_dict,
     user_data,
 )
+from bot.core.config_manager import Config
 from bot.helper.aeon_utils.shorteners import short
-from bot.helper.ext_utils.db_handler import Database
+from bot.helper.ext_utils.db_handler import database
 from bot.helper.ext_utils.help_messages import nsfw_keywords
 from bot.helper.ext_utils.status_utils import get_readable_time
 from bot.helper.telegram_helper.button_build import ButtonMaker
+from bot.core.aeon_client import TgClient
 
 
 async def error_check(message):
     msg, button = [], None
     user_id = message.from_user.id
-    token_timeout = config_dict["TOKEN_TIMEOUT"]
+    token_timeout = Config.TOKEN_TIMEOUT
 
     if message.chat.type != message.chat.type.BOT:
-        if FSUB_IDS := config_dict["FSUB_IDS"]:
+        if FSUB_IDS := Config.FSUB_IDS:
             join_button = {}
             for channel_id in FSUB_IDS.split():
                 chat = await get_chat_info(int(channel_id))
@@ -53,7 +52,7 @@ async def error_check(message):
                 msg.append("You haven't joined our channel/group yet!")
 
         if not token_timeout or user_id in {
-            OWNER_ID,
+            Config.OWNER_ID,
             user_data.get(user_id, {}).get("is_sudo"),
         }:
             try:
@@ -68,7 +67,7 @@ async def error_check(message):
                 msg.append("You haven't initiated the bot in a private message!")
 
     if user_id not in {
-        OWNER_ID,
+        Config.OWNER_ID,
         1781717085,
         user_data.get(user_id, {}).get("is_sudo"),
     }:
@@ -95,7 +94,7 @@ async def error_check(message):
 
 async def get_chat_info(channel_id):
     try:
-        return await bot.get_chat(channel_id)
+        return await TgClient.bot.get_chat(channel_id)
     except PeerIdInvalid as e:
         LOGGER.error(f"{e.NAME}: {e.MESSAGE} for {channel_id}")
         return None
@@ -156,22 +155,22 @@ async def check_is_paid(chat, uid):
 
 
 async def is_paid(user_id):
-    if chat := await get_chat_info(int(config_dict["PAID_CHAT_ID"])):
+    if chat := await get_chat_info(Config.PAID_CHAT_ID):
         return await check_is_paid(chat, user_id)
     return True
 
 
 async def token_check(user_id, button=None):
-    token_timeout = config_dict["TOKEN_TIMEOUT"]
-    if not token_timeout or user_id == OWNER_ID:
+    token_timeout = Config.TOKEN_TIMEOUT
+    if not token_timeout or user_id == Config.OWNER_ID:
         return None, button
-    if config_dict["PAID_CHAT_ID"] and await is_paid(user_id):
+    if Config.PAID_CHAT_ID and await is_paid(user_id):
         return None, button
 
     user_data.setdefault(user_id, {})
     data = user_data[user_id]
-    # await Database.connect()
-    data["time"] = await Database.get_token_expiry(user_id)
+    # await database.connect()
+    data["time"] = await database.get_token_expiry(user_id)
     expire = data.get("time")
     isExpired = expire is None or (time() - expire) > token_timeout
     if isExpired:
@@ -179,7 +178,7 @@ async def token_check(user_id, button=None):
         if expire is not None:
             del data["time"]
         data["token"] = token
-        await Database.update_user_token(user_id, token)
+        await database.update_user_token(user_id, token)
         user_data[user_id] = data
 
         time_str = get_readable_time(token_timeout, True)
@@ -187,11 +186,11 @@ async def token_check(user_id, button=None):
         short_link = await short(f"https://telegram.me/{bot_name}?start={token}")
         button.url_button("Collect token", short_link)
         msg = "Your token has expired, please collect a new token"
-        if config_dict["PAID_CHAT_ID"] and config_dict["PAID_CHAT_LINK"]:
+        if Config.PAID_CHAT_ID and Config.PAID_CHAT_LINK:
             msg += " or subscribe to the paid channel for no token."
-            button.url_button("Subscribe", config_dict["PAID_CHAT_LINK"])
+            button.url_button("Subscribe", Config.PAID_CHAT_LINK)
 
         return (msg + f"\n<b>It will expire after {time_str}</b>!"), button
 
-    # await Database.disconnect()
+    # await database.disconnect()
     return None, button

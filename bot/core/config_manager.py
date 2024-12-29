@@ -14,6 +14,7 @@ class Config:
     DELETE_LINKS = False
     EQUAL_SPLITS = False
     EXTENSION_FILTER = ""
+    FSUB_IDS = ""
     FFMPEG_CMDS = []
     FILELION_API = ""
     GDRIVE_ID = ""
@@ -29,6 +30,8 @@ class Config:
     MEGA_PASSWORD = ""
     NAME_SUBSTITUTE = ""
     OWNER_ID = 0
+    PAID_CHAT_ID = 0
+    PAID_CHAT_LINK = ""
     QUEUE_ALL = 0
     QUEUE_DOWNLOAD = 0
     QUEUE_UPLOAD = 0
@@ -52,6 +55,7 @@ class Config:
     TELEGRAM_HASH = ""
     THUMBNAIL_LAYOUT = ""
     TORRENT_TIMEOUT = 0
+    TOKEN_TIMEOUT = 0
     USER_TRANSMISSION = False
     UPSTREAM_REPO = ""
     UPSTREAM_BRANCH = "master"

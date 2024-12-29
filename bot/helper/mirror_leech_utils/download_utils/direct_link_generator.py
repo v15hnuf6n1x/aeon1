@@ -1,3 +1,4 @@
+# ruff: noqa
 from base64 import b64decode
 from hashlib import sha256
 from http.cookiejar import MozillaCookieJar

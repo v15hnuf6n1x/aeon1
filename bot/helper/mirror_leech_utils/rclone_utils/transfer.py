@@ -214,7 +214,7 @@ class RcloneTransferHelper:
             destination = epath
 
         cmd = [
-            "rclone",
+            "xone",
             "lsjson",
             "--fast-list",
             "--no-mimetype",
@@ -384,7 +384,7 @@ class RcloneTransferHelper:
                 destination = f"{oremote}:{self._listener.name}"
 
             cmd = [
-                "rclone",
+                "xone",
                 "link",
                 "--config",
                 oconfig_path,
@@ -481,7 +481,7 @@ class RcloneTransferHelper:
             )
 
         cmd = [
-            "rclone",
+            "xone",
             "link",
             "--config",
             config_path,
@@ -524,7 +524,7 @@ class RcloneTransferHelper:
         else:
             ext = "*.{" + ",".join(self._listener.extension_filter) + "}"
         cmd = [
-            "rclone",
+            "xone",
             method,
             "--fast-list",
             "--config",

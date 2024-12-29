@@ -33,7 +33,7 @@ async def add_rclone_download(listener, path):
         rpath = listener.link
 
     cmd1 = [
-        "rclone",
+        "xone",
         "lsjson",
         "--fast-list",
         "--stat",
@@ -49,7 +49,7 @@ async def add_rclone_download(listener, path):
         "ERROR",
     ]
     cmd2 = [
-        "rclone",
+        "xone",
         "size",
         "--fast-list",
         "--json",
