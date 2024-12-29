@@ -5,6 +5,7 @@ from secrets import token_urlsafe
 from aiofiles.os import remove
 
 from bot import LOGGER, bot_loop, task_dict, task_dict_lock
+from bot.helper.aeon_utils.access_check import error_check
 from bot.helper.ext_utils.bot_utils import (
     COMMAND_USAGE,
     arg_parser,
@@ -23,7 +24,6 @@ from bot.helper.listeners.task_listener import TaskListener
 from bot.helper.mirror_leech_utils.download_utils.direct_link_generator import (
     direct_link_generator,
 )
-from bot.helper.aeon_utils.access_check import error_check
 from bot.helper.mirror_leech_utils.gdrive_utils.clone import GoogleDriveClone
 from bot.helper.mirror_leech_utils.gdrive_utils.count import GoogleDriveCount
 from bot.helper.mirror_leech_utils.rclone_utils.transfer import RcloneTransferHelper
@@ -107,7 +107,7 @@ class Clone(TaskListener):
 
         if is_bulk:
             await self.init_bulk(input_list, bulk_start, bulk_end, Clone)
-            return
+            return None
 
         await self.get_tag(text)
 
@@ -122,14 +122,15 @@ class Clone(TaskListener):
                 COMMAND_USAGE["clone"][0],
                 COMMAND_USAGE["clone"][1],
             )
-            return
+            return None
         LOGGER.info(self.link)
         try:
             await self.before_start()
         except Exception as e:
             await send_message(self.message, e)
-            return
+            return None
         await self._proceed_to_clone(sync)
+        return None
 
     async def _proceed_to_clone(self, sync):
         if is_share_link(self.link):
