@@ -6,7 +6,6 @@ from pyrogram.errors import PeerIdInvalid, RPCError, UserNotParticipant
 
 from bot import (
     LOGGER,
-    bot_name,
     user_data,
 )
 from bot.core.aeon_client import TgClient
@@ -183,7 +182,7 @@ async def token_check(user_id, button=None):
 
         time_str = get_readable_time(token_timeout, True)
         button = button or ButtonMaker()
-        short_link = await short(f"https://telegram.me/{bot_name}?start={token}")
+        short_link = await short(f"https://telegram.me/{TgClient.NAME}?start={token}")
         button.url_button("Collect token", short_link)
         msg = "Your token has expired, please collect a new token"
         if Config.PAID_CHAT_ID and Config.PAID_CHAT_LINK:
