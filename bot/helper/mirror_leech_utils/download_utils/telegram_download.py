@@ -56,10 +56,7 @@ class TelegramDownloadHelper:
 
     async def _on_download_progress(self, current, _):
         if self._listener.is_cancelled:
-            if self.session == "user":
-                TgClient.user.stop_transmission()
-            else:
-                TgClient.bot.stop_transmission()
+            self.session.stop_transmission()
         self._processed_bytes = current
 
     async def _on_download_error(self, error):
@@ -98,7 +95,7 @@ class TelegramDownloadHelper:
     async def add_download(self, message, path, session):
         self.session = session
         if (
-            self.session not in ["user", "bot"]
+            self.session is None
             and self._listener.user_transmission
             and self._listener.is_super_chat
         ):
@@ -107,7 +104,12 @@ class TelegramDownloadHelper:
                 chat_id=message.chat.id,
                 message_ids=message.id,
             )
-        elif self.session != "user":
+        elif self.session and self.session != TgClient.bot:
+            message = await self.session.get_messages(
+                chat_id=message.chat.id,
+                message_ids=message.id,
+            )
+        else:
             self.session = "bot"
 
         media = (

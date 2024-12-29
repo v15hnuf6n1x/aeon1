@@ -11,6 +11,7 @@ class Config:
     DATABASE_URL = ""
     DEFAULT_UPLOAD = "rc"
     DOWNLOAD_DIR = "/usr/src/app/downloads/"
+    DELETE_LINKS = False
     EQUAL_SPLITS = False
     EXTENSION_FILTER = ""
     FFMPEG_CMDS = []
@@ -24,6 +25,8 @@ class Config:
     LEECH_SPLIT_SIZE = 2097152000
     MEDIA_GROUP = False
     MIXED_LEECH = False
+    MEGA_EMAIL = ""
+    MEGA_PASSWORD = ""
     NAME_SUBSTITUTE = ""
     OWNER_ID = 0
     QUEUE_ALL = 0

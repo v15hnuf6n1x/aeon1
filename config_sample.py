@@ -22,6 +22,7 @@ YT_DLP_OPTIONS = ""
 USE_SERVICE_ACCOUNTS = False
 NAME_SUBSTITUTE = ""
 FFMPEG_CMDS = []
+DELETE_LINKS = False
 
 # GDrive Tools
 GDRIVE_ID = ""
@@ -36,6 +37,10 @@ RCLONE_SERVE_URL = ""
 RCLONE_SERVE_PORT = 0
 RCLONE_SERVE_USER = ""
 RCLONE_SERVE_PASS = ""
+
+# Mega credentials
+MEGA_EMAIL = ""
+MEGA_PASSWORD = ""
 
 # Update
 UPSTREAM_REPO = "https://github.com/AeonOrg/Aeon-MLTB"

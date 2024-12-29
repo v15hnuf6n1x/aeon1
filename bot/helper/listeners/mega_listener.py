@@ -10,38 +10,22 @@ class AsyncExecutor:
     def __init__(self):
         self.continue_event = Event()
 
-    def do(
-        self,
-        function,
-        args,
-    ):
+    def do(self, function, args):
         self.continue_event.clear()
         function(*args)
         self.continue_event.wait()
 
 
-async def mega_login(
-    executor,
-    api,
-    email,
-    password,
-):
+async def mega_login(executor, api, email, password):
     if email and password:
         await sync_to_async(
             executor.do,
             api.login,
-            (
-                email,
-                password,
-            ),
+            (email, password),
         )
 
 
-async def mega_logout(
-    executor,
-    api,
-    folder_api=None,
-):
+async def mega_logout(executor, api, folder_api=None):
     await sync_to_async(
         executor.do,
         api.logout,
@@ -62,6 +46,7 @@ class MegaAppListener(MegaListener):
     )
 
     def __init__(self, continue_event: Event, listener):
+        super().__init__()
         self.continue_event = continue_event
         self.node = None
         self.public_node = None
@@ -71,7 +56,6 @@ class MegaAppListener(MegaListener):
         self._bytes_transferred = 0
         self._speed = 0
         self._name = ""
-        super().__init__()
 
     @property
     def speed(self):
@@ -81,12 +65,7 @@ class MegaAppListener(MegaListener):
     def downloaded_bytes(self):
         return self._bytes_transferred
 
-    def onRequestFinish(  # noqa: N802
-        self,
-        api,
-        request,
-        error,
-    ):
+    def onRequestFinish(self, api, request, error):  # noqa: N802
         if str(error).lower() != "no error":
             self.error = error.copy()
             if str(self.error).casefold() != "not found":
@@ -112,12 +91,7 @@ class MegaAppListener(MegaListener):
         ):
             self.continue_event.set()
 
-    def onRequestTemporaryError(  # noqa: N802
-        self,
-        _,
-        __,
-        error: MegaError,
-    ):
+    def onRequestTemporaryError(self, _, __, error: MegaError):  # noqa: N802
         LOGGER.error(f"Mega Request error in {error}")
         if not self.is_cancelled:
             self.is_cancelled = True
@@ -128,27 +102,15 @@ class MegaAppListener(MegaListener):
         self.error = error.toString()
         self.continue_event.set()
 
-    def onTransferUpdate(  # noqa: N802
-        self,
-        api: MegaApi,
-        transfer: MegaTransfer,
-    ):
+    def onTransferUpdate(self, api: MegaApi, transfer: MegaTransfer):  # noqa: N802
         if self.is_cancelled:
-            api.cancelTransfer(
-                transfer,
-                None,
-            )
+            api.cancelTransfer(transfer, None)
             self.continue_event.set()
             return
         self._speed = transfer.getSpeed()
         self._bytes_transferred = transfer.getTransferredBytes()
 
-    def onTransferFinish(  # noqa: N802
-        self,
-        _: MegaApi,
-        transfer: MegaTransfer,
-        __,
-    ):
+    def onTransferFinish(self, _: MegaApi, transfer: MegaTransfer, __):  # noqa: N802
         try:
             if self.is_cancelled:
                 self.continue_event.set()
@@ -160,23 +122,13 @@ class MegaAppListener(MegaListener):
         except Exception as e:
             LOGGER.error(e)
 
-    def onTransferTemporaryError(  # noqa: N802
-        self,
-        _,
-        transfer,
-        error,
-    ):
+    def onTransferTemporaryError(self, _, transfer, error):  # noqa: N802
         LOGGER.error(
             f"Mega download error in file {transfer.getFileName()}: {error}",
         )
-        if transfer.getState() in [
-            1,
-            4,
-        ]:
+        if transfer.getState() in [1, 4]:
             return
-        self.error = (
-            f"TransferTempError: {error.toString()} ({transfer.getFileName()})"
-        )
+        self.error = f"TransferTempError: {error.toString()} ({transfer.getFileName()})"
         if not self.is_cancelled:
             self.is_cancelled = True
             self.continue_event.set()
