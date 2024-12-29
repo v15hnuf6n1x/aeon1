@@ -141,7 +141,7 @@ def add_handlers():
 
     for regex_filter, handler_func in regex_filters.items():
         TgClient.bot.add_handler(
-            CallbackQueryHandler(handler_func, filters=regex(regex_filter))
+            CallbackQueryHandler(handler_func, filters=regex(regex_filter)),
         )
 
     TgClient.bot.add_handler(
