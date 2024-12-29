@@ -683,7 +683,7 @@ async def create_sample_video(listener, video_file, sample_duration, part_durati
         elif code != 0:
             try:
                 stderr = stderr.decode().strip()
-            except:
+            except Exception:
                 stderr = "Unable to decode the error!"
             LOGGER.error(
                 f"{stderr}. Something went wrong while splitting file for sample video, mostly file is corrupted. Path: {video_file}"
@@ -731,7 +731,7 @@ async def create_sample_video(listener, video_file, sample_duration, part_durati
     elif code != 0:
         try:
             stderr = stderr.decode().strip()
-        except:
+        except Exception:
             stderr = "Unable to decode the error!"
         LOGGER.error(
             f"{stderr}. Something went wrong while creating sample video, mostly file is corrupted. Path: {video_file}"

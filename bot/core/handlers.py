@@ -1,3 +1,4 @@
+# ruff: noqa: F405
 from pyrogram.filters import command, regex
 from pyrogram.handlers import (
     CallbackQueryHandler,

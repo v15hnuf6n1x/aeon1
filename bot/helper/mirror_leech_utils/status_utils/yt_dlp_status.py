@@ -49,7 +49,7 @@ class YtDlpStatus:
                 self._obj.size - self._proccessed_bytes
             ) / self._obj.download_speed
             return get_readable_time(seconds)
-        except:
+        except Exception:
             return "-"
 
     def task(self):

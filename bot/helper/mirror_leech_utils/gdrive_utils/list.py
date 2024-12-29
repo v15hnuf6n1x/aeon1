@@ -150,7 +150,7 @@ class GoogleDriveList(GoogleDriveHelper):
         )
         try:
             await wait_for(self.event.wait(), timeout=self._timeout)
-        except:
+        except Exception:
             self.id = "Timed Out. Task has been cancelled!"
             self.listener.is_cancelled = True
             self.event.set()

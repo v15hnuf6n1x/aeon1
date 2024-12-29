@@ -556,7 +556,7 @@ class TelegramUploader:
     def speed(self):
         try:
             return self._processed_bytes / (time() - self._start_time)
-        except:
+        except Exception:
             return 0
 
     @property

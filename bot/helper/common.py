@@ -319,7 +319,7 @@ class TaskConfig:
                 if self.user_transmission:
                     try:
                         chat = await TgClient.user.get_chat(self.up_dest)
-                    except:
+                    except Exception:
                         chat = None
                     if chat is None:
                         self.user_transmission = False
@@ -341,7 +341,7 @@ class TaskConfig:
                 if not self.user_transmission or self.mixed_leech:
                     try:
                         chat = await self.client.get_chat(self.up_dest)
-                    except:
+                    except Exception:
                         chat = None
                     if chat is None:
                         if self.user_transmission:
@@ -367,7 +367,7 @@ class TaskConfig:
                                     self.up_dest,
                                     ChatAction.TYPING,
                                 )
-                            except:
+                            except Exception:
                                 raise ValueError("Start the bot and try again!")
             elif (
                 self.user_transmission or self.mixed_leech
@@ -536,7 +536,7 @@ class TaskConfig:
                 self.multi_tag,
                 self.options,
             ).new_event()
-        except:
+        except Exception:
             await send_message(
                 self.message,
                 "Reply to text file or to telegram message that have links seperated by new line!",
@@ -568,7 +568,7 @@ class TaskConfig:
                         if code != 0:
                             try:
                                 stderr = stderr.decode().strip()
-                            except:
+                            except Exception:
                                 stderr = "Unable to decode the error!"
                             LOGGER.error(
                                 f"{stderr}. Unable to extract zst file!. Path: {f_path}",
@@ -590,7 +590,7 @@ class TaskConfig:
             if code != 0:
                 try:
                     stderr = stderr.decode().strip()
-                except:
+                except Exception:
                     stderr = "Unable to decode the error!"
                 LOGGER.error(
                     f"{stderr}. Unable to extract zst file!. Path: {dl_path}",
@@ -655,7 +655,7 @@ class TaskConfig:
                             if code != 0:
                                 try:
                                     stderr = stderr.decode().strip()
-                                except:
+                                except Exception:
                                     stderr = "Unable to decode the error!"
                                 LOGGER.error(
                                     f"{stderr}. Unable to extract archive splits!. Path: {f_path}",
@@ -670,7 +670,7 @@ class TaskConfig:
                                 del_path = ospath.join(dirpath, file_)
                                 try:
                                     await remove(del_path)
-                                except:
+                                except Exception:
                                     self.is_cancelled = True
                 return up_path
             dl_path = await self.decompress_zst(dl_path)
@@ -705,12 +705,12 @@ class TaskConfig:
                 if not self.seed:
                     try:
                         await remove(dl_path)
-                    except:
+                    except Exception:
                         self.is_cancelled = True
                 return up_path
             try:
                 stderr = stderr.decode().strip()
-            except:
+            except Exception:
                 stderr = "Unable to decode the error!"
             LOGGER.error(
                 f"{stderr}. Unable to extract archive! Uploading anyway. Path: {dl_path}",
@@ -793,7 +793,7 @@ class TaskConfig:
             self.new_dir = ""
         try:
             stderr = stderr.decode().strip()
-        except:
+        except Exception:
             stderr = "Unable to decode the error!"
         LOGGER.error(f"{stderr}. Unable to zip this path: {dl_path}")
         return dl_path
@@ -830,13 +830,13 @@ class TaskConfig:
                             else:
                                 try:
                                     await remove(f_path)
-                                except:
+                                except Exception:
                                     return
                         continue
                     if not self.seed or self.new_dir:
                         try:
                             await remove(f_path)
-                        except:
+                        except Exception:
                             return
                     else:
                         m_size.append(f_size)

@@ -177,7 +177,7 @@ async def get_result(search_results, key, message, method):
                         msg += f"<a href='http://t.me/share/url?url={quote(result['magnet'])}'>Telegram</a><br><br>"
                     else:
                         msg += "<br>"
-            except:
+            except Exception:
                 continue
         else:
             msg += f"<a href='{result.descrLink}'>{escape(result.fileName)}</a><br>"

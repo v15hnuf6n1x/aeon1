@@ -63,7 +63,7 @@ class RcloneTransferHelper:
         while not (self._proc is None or self._listener.is_cancelled):
             try:
                 data = (await self._proc.stdout.readline()).decode()
-            except:
+            except Exception:
                 continue
             if not data:
                 break

@@ -115,7 +115,7 @@ def make_tree(res, tool=False):
                         (int(i["completedLength"]) / int(i["length"])) * 100,
                         5,
                     )
-                except:
+                except Exception:
                     progress = 0
                 TorNode(
                     folders[-1],
@@ -132,7 +132,7 @@ def make_tree(res, tool=False):
                         (int(i["completedLength"]) / int(i["length"])) * 100,
                         5,
                     )
-                except:
+                except Exception:
                     progress = 0
                 TorNode(
                     folders[-1],

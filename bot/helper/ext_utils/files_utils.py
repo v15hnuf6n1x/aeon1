@@ -104,7 +104,7 @@ def clean_all():
     try:
         LOGGER.info("Cleaning Download Directory")
         rmtree(Config.DOWNLOAD_DIR, ignore_errors=True)
-    except:
+    except Exception:
         pass
     makedirs(Config.DOWNLOAD_DIR, exist_ok=True)
 
