@@ -13,6 +13,7 @@ from bot.helper.ext_utils.bot_utils import (
     get_content_type,
     sync_to_async,
 )
+from bot.core.aeon_client import TgClient
 from bot.helper.ext_utils.exceptions import DirectDownloadLinkException
 from bot.helper.ext_utils.links_utils import (
     is_gdrive_id,
