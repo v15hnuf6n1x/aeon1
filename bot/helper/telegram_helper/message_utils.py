@@ -253,7 +253,8 @@ async def get_tg_link_message(link, user_id=""):
     if not private:
         try:
             message = await TgClient.bot.get_messages(
-                chat_id=chat, message_ids=msg_id
+                chat_id=chat,
+                message_ids=msg_id,
             )
             if message.empty:
                 private = True

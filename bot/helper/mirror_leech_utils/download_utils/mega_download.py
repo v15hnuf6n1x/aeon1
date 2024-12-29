@@ -93,7 +93,10 @@ async def add_mega_download(listener, path):
 
     async with task_dict_lock:
         task_dict[listener.mid] = MegaDownloadStatus(
-            listener, mega_listener, gid, "dl"
+            listener,
+            mega_listener,
+            gid,
+            "dl",
         )
     async with queue_dict_lock:
         non_queued_dl.add(listener.mid)
