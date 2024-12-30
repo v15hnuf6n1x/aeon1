@@ -4,7 +4,12 @@ from time import time
 
 from cachetools import TTLCache
 from pyrogram import Client, enums
-from pyrogram.errors import FloodWait, MessageEmpty, MessageNotModified, FloodPremiumWait
+from pyrogram.errors import (
+    FloodPremiumWait,
+    FloodWait,
+    MessageEmpty,
+    MessageNotModified,
+)
 from pyrogram.types import InputMediaPhoto
 
 from bot import (

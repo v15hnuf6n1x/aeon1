@@ -149,8 +149,7 @@ def arg_parser(items, arg_base):
                         values.append(items[i])
                         if items[i].endswith("]"):
                             break
-                        else:
-                            i += 1
+                        i += 1
                     arg_base[part] = " ".join(values)
             else:
                 sub_list = process_argument_with_values(i)

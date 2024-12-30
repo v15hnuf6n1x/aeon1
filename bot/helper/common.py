@@ -366,7 +366,9 @@ class TaskConfig:
                                     ChatAction.TYPING,
                                 )
                             except Exception:
-                                raise ValueError("Start the bot and try again!") from None
+                                raise ValueError(
+                                    "Start the bot and try again!"
+                                ) from None
             elif (
                 self.user_transmission or self.mixed_leech
             ) and not self.is_super_chat:

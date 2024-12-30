@@ -1,6 +1,7 @@
 from importlib import import_module
 from typing import ClassVar
 
+
 class Config:
     AS_DOCUMENT = False
     AUTHORIZED_CHATS = ""

@@ -1,4 +1,3 @@
-import subprocess
 from asyncio import create_subprocess_exec, create_subprocess_shell
 from os import environ
 
