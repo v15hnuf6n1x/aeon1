@@ -214,8 +214,8 @@ async def load_configurations():
     if not await aiopath.exists(".netrc"):
         async with aiopen(".netrc", "w"):
             pass
-    subprocess.run(["chmod", "600", ".netrc"], check=False)
-    subprocess.run(["cp", ".netrc", "/root/.netrc"], check=False)
+    await (await create_subprocess_shell("chmod 600 .netrc")).wait()
+    await (await create_subprocess_shell("cp .netrc /root/.netrc")).wait()
 
     PORT = environ.get("PORT") or environ.get("BASE_URL_PORT", 80)
     await create_subprocess_shell(

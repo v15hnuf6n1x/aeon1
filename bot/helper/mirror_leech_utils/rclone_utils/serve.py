@@ -27,7 +27,7 @@ async def rclone_serve_booter():
         config.add_section("combine")
         config.set("combine", "type", "combine")
         config.set("combine", "upstreams", upstreams)
-        with open("rclone.conf", "w") as f:
+        async with aiopen("rclone.conf", "w") as f:
             config.write(f, space_around_delimiters=False)
     if RcloneServe:
         try:

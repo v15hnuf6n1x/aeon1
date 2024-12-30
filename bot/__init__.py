@@ -14,7 +14,7 @@ from socket import setdefaulttimeout
 from time import time
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from aria2p import API as ariaAPI
+from aria2p import API as ariaAPI # noqa: N811
 from aria2p import Client as ariaClient
 from qbittorrentapi import Client as QbClient
 from tzlocal import get_localzone

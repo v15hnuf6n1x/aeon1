@@ -1,3 +1,4 @@
+# ruff: noqa: RUF006
 from asyncio import create_task
 from base64 import b64encode
 from re import match as re_match

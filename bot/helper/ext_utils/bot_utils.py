@@ -124,14 +124,6 @@ def arg_parser(items, arg_base):
             values.append(items[j])
         return values
 
-    def process_nested_list(start_index):
-        values = []
-        end_index = start_index + 1
-        while end_index < total and items[end_index] != "]":
-            values.append(items[end_index])
-            end_index += 1
-        return values, end_index - start_index
-
     while i < total:
         part = items[i]
         if part in arg_base:
@@ -149,10 +141,17 @@ def arg_parser(items, arg_base):
                 "-med",
             ]:
                 arg_base[part] = True
-            elif part == "-ff" and i + 1 < total and items[i + 1].startswith("["):
-                nested_values, skip_count = process_nested_list(i + 1)
-                arg_base[part] = nested_values
-                i += skip_count
+            elif part == "-ff":
+                i += 1
+                if i < total:
+                    values = []
+                    while i < total:
+                        values.append(items[i])
+                        if items[i].endswith("]"):
+                            break
+                        else:
+                            i += 1
+                    arg_base[part] = " ".join(values)
             else:
                 sub_list = process_argument_with_values(i)
                 if sub_list:

@@ -87,7 +87,6 @@ class TaskConfig:
         self.is_qbit = False
         self.is_clone = False
         self.is_ytdlp = False
-        self.equal_splits = False
         self.user_transmission = False
         self.mixed_leech = False
         self.extract = False
@@ -367,7 +366,7 @@ class TaskConfig:
                                     ChatAction.TYPING,
                                 )
                             except Exception:
-                                raise ValueError("Start the bot and try again!")
+                                raise ValueError("Start the bot and try again!") from None
             elif (
                 self.user_transmission or self.mixed_leech
             ) and not self.is_super_chat:
@@ -382,9 +381,6 @@ class TaskConfig:
                 self.split_size
                 or self.user_dict.get("split_size")
                 or Config.LEECH_SPLIT_SIZE
-            )
-            self.equal_splits = self.user_dict.get("equal_splits") or (
-                Config.EQUAL_SPLITS and "equal_splits" not in self.user_dict
             )
             self.max_split_size = (
                 TgClient.MAX_SPLIT_SIZE if self.user_transmission else 2097152000
@@ -735,11 +731,7 @@ class TaskConfig:
         async with task_dict_lock:
             task_dict[self.mid] = SevenZStatus(self, gid, "Zip")
         size = await get_path_size(dl_path)
-        if self.equal_splits:
-            parts = -(-size // self.split_size)
-            split_size = (size // parts) + (size % parts)
-        else:
-            split_size = self.split_size
+        split_size = self.split_size
         cmd = [
             "7z",
             f"-v{split_size}b",
@@ -1198,8 +1190,11 @@ class TaskConfig:
                 res = await run_ffmpeg_cmd(self, cmd, file_path)
                 if res and delete_files:
                     await remove(file_path)
-                    if "ffmpeg." in res:
-                        newres = res.replace("ffmpeg.", "")
+                    directory = ospath.dirname(res)
+                    file_name = ospath.basename(res)
+                    if file_name.startswith("ffmpeg."):
+                        newname = file_name.replace("ffmpeg.", "")
+                        newres = ospath.join(directory, newname)
                         await move(res, newres)
             else:
                 for dirpath, _, files in await sync_to_async(
@@ -1235,8 +1230,11 @@ class TaskConfig:
                         res = await run_ffmpeg_cmd(self, cmd, f_path)
                         if res and delete_files:
                             await remove(f_path)
-                            if "ffmpeg." in res:
-                                newres = res.replace("ffmpeg.", "")
+                            directory = ospath.dirname(res)
+                            file_name = ospath.basename(res)
+                            if file_name.startswith("ffmpeg."):
+                                newname = file_name.replace("ffmpeg.", "")
+                                newres = ospath.join(directory, newname)
                                 await move(res, newres)
         if checked:
             cpu_eater_lock.release()

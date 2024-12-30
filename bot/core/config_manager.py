@@ -1,5 +1,5 @@
 from importlib import import_module
-
+from typing import ClassVar
 
 class Config:
     AS_DOCUMENT = False
@@ -12,10 +12,9 @@ class Config:
     DEFAULT_UPLOAD = "rc"
     DOWNLOAD_DIR = "/usr/src/app/downloads/"
     DELETE_LINKS = False
-    EQUAL_SPLITS = False
     EXTENSION_FILTER = ""
     FSUB_IDS = ""
-    FFMPEG_CMDS = []
+    FFMPEG_CMDS: ClassVar[list[str]] = []
     FILELION_API = ""
     GDRIVE_ID = ""
     INCOMPLETE_TASK_NOTIFIER = False
@@ -45,7 +44,7 @@ class Config:
     RSS_DELAY = 600
     SEARCH_API_LINK = ""
     SEARCH_LIMIT = 0
-    SEARCH_PLUGINS = []
+    SEARCH_PLUGINS: ClassVar[list[str]] = []
     STATUS_LIMIT = 10
     STATUS_UPDATE_INTERVAL = 15
     STOP_DUPLICATE = False

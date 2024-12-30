@@ -54,13 +54,6 @@ async def get_user_settings(from_user):
     else:
         split_size = Config.LEECH_SPLIT_SIZE
 
-    if user_dict.get("equal_splits", False) or (
-        "equal_splits" not in user_dict and Config.EQUAL_SPLITS
-    ):
-        equal_splits = "Enabled"
-    else:
-        equal_splits = "Disabled"
-
     if user_dict.get("media_group", False) or (
         "media_group" not in user_dict and Config.MEDIA_GROUP
     ):
@@ -182,7 +175,6 @@ async def get_user_settings(from_user):
 Leech Type is <b>{ltype}</b>
 Custom Thumbnail <b>{thumbmsg}</b>
 Leech Split Size is <b>{split_size}</b>
-Equal Splits is <b>{equal_splits}</b>
 Media Group is <b>{media_group}</b>
 Leech Prefix is <code>{escape(lprefix)}</code>
 Leech Destination is <code>{leech_dest}</code>
@@ -366,7 +358,6 @@ async def edit_user_settings(client, query):
         await query.answer("Not Yours!", show_alert=True)
     elif data[2] in [
         "as_doc",
-        "equal_splits",
         "media_group",
         "user_transmission",
         "stop_duplicate",
@@ -444,20 +435,6 @@ async def edit_user_settings(client, query):
         else:
             ltype = "MEDIA"
             buttons.data_button("Send As Document", f"userset {user_id} as_doc true")
-        if user_dict.get("equal_splits", False) or (
-            "equal_splits" not in user_dict and Config.EQUAL_SPLITS
-        ):
-            buttons.data_button(
-                "Disable Equal Splits",
-                f"userset {user_id} equal_splits false",
-            )
-            equal_splits = "Enabled"
-        else:
-            buttons.data_button(
-                "Enable Equal Splits",
-                f"userset {user_id} equal_splits true",
-            )
-            equal_splits = "Disabled"
         if user_dict.get("media_group", False) or (
             "media_group" not in user_dict and Config.MEDIA_GROUP
         ):
@@ -520,7 +497,6 @@ async def edit_user_settings(client, query):
 Leech Type is <b>{ltype}</b>
 Custom Thumbnail <b>{thumbmsg}</b>
 Leech Split Size is <b>{split_size}</b>
-Equal Splits is <b>{equal_splits}</b>
 Media Group is <b>{media_group}</b>
 Leech Prefix is <code>{escape(lprefix)}</code>
 Leech Destination is <code>{leech_dest}</code>

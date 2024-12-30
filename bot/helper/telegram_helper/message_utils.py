@@ -4,7 +4,7 @@ from time import time
 
 from cachetools import TTLCache
 from pyrogram import Client, enums
-from pyrogram.errors import FloodWait, MessageEmpty, MessageNotModified
+from pyrogram.errors import FloodWait, MessageEmpty, MessageNotModified, FloodPremiumWait
 from pyrogram.types import InputMediaPhoto
 
 from bot import (
@@ -279,7 +279,7 @@ async def get_tg_link_message(link, user_id=""):
     raise TgLinkException("Private: Please report!")
 
 
-async def check_permission(client, chat, uploader_id, up_dest):
+async def check_permission(_, chat, uploader_id, __):
     member = await chat.get_member(uploader_id)
     if (
         not member.privileges.can_manage_chat

@@ -432,15 +432,12 @@ async def split_file(
     listener,
     start_time=0,
     i=1,
-    inLoop=False,
     multi_streams=True,
 ):
     if listener.seed and not listener.new_dir:
         dirpath = f"{dirpath}/splited_files"
         await makedirs(dirpath, exist_ok=True)
     parts = -(-size // listener.split_size)
-    if listener.equal_splits and not inLoop:
-        split_size = (size // parts) + (size % parts)
     if not listener.as_doc and (await get_document_type(path))[0]:
         if multi_streams:
             multi_streams = await is_multi_streams(path)
@@ -506,7 +503,6 @@ async def split_file(
                         listener,
                         start_time,
                         i,
-                        True,
                         False,
                     )
                 LOGGER.warning(
@@ -527,7 +523,6 @@ async def split_file(
                     listener,
                     start_time,
                     i,
-                    True,
                     multi_streams,
                 )
             lpd = (await get_media_info(out_path))[0]
