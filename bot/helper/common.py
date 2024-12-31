@@ -367,7 +367,7 @@ class TaskConfig:
                                 )
                             except Exception:
                                 raise ValueError(
-                                    "Start the bot and try again!"
+                                    "Start the bot and try again!",
                                 ) from None
             elif (
                 self.user_transmission or self.mixed_leech

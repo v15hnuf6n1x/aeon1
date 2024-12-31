@@ -14,7 +14,6 @@ from bot import extension_filter, user_data
 from bot.core.aeon_client import TgClient
 from bot.core.config_manager import Config
 from bot.helper.ext_utils.bot_utils import (
-    get_size_bytes,
     new_task,
     update_user_ldata,
 )
@@ -31,11 +30,12 @@ from bot.helper.telegram_helper.message_utils import (
 handler_dict = {}
 no_thumb = "https://graph.org/file/73ae908d18c6b38038071.jpg"
 
+
 async def get_user_settings(from_user):
     user_id = from_user.id
     name = from_user.mention
     buttons = ButtonMaker()
-    
+
     # Paths
     thumbpath = f"Thumbnails/{user_id}.jpg"
     rclone_conf = f"rclone/{user_id}.conf"
@@ -54,17 +54,37 @@ async def get_user_settings(from_user):
     ns_msg = "Added" if user_dict.get("name_sub", False) else "None"
     ytopt = user_dict.get("yt_opt", Config.YT_DLP_OPTIONS or "None")
     ffc = user_dict.get("ffmpeg_cmds", Config.FFMPEG_CMDS or "None")
-    
+
     # Conditions
     ltype = "DOCUMENT" if user_dict.get("as_doc", Config.AS_DOCUMENT) else "MEDIA"
-    media_group = "Enabled" if user_dict.get("media_group", Config.MEDIA_GROUP) else "Disabled"
-    leech_method = "user" if (TgClient.IS_PREMIUM_USER and user_dict.get("user_transmission", Config.USER_TRANSMISSION)) else "bot"
-    mixed_leech = "Enabled" if (TgClient.IS_PREMIUM_USER and user_dict.get("mixed_leech", Config.MIXED_LEECH)) else "Disabled"
+    media_group = (
+        "Enabled" if user_dict.get("media_group", Config.MEDIA_GROUP) else "Disabled"
+    )
+    leech_method = (
+        "user"
+        if (
+            TgClient.IS_PREMIUM_USER
+            and user_dict.get("user_transmission", Config.USER_TRANSMISSION)
+        )
+        else "bot"
+    )
+    mixed_leech = (
+        "Enabled"
+        if (
+            TgClient.IS_PREMIUM_USER
+            and user_dict.get("mixed_leech", Config.MIXED_LEECH)
+        )
+        else "Disabled"
+    )
     thumb_layout = user_dict.get("thumb_layout", Config.THUMBNAIL_LAYOUT or "None")
     rccmsg = "Exists" if await aiopath.exists(rclone_conf) else "Not Exists"
     rccpath = user_dict.get("rclone_path", Config.RCLONE_PATH or "None")
     tokenmsg = "Exists" if await aiopath.exists(token_pickle) else "Not Exists"
-    sd_msg = "Enabled" if user_dict.get("stop_duplicate", Config.STOP_DUPLICATE) else "Disabled"
+    sd_msg = (
+        "Enabled"
+        if user_dict.get("stop_duplicate", Config.STOP_DUPLICATE)
+        else "Disabled"
+    )
     default_upload = user_dict.get("default_upload", Config.DEFAULT_UPLOAD)
     du = "Gdrive API" if default_upload == "gd" else "Rclone"
     dur = "Gdrive API" if default_upload != "gd" else "Rclone"
@@ -78,12 +98,14 @@ async def get_user_settings(from_user):
     buttons.data_button("Gdrive Tools", f"userset {user_id} gdrive")
     buttons.data_button("Upload Paths", f"userset {user_id} upload_paths")
     buttons.data_button(f"Upload using {dur}", f"userset {user_id} {default_upload}")
-    buttons.data_button(f"Use {trr} token/config", f"userset {user_id} user_tokens {user_tokens}")
+    buttons.data_button(
+        f"Use {trr} token/config", f"userset {user_id} user_tokens {user_tokens}"
+    )
     buttons.data_button("Excluded Extensions", f"userset {user_id} ex_ex")
     buttons.data_button("Name Subtitute", f"userset {user_id} name_substitute")
     buttons.data_button("YT-DLP Options", f"userset {user_id} yto")
     buttons.data_button("Ffmpeg Cmds", f"userset {user_id} ffc")
-    
+
     if user_dict:
         buttons.data_button("Reset All", f"userset {user_id} reset")
     buttons.data_button("Close", f"userset {user_id} close")
@@ -115,6 +137,7 @@ async def get_user_settings(from_user):
     )
 
     return text, buttons.build_menu(2), thumbnail
+
 
 async def update_user_settings(query):
     msg, button, thumb = await get_user_settings(query.from_user)
