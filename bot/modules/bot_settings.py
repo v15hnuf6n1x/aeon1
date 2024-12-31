@@ -53,7 +53,6 @@ DEFAULT_VALUES = {
     "DOWNLOAD_DIR": "/usr/src/app/downloads/",
     "LEECH_SPLIT_SIZE": TgClient.MAX_SPLIT_SIZE,
     "RSS_DELAY": 600,
-    "STATUS_UPDATE_INTERVAL": 15,
     "SEARCH_LIMIT": 0,
     "UPSTREAM_BRANCH": "main",
     "DEFAULT_UPLOAD": "rc",
@@ -151,16 +150,6 @@ async def edit_variable(_, message, pre_message, key):
     elif key == "DOWNLOAD_DIR":
         if not value.endswith("/"):
             value += "/"
-    elif key == "STATUS_UPDATE_INTERVAL":
-        value = int(value)
-        if len(task_dict) != 0 and (st := intervals["status"]):
-            for cid, intvl in list(st.items()):
-                intvl.cancel()
-                intervals["status"][cid] = SetInterval(
-                    value,
-                    update_status_message,
-                    cid,
-                )
     elif key == "TORRENT_TIMEOUT":
         value = int(value)
         downloads = await sync_to_async(aria2.get_downloads)
@@ -356,18 +345,6 @@ async def edit_bot_settings(client, query):
         value = ""
         if data[2] in DEFAULT_VALUES:
             value = DEFAULT_VALUES[data[2]]
-            if (
-                data[2] == "STATUS_UPDATE_INTERVAL"
-                and len(task_dict) != 0
-                and (st := intervals["status"])
-            ):
-                for key, intvl in list(st.items()):
-                    intvl.cancel()
-                    intervals["status"][key] = SetInterval(
-                        value,
-                        update_status_message,
-                        key,
-                    )
         elif data[2] == "EXTENSION_FILTER":
             extension_filter.clear()
             extension_filter.extend(["aria2", "!qB"])
@@ -484,7 +461,7 @@ async def load_config():
         for key, intvl in list(st.items()):
             intvl.cancel()
             intervals["status"][key] = SetInterval(
-                Config.STATUS_UPDATE_INTERVAL,
+                1,
                 update_status_message,
                 key,
             )

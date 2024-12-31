@@ -46,8 +46,6 @@ class Config:
     SEARCH_API_LINK = ""
     SEARCH_LIMIT = 0
     SEARCH_PLUGINS: ClassVar[list[str]] = []
-    STATUS_LIMIT = 10
-    STATUS_UPDATE_INTERVAL = 15
     STOP_DUPLICATE = False
     STREAMWISH_API = ""
     SUDO_USERS = ""
