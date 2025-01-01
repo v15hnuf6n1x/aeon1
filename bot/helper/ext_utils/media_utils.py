@@ -70,7 +70,9 @@ async def convert_video(listener, video_file, ext, retry=False):
         return False
     async with listener.subprocess_lock:
         listener.subproc = await create_subprocess_exec(
-            *cmd, stdout=PIPE, stderr=PIPE
+            *cmd,
+            stdout=PIPE,
+            stderr=PIPE,
         )
     code = await listener.subproc.wait()
     async with listener.subprocess_lock:
@@ -115,7 +117,9 @@ async def convert_audio(listener, audio_file, ext):
         return False
     async with listener.subprocess_lock:
         listener.subproc = await create_subprocess_exec(
-            *cmd, stdout=PIPE, stderr=PIPE
+            *cmd,
+            stdout=PIPE,
+            stderr=PIPE,
         )
     code = await listener.subproc.wait()
     async with listener.subprocess_lock:
@@ -649,7 +653,9 @@ async def create_sample_video(listener, video_file, sample_duration, part_durati
         return False
     async with listener.subprocess_lock:
         listener.subproc = await create_subprocess_exec(
-            *cmd, stdout=PIPE, stderr=PIPE
+            *cmd,
+            stdout=PIPE,
+            stderr=PIPE,
         )
     code = await listener.subproc.wait()
     async with listener.subprocess_lock:
@@ -784,7 +790,9 @@ async def run_ffmpeg_cmd(listener, cmd, path):
         return False
     async with listener.subprocess_lock:
         listener.subproc = await create_subprocess_exec(
-            *cmd, stdout=PIPE, stderr=PIPE
+            *cmd,
+            stdout=PIPE,
+            stderr=PIPE,
         )
     code = await listener.subproc.wait()
     async with listener.subprocess_lock:
@@ -808,16 +816,16 @@ async def run_ffmpeg_cmd(listener, cmd, path):
 
 
 async def run_metadata_cmd(listener, cmd):
-    #base_name, ext = ospath.splitext(path)
-    #dir, base_name = base_name.rsplit("/", 1)
-    #output_file = cmd[-1]
-    #if output_file != "mltb" and output_file.startswith("mltb"):
+    # base_name, ext = ospath.splitext(path)
+    # dir, base_name = base_name.rsplit("/", 1)
+    # output_file = cmd[-1]
+    # if output_file != "mltb" and output_file.startswith("mltb"):
     #     oext = ospath.splitext(output_file)[-1]
     #     if ext == oext:
     #         base_name = f"ffmpeg.{base_name}"
     #     else:
     #         ext = oext
-    #else:
+    # else:
     #     base_name = f"ffmpeg.{base_name}"
     # output = f"{dir}/{base_name}{ext}"
     # cmd[-1] = output
@@ -825,7 +833,9 @@ async def run_metadata_cmd(listener, cmd):
         return False
     async with listener.subprocess_lock:
         listener.subproc = await create_subprocess_exec(
-            *cmd, stdout=PIPE, stderr=PIPE
+            *cmd,
+            stdout=PIPE,
+            stderr=PIPE,
         )
     code = await listener.subproc.wait()
     async with listener.subprocess_lock:
@@ -846,6 +856,7 @@ async def run_metadata_cmd(listener, cmd):
     # if await aiopath.exists(output):
     #     await remove(output)
     return False
+
 
 def is_mkv(file):
     return file.lower().endswith(".mkv")

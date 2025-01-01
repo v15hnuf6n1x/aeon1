@@ -56,7 +56,7 @@ class Config:
     USE_SERVICE_ACCOUNTS = False
     WEB_PINCODE = False
     YT_DLP_OPTIONS = ""
-    
+
     # INKYPINKY
     METADATA_KEY = ""
     SET_COMMANDS = True
@@ -65,7 +65,7 @@ class Config:
     PAID_CHANNEL_LINK = ""
     DELETE_LINKS = False
     FSUB_IDS = ""
-    
+
     @classmethod
     def get(cls, key):
         if hasattr(cls, key):

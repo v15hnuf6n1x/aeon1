@@ -23,6 +23,7 @@ from bot import (
 )
 from bot.core.aeon_client import TgClient
 from bot.core.config_manager import Config
+from bot.helper.aeon_utils.metadata_editor import get_streams
 
 from .ext_utils.bot_utils import get_size_bytes, new_task, sync_to_async
 from .ext_utils.bulk_links import extract_bulk_links
@@ -47,14 +48,12 @@ from .ext_utils.media_utils import (
     create_sample_video,
     create_thumb,
     get_document_type,
+    is_mkv,
     run_ffmpeg_cmd,
     run_metadata_cmd,
     split_file,
     take_ss,
-    is_mkv,
 )
-from bot.helper.aeon_utils.metadata_editor import change_metadata, get_streams
-
 from .mirror_leech_utils.gdrive_utils.list import GoogleDriveList
 from .mirror_leech_utils.rclone_utils.list import RcloneList
 from .mirror_leech_utils.status_utils.ffmpeg_status import FFmpegStatus
@@ -211,7 +210,8 @@ class TaskConfig:
         if self.ffmpeg_cmds and not isinstance(self.ffmpeg_cmds, list):
             if self.user_dict.get("ffmpeg_cmds", None):
                 self.ffmpeg_cmds = self.user_dict["ffmpeg_cmds"].get(
-                    self.ffmpeg_cmds, None
+                    self.ffmpeg_cmds,
+                    None,
                 )
             elif "ffmpeg_cmds" not in self.user_dict and Config.FFMPEG_CMDS:
                 self.ffmpeg_cmds = Config.FFMPEG_CMDS.get(self.ffmpeg_cmds, None)
@@ -801,7 +801,9 @@ class TaskConfig:
             return ""
         async with self.subprocess_lock:
             self.subproc = await create_subprocess_exec(
-                *cmd, stdout=PIPE, stderr=PIPE
+                *cmd,
+                stdout=PIPE,
+                stderr=PIPE,
             )
         code = await self.subproc.wait()
         if self.is_cancelled:
@@ -1373,7 +1375,7 @@ class TaskConfig:
                             [
                                 f"-metadata:s:v:{stream_index}",
                                 f"language={languages[stream_index]}",
-                            ]
+                            ],
                         )
                 elif stream_type == "audio":
                     cmd.extend(
@@ -1382,21 +1384,21 @@ class TaskConfig:
                             f"0:{stream_index}",
                             f"-metadata:s:a:{audio_index}",
                             f"title={key}",
-                        ]
+                        ],
                     )
                     if stream_index in languages:
                         cmd.extend(
                             [
                                 f"-metadata:s:a:{audio_index}",
                                 f"language={languages[stream_index]}",
-                            ]
+                            ],
                         )
                     audio_index += 1
                 elif stream_type == "subtitle":
                     codec_name = stream.get("codec_name", "unknown")
                     if codec_name in ["webvtt", "unknown"]:
                         LOGGER.warning(
-                            f"Skipping unsupported subtitle metadata modification: {codec_name} for stream {stream_index}"
+                            f"Skipping unsupported subtitle metadata modification: {codec_name} for stream {stream_index}",
                         )
                     else:
                         cmd.extend(
@@ -1405,14 +1407,14 @@ class TaskConfig:
                                 f"0:{stream_index}",
                                 f"-metadata:s:s:{subtitle_index}",
                                 f"title={key}",
-                            ]
+                            ],
                         )
                         if stream_index in languages:
                             cmd.extend(
                                 [
                                     f"-metadata:s:s:{subtitle_index}",
                                     f"language={languages[stream_index]}",
-                                ]
+                                ],
                             )
                         subtitle_index += 1
                 else:
@@ -1423,7 +1425,9 @@ class TaskConfig:
 
         async def process_directory(directory, key):
             """Processes all MKV files in a directory."""
-            for dirpath, _, files in await sync_to_async(walk, directory, topdown=False):
+            for dirpath, _, files in await sync_to_async(
+                walk, directory, topdown=False
+            ):
                 for file_ in files:
                     file_path = ospath.join(dirpath, file_)
                     if is_mkv(file_path):
@@ -1437,7 +1441,7 @@ class TaskConfig:
                             return ""
                         await run_metadata_cmd(self, cmd)
                         os.replace(temp_file, file_path)
-                        
+            return None
 
         if self.is_file:
             if is_mkv(up_dir):
