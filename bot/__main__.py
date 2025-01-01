@@ -17,12 +17,12 @@ from .core.startup import (
     update_qb_options,
     update_variables,
 )
-from .helper.telegram_helper.bot_commands import BotCommands
 from .helper.ext_utils.bot_utils import create_help_buttons, new_task, sync_to_async
 from .helper.ext_utils.files_utils import clean_all, exit_clean_up
 from .helper.ext_utils.telegraph_helper import telegraph
 from .helper.listeners.aria2_listener import start_aria2_listener
 from .helper.mirror_leech_utils.rclone_utils.serve import rclone_serve_booter
+from .helper.telegram_helper.bot_commands import BotCommands
 from .helper.telegram_helper.filters import CustomFilters
 from .helper.telegram_helper.message_utils import (
     delete_message,
@@ -45,7 +45,7 @@ COMMANDS = {
     "YtdlCommand": "- Mirror yt-dlp supported link",
     "YtdlLeechCommand": "- Leech through yt-dlp supported link",
     "CloneCommand": "- Copy file/folder to Drive",
-    # Mediainfo command 
+    # Mediainfo command
     "ForceStartCommand": "- Start task from queue",
     "CountCommand": "- Count file/folder on Google Drive",
     "ListCommand": "- Search in Drive",
@@ -60,6 +60,7 @@ COMMANDS = {
     "RestartCommand": "- [ADMIN] Restart the bot",
     "RestartSessionsCommand": "- [ADMIN] Restart the session instead of the bot",
 }
+
 
 # Restart Sessions Handler
 @new_task
@@ -83,6 +84,7 @@ async def restart_sessions_confirm(_, query):
     else:
         await delete_message(message)
 
+
 # Setup Commands
 COMMAND_OBJECTS = [
     BotCommand(
@@ -94,10 +96,12 @@ COMMAND_OBJECTS = [
     for cmd, description in COMMANDS.items()
 ]
 
+
 # Set Bot Commands
 async def set_commands():
     if Config.SET_COMMANDS:
         await TgClient.bot.set_bot_commands(COMMAND_OBJECTS)
+
 
 # Main Function
 async def main():
@@ -107,7 +111,7 @@ async def main():
     await gather(
         sync_to_async(update_qb_options),
         sync_to_async(update_aria2_options),
-        set_commands()
+        set_commands(),
     )
     await gather(
         save_settings(),
@@ -129,6 +133,7 @@ async def main():
     )
     LOGGER.info("Bot Started!")
     signal(SIGINT, exit_clean_up)
+
 
 # Run Bot
 bot_loop.run_until_complete(main())

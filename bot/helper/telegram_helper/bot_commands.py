@@ -9,12 +9,12 @@ class _BotCommands:
         self.MirrorCommand = [f"mirror{i}", f"m{i}"]
         self.YtdlCommand = [f"ytdl{i}", f"y{i}"]
         self.LeechCommand = [f"leech{i}", f"l{i}"]
-        self.YtdlLeechCommand = [f"ytdlleech{i}", f"yl{i}",]
+        self.YtdlLeechCommand = [f"ytdlleech{i}", f"yl{i}"]
         self.CloneCommand = f"clone{i}"
         self.CountCommand = f"count{i}"
         self.DeleteCommand = f"del{i}"
         self.CancelAllCommand = f"cancelall{i}"
-        self.ForceStartCommand = [f"forcestart{i}",f"fs{i}",]
+        self.ForceStartCommand = [f"forcestart{i}", f"fs{i}"]
         self.ListCommand = f"list{i}"
         self.SearchCommand = f"search{i}"
         self.StatusCommand = f"status{i}"
@@ -33,8 +33,8 @@ class _BotCommands:
         self.AExecCommand = f"aexec{i}"
         self.ExecCommand = f"exec{i}"
         self.ClearLocalsCommand = f"clearlocals{i}"
-        self.BotSetCommand = f"botsettings{i}",
-        self.UserSetCommand = f"settings{i}",
+        self.BotSetCommand = (f"botsettings{i}",)
+        self.UserSetCommand = (f"settings{i}",)
         self.SelectCommand = f"sel{i}"
         self.RssCommand = f"rss{i}"
 

@@ -78,13 +78,19 @@ class Config:
 
     @classmethod
     def get_all(cls):
-        excluded_keys = {"BOT_TOKEN", "TELEGRAM_API", "TELEGRAM_HASH", "DOWNLOAD_DIR", "LEECH_SPLIT_SIZE"}
+        excluded_keys = {
+            "BOT_TOKEN",
+            "TELEGRAM_API",
+            "TELEGRAM_HASH",
+            "DOWNLOAD_DIR",
+            "LEECH_SPLIT_SIZE",
+        }
         return {
             key: getattr(cls, key)
             for key in cls.__dict__
             if not key.startswith("__")
             and not callable(getattr(cls, key))
-            and not key in excluded_keys
+            and key not in excluded_keys
         }
 
     @classmethod

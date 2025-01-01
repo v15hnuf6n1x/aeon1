@@ -99,7 +99,8 @@ async def get_user_settings(from_user):
     buttons.data_button("Upload Paths", f"userset {user_id} upload_paths")
     buttons.data_button(f"Upload using {dur}", f"userset {user_id} {default_upload}")
     buttons.data_button(
-        f"Use {trr} token/config", f"userset {user_id} user_tokens {user_tokens}"
+        f"Use {trr} token/config",
+        f"userset {user_id} user_tokens {user_tokens}",
     )
     buttons.data_button("Excluded Extensions", f"userset {user_id} ex_ex")
     buttons.data_button("Name Subtitute", f"userset {user_id} name_substitute")
@@ -687,7 +688,9 @@ Here I will explain how to use mltb.* which is reference to files you want to wo
         await query.answer()
         buttons = ButtonMaker()
         if user_dict.get("session_string", False):
-            buttons.data_button("Remove session", f"userset {user_id} session_string")
+            buttons.data_button(
+                "Remove session", f"userset {user_id} session_string"
+            )
         buttons.data_button("Back", f"userset {user_id} leech")
         buttons.data_button("Close", f"userset {user_id} close")
         await edit_message(
