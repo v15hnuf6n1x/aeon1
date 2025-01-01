@@ -1,11 +1,11 @@
-from time import time
 from re import search
+from time import time
 
-from .... import LOGGER
-from ...ext_utils.bot_utils import new_task
-from ...ext_utils.status_utils import (
-    get_readable_file_size,
+from bot import LOGGER
+from bot.helper.ext_utils.bot_utils import new_task
+from bot.helper.ext_utils.status_utils import (
     MirrorStatus,
+    get_readable_file_size,
     get_readable_time,
 )
 
@@ -29,9 +29,7 @@ class SevenZStatus:
                     break
                 line = await self.listener.subproc.stdout.readline()
                 line = line.decode().strip()
-                if line.startswith("Add new data to archive:") or line.startswith(
-                    "Physical Size ="
-                ):
+                if line.startswith(("Add new data to archive:", "Physical Size =")):
                     if match := search(pattern, line):
                         size = match[1] or match[2]
                         self.listener.subsize = int(size)
@@ -94,8 +92,7 @@ class SevenZStatus:
     def status(self):
         if self.cstatus == "Extract":
             return MirrorStatus.STATUS_EXTRACT
-        else:
-            return MirrorStatus.STATUS_ARCHIVE
+        return MirrorStatus.STATUS_ARCHIVE
 
     def processed_bytes(self):
         return get_readable_file_size(self._processed_bytes)

@@ -69,7 +69,9 @@ async def convert_video(listener, video_file, ext, retry=False):
     if listener.is_cancelled:
         return False
     async with listener.subprocess_lock:
-        listener.subproc = await create_subprocess_exec(*cmd, stdout=PIPE, stderr=PIPE)
+        listener.subproc = await create_subprocess_exec(
+            *cmd, stdout=PIPE, stderr=PIPE
+        )
     code = await listener.subproc.wait()
     async with listener.subprocess_lock:
         if listener.is_cancelled:
@@ -112,7 +114,9 @@ async def convert_audio(listener, audio_file, ext):
     if listener.is_cancelled:
         return False
     async with listener.subprocess_lock:
-        listener.subproc = await create_subprocess_exec(*cmd, stdout=PIPE, stderr=PIPE)
+        listener.subproc = await create_subprocess_exec(
+            *cmd, stdout=PIPE, stderr=PIPE
+        )
     code = await listener.subproc.wait()
     async with listener.subprocess_lock:
         if listener.is_cancelled:
@@ -488,7 +492,9 @@ async def split_file(
                 return False
             async with listener.subprocess_lock:
                 listener.subproc = await create_subprocess_exec(
-                    *cmd, stdout=PIPE, stderr=PIPE
+                    *cmd,
+                    stdout=PIPE,
+                    stderr=PIPE,
                 )
             code = await listener.subproc.wait()
             async with listener.subprocess_lock:
@@ -642,7 +648,9 @@ async def create_sample_video(listener, video_file, sample_duration, part_durati
     if listener.is_cancelled:
         return False
     async with listener.subprocess_lock:
-        listener.subproc = await create_subprocess_exec(*cmd, stdout=PIPE, stderr=PIPE)
+        listener.subproc = await create_subprocess_exec(
+            *cmd, stdout=PIPE, stderr=PIPE
+        )
     code = await listener.subproc.wait()
     async with listener.subprocess_lock:
         if listener.is_cancelled:
@@ -775,7 +783,9 @@ async def run_ffmpeg_cmd(listener, ffmpeg, path):
     if listener.is_cancelled:
         return False
     async with listener.subprocess_lock:
-        listener.subproc = await create_subprocess_exec(*ffmpeg, stdout=PIPE, stderr=PIPE)
+        listener.subproc = await create_subprocess_exec(
+            *ffmpeg, stdout=PIPE, stderr=PIPE
+        )
     code = await listener.subproc.wait()
     async with listener.subprocess_lock:
         if listener.is_cancelled:

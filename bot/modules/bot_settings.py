@@ -185,9 +185,9 @@ async def edit_variable(_, message, pre_message, key):
             index_urls.insert(0, value)
     elif value.isdigit():
         value = int(value)
-    elif value.startswith("[") and value.endswith("]"):
-        value = eval(value)
-    elif value.startswith("{") and value.endswith("}"):
+    elif (value.startswith("[") and value.endswith("]")) or (
+        value.startswith("{") and value.endswith("}")
+    ):
         value = eval(value)
     if key not in [
         "CMD_SUFFIX",

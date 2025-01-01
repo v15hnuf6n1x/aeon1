@@ -85,7 +85,9 @@ class DbManager:
         if self._return:
             return
         await self.db.settings.qbittorrent.update_one(
-            {"_id": TgClient.ID}, {"$set": qbit_options}, upsert=True
+            {"_id": TgClient.ID},
+            {"$set": qbit_options},
+            upsert=True,
         )
 
     async def update_private_file(self, path):

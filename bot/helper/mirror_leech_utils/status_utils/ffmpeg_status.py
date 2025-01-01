@@ -1,8 +1,8 @@
-from .... import LOGGER
-from ...ext_utils.bot_utils import new_task
-from ...ext_utils.status_utils import (
-    get_readable_file_size,
+from bot import LOGGER
+from bot.helper.ext_utils.bot_utils import new_task
+from bot.helper.ext_utils.status_utils import (
     MirrorStatus,
+    get_readable_file_size,
     get_readable_time,
 )
 
@@ -36,7 +36,9 @@ class FFmpegStatus:
                                 self._processed_bytes / self.listener.subsize * 100
                             )
                         elif key == "bitrate":
-                            self._speed_raw = (float(value.strip("kbits/s")) / 8) * 1000
+                            self._speed_raw = (
+                                float(value.strip("kbits/s")) / 8
+                            ) * 1000
         self._active = False
 
     def speed(self):
@@ -46,7 +48,11 @@ class FFmpegStatus:
         return get_readable_file_size(self._processed_bytes)
 
     async def progress(self):
-        if not self._active and self.listener.subsize and self.listener.subproc is not None:
+        if (
+            not self._active
+            and self.listener.subsize
+            and self.listener.subproc is not None
+        ):
             await self._ffmpeg_progress()
             self._active = True
         return f"{round(self._progress_raw, 2)}%"
@@ -62,7 +68,9 @@ class FFmpegStatus:
 
     def eta(self):
         try:
-            seconds = (self.listener.subsize - self._processed_bytes) / self._speed_raw
+            seconds = (
+                self.listener.subsize - self._processed_bytes
+            ) / self._speed_raw
             return get_readable_time(seconds)
         except:
             return "-"
@@ -70,12 +78,11 @@ class FFmpegStatus:
     def status(self):
         if self.cstatus == "Convert":
             return MirrorStatus.STATUS_CONVERT
-        elif self.cstatus == "Split":
+        if self.cstatus == "Split":
             return MirrorStatus.STATUS_SPLIT
-        elif self.cstatus == "Sample Video":
+        if self.cstatus == "Sample Video":
             return MirrorStatus.STATUS_SAMVID
-        else:
-            return MirrorStatus.STATUS_FFMPEG
+        return MirrorStatus.STATUS_FFMPEG
 
     def task(self):
         return self

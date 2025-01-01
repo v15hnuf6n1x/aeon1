@@ -123,7 +123,7 @@ def arg_parser(items, arg_base):
                 check = " ".join(values).strip()
                 if check.startswith("[") and check.endswith("]"):
                     break
-                elif check.startswith("["):
+                if check.startswith("["):
                     pass
                 else:
                     break

@@ -1,5 +1,5 @@
 import contextlib
-from asyncio import create_subprocess_exec, gather, sleep, Lock
+from asyncio import Lock, create_subprocess_exec, gather, sleep
 from asyncio.subprocess import PIPE
 from os import path as ospath
 from os import walk
@@ -206,7 +206,9 @@ class TaskConfig:
 
         if self.ffmpeg_cmds and not isinstance(self.ffmpeg_cmds, list):
             if self.user_dict.get("ffmpeg_cmds", None):
-                self.ffmpeg_cmds = self.user_dict["ffmpeg_cmds"].get(self.ffmpeg_cmds, None)
+                self.ffmpeg_cmds = self.user_dict["ffmpeg_cmds"].get(
+                    self.ffmpeg_cmds, None
+                )
             elif "ffmpeg_cmds" not in self.user_dict and Config.FFMPEG_CMDS:
                 self.ffmpeg_cmds = Config.FFMPEG_CMDS.get(self.ffmpeg_cmds, None)
             else:
@@ -568,7 +570,11 @@ class TaskConfig:
                             return ""
                         if code != 0:
                             try:
-                                stderr = (await self.subproc.stderr.read()).decode().strip()
+                                stderr = (
+                                    (await self.subproc.stderr.read())
+                                    .decode()
+                                    .strip()
+                                )
                             except Exception:
                                 stderr = "Unable to decode the error!"
                             LOGGER.error(
@@ -660,7 +666,11 @@ class TaskConfig:
                                 return ""
                             if code != 0:
                                 try:
-                                    stderr = (await self.subproc.stderr.read()).decode().strip()
+                                    stderr = (
+                                        (await self.subproc.stderr.read())
+                                        .decode()
+                                        .strip()
+                                    )
                                 except Exception:
                                     stderr = "Unable to decode the error!"
                                 LOGGER.error(
@@ -703,8 +713,10 @@ class TaskConfig:
                 return ""
             async with self.subprocess_lock:
                 self.subproc = await create_subprocess_exec(
-                        *cmd, stdout=PIPE, stderr=PIPE
-                    )
+                    *cmd,
+                    stdout=PIPE,
+                    stderr=PIPE,
+                )
             code = await self.subproc.wait()
             if self.is_cancelled:
                 return ""
@@ -784,7 +796,9 @@ class TaskConfig:
         if self.is_cancelled:
             return ""
         async with self.subprocess_lock:
-            self.subproc = await create_subprocess_exec(*cmd, stdout=PIPE, stderr=PIPE)
+            self.subproc = await create_subprocess_exec(
+                *cmd, stdout=PIPE, stderr=PIPE
+            )
         code = await self.subproc.wait()
         if self.is_cancelled:
             return ""
@@ -1196,8 +1210,15 @@ class TaskConfig:
             for item in self.ffmpeg_cmds
         ]
         for ffmpeg_cmd in cmds:
-            cmd = ["xtra", "-hide_banner", "-loglevel", "error", "-progress",
-                "pipe:1", *ffmpeg_cmd]
+            cmd = [
+                "xtra",
+                "-hide_banner",
+                "-loglevel",
+                "error",
+                "-progress",
+                "pipe:1",
+                *ffmpeg_cmd,
+            ]
             if "-del" in cmd:
                 cmd.remove("-del")
                 delete_files = True
