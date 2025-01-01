@@ -292,10 +292,10 @@ class Mirror(TaskListener):
                 self.link = await reply_to.download()
                 file_ = None
 
-        if (self.link and
-            (is_magnet(self.link)
-            or self.link.endswith(".torrent")))
-            or (file_ and file_.file_name.endswith(".torrent")):
+        if (
+            (self.link and (is_magnet(self.link) or self.link.endswith(".torrent")))
+            or (file_ and file_.file_name.endswith(".torrent"))
+        ):
             self.is_qbit = True
 
         if (
