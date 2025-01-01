@@ -11,6 +11,7 @@ class _BotCommands:
         self.LeechCommand = [f"leech{i}", f"l{i}"]
         self.YtdlLeechCommand = [f"ytdlleech{i}", f"yl{i}"]
         self.CloneCommand = f"clone{i}"
+        self.MediaInfoCommand = f"mediainfo{i}"
         self.CountCommand = f"count{i}"
         self.DeleteCommand = f"del{i}"
         self.CancelAllCommand = f"cancelall{i}"

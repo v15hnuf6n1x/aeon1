@@ -45,7 +45,7 @@ COMMANDS = {
     "YtdlCommand": "- Mirror yt-dlp supported link",
     "YtdlLeechCommand": "- Leech through yt-dlp supported link",
     "CloneCommand": "- Copy file/folder to Drive",
-    # Mediainfo command
+    "MediaInfoCommand": "- Get mediainfo",
     "ForceStartCommand": "- Start task from queue",
     "CountCommand": "- Count file/folder on Google Drive",
     "ListCommand": "- Search in Drive",

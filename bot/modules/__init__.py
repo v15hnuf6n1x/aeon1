@@ -19,6 +19,7 @@ from .restart import (
     restart_notification,
     restart_sessions,
 )
+from .mediainfo import mediainfo
 from .rss import get_rss_menu, rss_listener
 from .search import initiate_search_tools, torrent_search, torrent_search_update
 from .services import log, ping, start
@@ -44,6 +45,7 @@ __all__ = [
     "cancel_all_update",
     "cancel_multi",
     "clear",
+    "mediainfo",
     "clone_node",
     "confirm_restart",
     "confirm_selection",

@@ -11,7 +11,8 @@ from aiofiles.os import remove as aioremove
 from pyrogram.filters import command
 from pyrogram.handlers import MessageHandler
 
-from bot import LOGGER, bot
+from bot import LOGGER
+from bot.core.aeon_client import TgClient
 from bot.helper.aeon_utils.access_check import token_check
 from bot.helper.aeon_utils.gen_mediainfo import parseinfo
 from bot.helper.ext_utils.bot_utils import cmd_exec
@@ -51,7 +52,7 @@ async def gen_mediainfo(message, link=None, media=None, msg=None):
             if media.file_size <= 50000000:
                 await msg.download(ospath.join(getcwd(), des_path))
             else:
-                async for chunk in bot.stream_media(media, limit=5):
+                async for chunk in TgClient.bot.stream_media(media, limit=5):
                     async with aiopen(des_path, "ab") as f:
                         await f.write(chunk)
 
@@ -103,11 +104,3 @@ async def mediainfo(_, message):
             await send_message(message, help_msg)
     else:
         await send_message(message, help_msg)
-
-
-bot.add_handler(
-    MessageHandler(
-        mediainfo,
-        filters=command(BotCommands.MediaInfoCommand) & CustomFilters.authorized,
-    ),
-)
