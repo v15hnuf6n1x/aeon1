@@ -27,7 +27,7 @@ commands = {
     "python": (["python3", "--version"], r"Python ([\d.]+)"),
     "rclone": (["xone", "--version"], r"rclone v([\d.]+)"),
     "yt-dlp": (["yt-dlp", "--version"], r"([\d.]+)"),
-    "ffmpeg": (["xtra", "-version"], r"ffmpeg version ([\d.]+(-\w+)?).*"),
+    "ffmpeg": (["xtra", "-version"], r"ffmpeg version (n[\d.]+)"),
     "7z": (["7z", "i"], r"7-Zip ([\d.]+)"),
 }
 

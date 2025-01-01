@@ -15,7 +15,7 @@ class Config:
     DELETE_LINKS = False
     EXTENSION_FILTER = ""
     FSUB_IDS = ""
-    FFMPEG_CMDS: ClassVar[list[str]] = []
+    FFMPEG_CMDS = {}
     FILELION_API = ""
     GDRIVE_ID = ""
     INCOMPLETE_TASK_NOTIFIER = False
