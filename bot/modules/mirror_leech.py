@@ -118,6 +118,7 @@ class Mirror(TaskListener):
             "-ca": "",
             "-cv": "",
             "-ns": "",
+            "-md": "",
             "-tl": "",
             "-ff": "None",
         }
@@ -147,6 +148,7 @@ class Mirror(TaskListener):
         self.thumbnail_layout = args["-tl"]
         self.as_doc = args["-doc"]
         self.as_med = args["-med"]
+        self.metadata = args["-md"]
         self.folder_name = f"/{args["-m"]}" if len(args["-m"]) > 0 else ""
 
         headers = args["-h"]

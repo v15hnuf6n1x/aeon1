@@ -208,6 +208,17 @@ class TaskListener(TaskConfig):
             self.is_file = await aiopath.isfile(up_path)
             self.name = up_path.rsplit("/", 1)[1]
 
+        if self.metadata:
+            up_path = await self.proceed_metadata(up_path, gid)
+            if self.is_cancelled:
+                return
+            self.is_file = await aiopath.isfile(up_path)
+            up_dir, self.name = up_path.rsplit("/", 1)
+            self.size = await get_path_size(up_dir)
+            self.subproc = None
+            self.subname = ""
+            self.subsize = 0
+        
         if self.screen_shots:
             up_path = await self.generate_screenshots(up_path)
             if self.is_cancelled:

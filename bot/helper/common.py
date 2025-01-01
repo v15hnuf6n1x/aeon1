@@ -80,6 +80,7 @@ class TaskConfig:
         self.subname = ""
         self.new_dir = ""
         self.name_sub = ""
+        self.metadata = ""
         self.thumbnail_layout = ""
         self.folder_name = ""
         self.split_size = 0
@@ -159,6 +160,11 @@ class TaskConfig:
             self.name_sub
             or self.user_dict.get("name_sub", False)
             or (Config.NAME_SUBSTITUTE if "name_sub" not in self.user_dict else "")
+        )
+        self.metadata = (
+            self.metadata
+            or self.user_dict.get("metadata", False)
+            or (Config.METADATA_KEY if "metadata" not in self.user_dict else "")
         )
         if self.name_sub:
             self.name_sub = [x.split("/") for x in self.name_sub.split(" | ")]
