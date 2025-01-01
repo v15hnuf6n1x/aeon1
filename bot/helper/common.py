@@ -1465,7 +1465,6 @@ class TaskConfig:
                     await run_metadata_cmd(self, cmd)
                     self.subproc = None
                     os.replace(temp_file, up_dir)
-                    cpu_eater_lock.release()
         else:
             await process_directory(up_dir, key)
 
