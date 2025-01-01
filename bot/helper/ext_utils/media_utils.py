@@ -676,6 +676,7 @@ async def create_sample_video(listener, video_file, sample_duration, part_durati
         await remove(output_file)
     return False
 
+
 async def run_ffmpeg_cmd(listener, cmd, path=None, is_ffmpeg=False):
     if is_ffmpeg and path:
         base_name, ext = ospath.splitext(path)

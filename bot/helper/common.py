@@ -24,7 +24,7 @@ from bot import (
 )
 from bot.core.aeon_client import TgClient
 from bot.core.config_manager import Config
-from bot.helper.aeon_utils.metadata_editor import get_streams, get_metadata_cmd
+from bot.helper.aeon_utils.metadata_editor import get_metadata_cmd
 
 from .ext_utils.bot_utils import get_size_bytes, new_task, sync_to_async
 from .ext_utils.bulk_links import extract_bulk_links
@@ -1330,6 +1330,7 @@ class TaskConfig:
         async with task_dict_lock:
             task_dict[self.mid] = FFmpegStatus(self, gid, "Metadata")
         checked = False
+
         async def _process_directory(directory, key):
             for dirpath, _, files in await sync_to_async(
                 walk,
@@ -1353,6 +1354,7 @@ class TaskConfig:
                         self.subproc = None
                         os.replace(temp_file, file_path)
             return None
+
         if self.is_file:
             if is_mkv(dl_path):
                 cmd, temp_file = await get_metadata_cmd(dl_path, key)
