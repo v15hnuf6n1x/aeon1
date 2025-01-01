@@ -295,8 +295,7 @@ class Mirror(TaskListener):
         if (self.link and
             (is_magnet(self.link)
             or self.link.endswith(".torrent")))
-            or (file_ and file_.file_name.endswith(".torrent"))
-        :
+            or (file_ and file_.file_name.endswith(".torrent")):
             self.is_qbit = True
 
         if (
