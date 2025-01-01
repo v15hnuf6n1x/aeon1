@@ -49,7 +49,7 @@ class SevenZStatus:
                         self._processed_bytes = (
                             int(self._progress_str.strip("%")) / 100
                         ) * self.listener.subsize
-                    except:
+                    except Exception:
                         self._processed_bytes = 0
                         self._progress_str = "0%"
                     s = b""
@@ -86,16 +86,13 @@ class SevenZStatus:
                 self.listener.subsize - self._processed_bytes
             ) / self._speed_raw()
             return get_readable_time(seconds)
-        except:
+        except Exception:
             return "-"
 
     def status(self):
         if self.cstatus == "Extract":
             return MirrorStatus.STATUS_EXTRACT
         return MirrorStatus.STATUS_ARCHIVE
-
-    def processed_bytes(self):
-        return get_readable_file_size(self._processed_bytes)
 
     def task(self):
         return self

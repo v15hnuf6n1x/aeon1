@@ -12,9 +12,7 @@ class Config:
     DATABASE_URL = ""
     DEFAULT_UPLOAD = "rc"
     DOWNLOAD_DIR = "/usr/src/app/downloads/"
-    DELETE_LINKS = False
     EXTENSION_FILTER = ""
-    FSUB_IDS = ""
     FFMPEG_CMDS = {}
     FILELION_API = ""
     GDRIVE_ID = ""
@@ -30,8 +28,6 @@ class Config:
     MEGA_PASSWORD = ""
     NAME_SUBSTITUTE = ""
     OWNER_ID = 0
-    PAID_CHANNEL_ID = 0
-    PAID_CHANNEL_LINK = ""
     QUEUE_ALL = 0
     QUEUE_DOWNLOAD = 0
     QUEUE_UPLOAD = 0
@@ -45,7 +41,6 @@ class Config:
     RSS_DELAY = 600
     SEARCH_API_LINK = ""
     SEARCH_LIMIT = 0
-    SET_COMMANDS = True
     SEARCH_PLUGINS: ClassVar[list[str]] = []
     STOP_DUPLICATE = False
     STREAMWISH_API = ""
@@ -54,7 +49,6 @@ class Config:
     TELEGRAM_HASH = ""
     THUMBNAIL_LAYOUT = ""
     TORRENT_TIMEOUT = 0
-    TOKEN_TIMEOUT = 0
     USER_TRANSMISSION = False
     UPSTREAM_REPO = ""
     UPSTREAM_BRANCH = "main"
@@ -62,7 +56,16 @@ class Config:
     USE_SERVICE_ACCOUNTS = False
     WEB_PINCODE = False
     YT_DLP_OPTIONS = ""
-
+    
+    # INKYPINKY
+    METADATA_KEY = ""
+    SET_COMMANDS = True
+    TOKEN_TIMEOUT = 0
+    PAID_CHANNEL_ID = 0
+    PAID_CHANNEL_LINK = ""
+    DELETE_LINKS = False
+    FSUB_IDS = ""
+    
     @classmethod
     def get(cls, key):
         if hasattr(cls, key):

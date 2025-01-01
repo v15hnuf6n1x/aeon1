@@ -72,7 +72,7 @@ class FFmpegStatus:
                 self.listener.subsize - self._processed_bytes
             ) / self._speed_raw
             return get_readable_time(seconds)
-        except:
+        except Exception:
             return "-"
 
     def status(self):
@@ -82,6 +82,8 @@ class FFmpegStatus:
             return MirrorStatus.STATUS_SPLIT
         if self.cstatus == "Sample Video":
             return MirrorStatus.STATUS_SAMVID
+        if self.cstatus == "Metadata":
+            return MirrorStatus.STATUS_METADATA
         return MirrorStatus.STATUS_FFMPEG
 
     def task(self):

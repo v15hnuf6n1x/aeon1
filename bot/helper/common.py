@@ -48,9 +48,13 @@ from .ext_utils.media_utils import (
     create_thumb,
     get_document_type,
     run_ffmpeg_cmd,
+    run_metadata_cmd,
     split_file,
     take_ss,
+    is_mkv,
 )
+from bot.helper.aeon_utils.metadata_editor import change_metadata, get_streams
+
 from .mirror_leech_utils.gdrive_utils.list import GoogleDriveList
 from .mirror_leech_utils.rclone_utils.list import RcloneList
 from .mirror_leech_utils.status_utils.ffmpeg_status import FFmpegStatus
@@ -1312,3 +1316,141 @@ class TaskConfig:
         if checked:
             cpu_eater_lock.release()
         return dl_path
+
+    async def proceed_metadata(self, up_dir, gid):
+        key = self.metadata
+        async with task_dict_lock:
+            task_dict[self.mid] = FFmpegStatus(self, gid, "Metadata")
+        checked = False
+
+        async def process_file(file_path, key):
+            """Processes a single file to update metadata."""
+            temp_file = f"{file_path}.temp.mkv"
+            streams = await get_streams(file_path)
+            if not streams:
+                return ""
+
+            languages = {
+                stream["index"]: stream["tags"]["language"]
+                for stream in streams
+                if "tags" in stream and "language" in stream["tags"]
+            }
+
+            cmd = [
+                "xtra",
+                "-hide_banner",
+                "-loglevel",
+                "error",
+                "-progress",
+                "pipe:1",
+                "-i",
+                file_path,
+                "-map_metadata",
+                "-1",
+                "-c",
+                "copy",
+                "-metadata:s:v:0",
+                f"title={key}",
+                "-metadata",
+                f"title={key}",
+            ]
+
+            audio_index = 0
+            subtitle_index = 0
+            first_video = False
+
+            for stream in streams:
+                stream_index = stream["index"]
+                stream_type = stream["codec_type"]
+
+                if stream_type == "video":
+                    if not first_video:
+                        cmd.extend(["-map", f"0:{stream_index}"])
+                        first_video = True
+                    cmd.extend([f"-metadata:s:v:{stream_index}", f"title={key}"])
+                    if stream_index in languages:
+                        cmd.extend(
+                            [
+                                f"-metadata:s:v:{stream_index}",
+                                f"language={languages[stream_index]}",
+                            ]
+                        )
+                elif stream_type == "audio":
+                    cmd.extend(
+                        [
+                            "-map",
+                            f"0:{stream_index}",
+                            f"-metadata:s:a:{audio_index}",
+                            f"title={key}",
+                        ]
+                    )
+                    if stream_index in languages:
+                        cmd.extend(
+                            [
+                                f"-metadata:s:a:{audio_index}",
+                                f"language={languages[stream_index]}",
+                            ]
+                        )
+                    audio_index += 1
+                elif stream_type == "subtitle":
+                    codec_name = stream.get("codec_name", "unknown")
+                    if codec_name in ["webvtt", "unknown"]:
+                        LOGGER.warning(
+                            f"Skipping unsupported subtitle metadata modification: {codec_name} for stream {stream_index}"
+                        )
+                    else:
+                        cmd.extend(
+                            [
+                                "-map",
+                                f"0:{stream_index}",
+                                f"-metadata:s:s:{subtitle_index}",
+                                f"title={key}",
+                            ]
+                        )
+                        if stream_index in languages:
+                            cmd.extend(
+                                [
+                                    f"-metadata:s:s:{subtitle_index}",
+                                    f"language={languages[stream_index]}",
+                                ]
+                            )
+                        subtitle_index += 1
+                else:
+                    cmd.extend(["-map", f"0:{stream_index}"])
+
+            cmd.append(temp_file)
+            return cmd, temp_file
+
+        async def process_directory(directory, key):
+            """Processes all MKV files in a directory."""
+            for dirpath, _, files in await sync_to_async(walk, directory, topdown=False):
+                for file_ in files:
+                    file_path = ospath.join(dirpath, file_)
+                    if is_mkv(file_path):
+                        cmd, temp_file = await process_file(file_path, key)
+                        if not cmd:
+                            return ""
+                        if not checked:
+                            await cpu_eater_lock.acquire()
+                        if self.isCancelled:
+                            cpu_eater_lock.release()
+                            return ""
+                        await run_metadata_cmd(self, cmd)
+                        os.replace(temp_file, file_path)
+                        
+
+        if self.is_file:
+            if is_mkv(up_dir):
+                cmd, temp_file = await process_file(up_dir, key)
+                if cmd:
+                    checked = True
+                    await cpu_eater_lock.acquire()
+                    await run_metadata_cmd(self, cmd)
+                    os.replace(temp_file, up_dir)
+                    cpu_eater_lock.release()
+        else:
+            await process_directory(up_dir, key)
+
+        if checked:
+            cpu_eater_lock.release()
+        return up_dir

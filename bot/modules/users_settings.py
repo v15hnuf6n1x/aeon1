@@ -51,6 +51,7 @@ async def get_user_settings(from_user):
     index = user_dict.get("index_url", "None")
     upload_paths = "Added" if user_dict.get("upload_paths", False) else "None"
     ex_ex = user_dict.get("excluded_extensions", extension_filter or "None")
+    meta_msg = user_dict.get("metadata", Config.METADATA_KEY or "None")
     ns_msg = "Added" if user_dict.get("name_sub", False) else "None"
     ytopt = user_dict.get("yt_opt", Config.YT_DLP_OPTIONS or "None")
     ffc = user_dict.get("ffmpeg_cmds", Config.FFMPEG_CMDS or "None")
@@ -103,6 +104,7 @@ async def get_user_settings(from_user):
         f"userset {user_id} user_tokens {user_tokens}",
     )
     buttons.data_button("Excluded Extensions", f"userset {user_id} ex_ex")
+    buttons.data_button("Metadata key", f"userset {user_id} metadata_key")
     buttons.data_button("Name Subtitute", f"userset {user_id} name_substitute")
     buttons.data_button("YT-DLP Options", f"userset {user_id} yto")
     buttons.data_button("Ffmpeg Cmds", f"userset {user_id} ffc")
@@ -132,6 +134,7 @@ async def get_user_settings(from_user):
         f"Default Package is <b>{du}</b>\n"
         f"Upload using <b>{tr}</b> token/config\n"
         f"Name substitution is <b>{ns_msg}</b>\n"
+        f"Metadata key is <b>{meta_msg}</b>\n"
         f"Excluded Extensions is <code>{ex_ex}</code>\n"
         f"YT-DLP Options is <code>{escape(ytopt)}</code>\n"
         f"FFMPEG Commands is <code>{ffc}</code>"
@@ -327,6 +330,7 @@ async def edit_user_settings(client, query):
         "index_url",
         "excluded_extensions",
         "name_sub",
+        "metadata",
         "thumb_layout",
         "ffmpeg_cmds",
         "session_string",
@@ -752,6 +756,20 @@ Example: script/code/s | mirror/leech | tea/ /s | clone | cpu/ | \[mltb\]/mltb |
             buttons.build_menu(1),
         )
         pfunc = partial(set_option, pre_event=query, option="name_sub")
+        await event_handler(client, query, pfunc)
+    elif data[2] == "metadata_key":
+        await query.answer()
+        buttons = ButtonMaker()
+        if user_dict.get("metadata", False):
+            buttons.data_button("Remove Metadata key", f"userset {user_id} metadata")
+        buttons.data_button("Back", f"userset {user_id} back")
+        buttons.data_button("Close", f"userset {user_id} close")
+        emsg = "Metadata will change MKV video files including all audio, streams, and subtitle titles."
+        emsg += (
+            f"Your Current Value is {user_dict.get('metadata') or 'not added yet!'}"
+        )
+        await edit_message(message, emsg, buttons.build_menu(1), markdown=True)
+        pfunc = partial(set_option, pre_event=query, option="metadata")
         await event_handler(client, query, pfunc)
     elif data[2] in ["gd", "rc"]:
         await query.answer()

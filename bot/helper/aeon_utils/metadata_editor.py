@@ -6,10 +6,7 @@ from asyncio.subprocess import PIPE
 from bot import LOGGER
 
 
-async def change_metadata(file, key):
-    LOGGER.info(f"Starting metadata modification for file: {file}")
-    temp_file = f"{file}.temp.mkv"
-
+async def get_streams(file):
     cmd = [
         "ffprobe",
         "-hide_banner",
@@ -25,26 +22,36 @@ async def change_metadata(file, key):
 
     if process.returncode != 0:
         LOGGER.error(f"Error getting stream info: {stderr.decode().strip()}")
-        return
+        return None
 
     try:
-        streams = json.loads(stdout)["streams"]
+        return json.loads(stdout)["streams"]
     except KeyError:
-        LOGGER.error(
-            f"No streams found in the ffprobe output: {stdout.decode().strip()}",
-        )
+        LOGGER.error(f"No streams found in the ffprobe output: {stdout.decode().strip()}")
+        return None
+
+
+async def change_metadata(file, key):
+    LOGGER.info(f"Starting metadata modification for file: {file}")
+    temp_file = f"{file}.temp.mkv"
+
+    streams = await get_streams(file)
+    if not streams:
         return
 
     languages = {}
     for stream in streams:
         stream_index = stream["index"]
-        stream_type = stream["codec_type"]
         if "tags" in stream and "language" in stream["tags"]:
             languages[stream_index] = stream["tags"]["language"]
 
     cmd = [
         "xtra",
-        "-y",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-progress",
+        "pipe:1",
         "-i",
         file,
         "-map_metadata",

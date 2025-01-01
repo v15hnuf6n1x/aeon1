@@ -766,10 +766,10 @@ async def create_sample_video(listener, video_file, sample_duration, part_durati
     return None
 
 
-async def run_ffmpeg_cmd(listener, ffmpeg, path):
+async def run_ffmpeg_cmd(listener, cmd, path):
     base_name, ext = ospath.splitext(path)
     dir, base_name = base_name.rsplit("/", 1)
-    output_file = ffmpeg[-1]
+    output_file = cmd[-1]
     if output_file != "mltb" and output_file.startswith("mltb"):
         oext = ospath.splitext(output_file)[-1]
         if ext == oext:
@@ -779,12 +779,12 @@ async def run_ffmpeg_cmd(listener, ffmpeg, path):
     else:
         base_name = f"ffmpeg.{base_name}"
     output = f"{dir}/{base_name}{ext}"
-    ffmpeg[-1] = output
+    cmd[-1] = output
     if listener.is_cancelled:
         return False
     async with listener.subprocess_lock:
         listener.subproc = await create_subprocess_exec(
-            *ffmpeg, stdout=PIPE, stderr=PIPE
+            *cmd, stdout=PIPE, stderr=PIPE
         )
     code = await listener.subproc.wait()
     async with listener.subprocess_lock:
@@ -805,3 +805,47 @@ async def run_ffmpeg_cmd(listener, ffmpeg, path):
     if await aiopath.exists(output):
         await remove(output)
     return False
+
+
+async def run_metadata_cmd(listener, cmd):
+    #base_name, ext = ospath.splitext(path)
+    #dir, base_name = base_name.rsplit("/", 1)
+    #output_file = cmd[-1]
+    #if output_file != "mltb" and output_file.startswith("mltb"):
+    #     oext = ospath.splitext(output_file)[-1]
+    #     if ext == oext:
+    #         base_name = f"ffmpeg.{base_name}"
+    #     else:
+    #         ext = oext
+    #else:
+    #     base_name = f"ffmpeg.{base_name}"
+    # output = f"{dir}/{base_name}{ext}"
+    # cmd[-1] = output
+    if listener.is_cancelled:
+        return False
+    async with listener.subprocess_lock:
+        listener.subproc = await create_subprocess_exec(
+            *cmd, stdout=PIPE, stderr=PIPE
+        )
+    code = await listener.subproc.wait()
+    async with listener.subprocess_lock:
+        if listener.is_cancelled:
+            return False
+    if code == 0:
+        return output
+    if code == -9:
+        listener.is_cancelled = True
+        return False
+    try:
+        stderr = (await listener.subproc.stderr.read()).decode().strip()
+    except Exception:
+        stderr = "Unable to decode the error!"
+    LOGGER.error(
+        f"{stderr}. Something went wrong while running metadata cmd, mostly file requires different/specific arguments.",
+    )
+    # if await aiopath.exists(output):
+    #     await remove(output)
+    return False
+
+def is_mkv(file):
+    return file.lower().endswith(".mkv")
