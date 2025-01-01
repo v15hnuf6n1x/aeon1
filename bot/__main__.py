@@ -3,6 +3,7 @@ from signal import SIGINT, signal
 
 from pyrogram.filters import regex
 from pyrogram.handlers import CallbackQueryHandler
+from pyrogram.types import BotCommand
 
 from . import LOGGER, bot_loop
 from .core.aeon_client import TgClient
@@ -16,6 +17,7 @@ from .core.startup import (
     update_qb_options,
     update_variables,
 )
+from .helper.telegram_helper.bot_commands import BotCommands
 from .helper.ext_utils.bot_utils import create_help_buttons, new_task, sync_to_async
 from .helper.ext_utils.files_utils import clean_all, exit_clean_up
 from .helper.ext_utils.telegraph_helper import telegraph
@@ -33,13 +35,38 @@ from .modules import (
     restart_notification,
 )
 
+# Initialize Configurations
 Config.load()
 
+# Commands and Descriptions
+COMMANDS = {
+    "MirrorCommand": "- Start mirroring",
+    "LeechCommand": "- Start leeching",
+    "YtdlCommand": "- Mirror yt-dlp supported link",
+    "YtdlLeechCommand": "- Leech through yt-dlp supported link",
+    "CloneCommand": "- Copy file/folder to Drive",
+    # Mediainfo command 
+    "ForceStartCommand": "- Start task from queue",
+    "CountCommand": "- Count file/folder on Google Drive",
+    "ListCommand": "- Search in Drive",
+    "SearchCommand": "- Search in Torrent",
+    "UserSetCommand": "- User settings",
+    "StatusCommand": "- Get mirror status message",
+    "StatsCommand": "- Check Bot & System stats",
+    "StopAllCommand": "- Cancel all tasks added by you to the bot",
+    "HelpCommand": "- Get detailed help",
+    "BotSetCommand": "- [ADMIN] Open Bot settings",
+    "LogCommand": "- [ADMIN] View log",
+    "RestartCommand": "- [ADMIN] Restart the bot",
+    "RestartSessionsCommand": "- [ADMIN] Restart the session instead of the bot",
+}
 
+# Restart Sessions Handler
 @new_task
 async def restart_sessions_confirm(_, query):
     data = query.data.split()
     message = query.message
+
     if data[1] == "confirm":
         reply_to = message.reply_to_message
         restart_message = await send_message(reply_to, "Restarting Session(s)...")
@@ -56,7 +83,23 @@ async def restart_sessions_confirm(_, query):
     else:
         await delete_message(message)
 
+# Setup Commands
+COMMAND_OBJECTS = [
+    BotCommand(
+        getattr(BotCommands, cmd)[0]
+        if isinstance(getattr(BotCommands, cmd), list)
+        else getattr(BotCommands, cmd),
+        description,
+    )
+    for cmd, description in COMMANDS.items()
+]
 
+# Set Bot Commands
+async def set_commands():
+    if Config.SET_COMMANDS:
+        await TgClient.bot.set_bot_commands(COMMAND_OBJECTS)
+
+# Main Function
 async def main():
     await load_settings()
     await gather(TgClient.start_bot(), TgClient.start_user())
@@ -64,6 +107,7 @@ async def main():
     await gather(
         sync_to_async(update_qb_options),
         sync_to_async(update_aria2_options),
+        set_commands()
     )
     await gather(
         save_settings(),
@@ -86,6 +130,6 @@ async def main():
     LOGGER.info("Bot Started!")
     signal(SIGINT, exit_clean_up)
 
-
+# Run Bot
 bot_loop.run_until_complete(main())
 bot_loop.run_forever()

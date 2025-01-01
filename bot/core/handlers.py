@@ -15,14 +15,26 @@ from .aeon_client import TgClient
 
 def add_handlers():
     command_filters = {
-        "authorize": (authorize, BotCommands.AuthorizeCommand, CustomFilters.sudo),
+        "authorize": (
+            authorize,
+            BotCommands.AuthorizeCommand,
+            CustomFilters.sudo
+        ),
         "unauthorize": (
             unauthorize,
             BotCommands.UnAuthorizeCommand,
             CustomFilters.sudo,
         ),
-        "add_sudo": (add_sudo, BotCommands.AddSudoCommand, CustomFilters.sudo),
-        "remove_sudo": (remove_sudo, BotCommands.RmSudoCommand, CustomFilters.sudo),
+        "add_sudo": (
+            add_sudo,
+            BotCommands.AddSudoCommand,
+            CustomFilters.sudo
+        ),
+        "remove_sudo": (
+            remove_sudo,
+            BotCommands.RmSudoCommand,
+            CustomFilters.sudo
+        ),
         "send_bot_settings": (
             send_bot_settings,
             BotCommands.BotSetCommand,
@@ -38,10 +50,26 @@ def add_handlers():
             BotCommands.CloneCommand,
             CustomFilters.authorized,
         ),
-        "aioexecute": (aioexecute, BotCommands.AExecCommand, CustomFilters.owner),
-        "execute": (execute, BotCommands.ExecCommand, CustomFilters.owner),
-        "clear": (clear, BotCommands.ClearLocalsCommand, CustomFilters.owner),
-        "select": (select, BotCommands.SelectCommand, CustomFilters.authorized),
+        "aioexecute": (
+            aioexecute,
+            BotCommands.AExecCommand,
+            CustomFilters.owner
+        ),
+        "execute": (
+            execute,
+            BotCommands.ExecCommand,
+            CustomFilters.owner
+        ),
+        "clear": (
+            clear,
+            BotCommands.ClearLocalsCommand,
+            CustomFilters.owner
+        ),
+        "select": (
+            select,
+            BotCommands.SelectCommand,
+            CustomFilters.authorized
+        ),
         "remove_from_queue": (
             remove_from_queue,
             BotCommands.ForceStartCommand,
@@ -62,26 +90,56 @@ def add_handlers():
             BotCommands.ListCommand,
             CustomFilters.authorized,
         ),
-        "mirror": (mirror, BotCommands.MirrorCommand, CustomFilters.authorized),
-        "qb_mirror": (
-            qb_mirror,
-            BotCommands.QbMirrorCommand,
-            CustomFilters.authorized,
+        "mirror": (
+            mirror,
+            BotCommands.MirrorCommand,
+            CustomFilters.authorized
         ),
-        "leech": (leech, BotCommands.LeechCommand, CustomFilters.authorized),
-        "qb_leech": (qb_leech, BotCommands.QbLeechCommand, CustomFilters.authorized),
+        "leech": (
+            leech,
+            BotCommands.LeechCommand,
+            CustomFilters.authorized
+        ),
         "get_rss_menu": (
             get_rss_menu,
             BotCommands.RssCommand,
             CustomFilters.authorized,
         ),
-        "run_shell": (run_shell, BotCommands.ShellCommand, CustomFilters.owner),
-        "start": (start, BotCommands.StartCommand, None),
-        "log": (log, BotCommands.LogCommand, CustomFilters.sudo),
-        "restart_bot": (restart_bot, BotCommands.RestartCommand, CustomFilters.sudo),
-        "ping": (ping, BotCommands.PingCommand, CustomFilters.authorized),
-        "bot_help": (bot_help, BotCommands.HelpCommand, CustomFilters.authorized),
-        "bot_stats": (bot_stats, BotCommands.StatsCommand, CustomFilters.authorized),
+        "run_shell": (
+            run_shell,
+            BotCommands.ShellCommand,
+            CustomFilters.owner
+        ),
+        "start": (
+            start,
+            BotCommands.StartCommand,
+            None
+        ),
+        "log": (
+            log,
+            BotCommands.LogCommand,
+            CustomFilters.sudo
+        ),
+        "restart_bot": (
+            restart_bot,
+            BotCommands.RestartCommand,
+            CustomFilters.sudo
+        ),
+        "ping": (
+            ping,
+            BotCommands.PingCommand,
+            CustomFilters.authorized
+        ),
+        "bot_help": (
+            bot_help,
+            BotCommands.HelpCommand,
+            CustomFilters.authorized
+        ),
+        "bot_stats": (
+            bot_stats,
+            BotCommands.StatsCommand,
+            CustomFilters.authorized
+        ),
         "task_status": (
             task_status,
             BotCommands.StatusCommand,
@@ -102,7 +160,11 @@ def add_handlers():
             BotCommands.UserSetCommand,
             CustomFilters.authorized,
         ),
-        "ytdl": (ytdl, BotCommands.YtdlCommand, CustomFilters.authorized),
+        "ytdl": (
+            ytdl,
+            BotCommands.YtdlCommand,
+            CustomFilters.authorized
+        ),
         "ytdl_leech": (
             ytdl_leech,
             BotCommands.YtdlLeechCommand,

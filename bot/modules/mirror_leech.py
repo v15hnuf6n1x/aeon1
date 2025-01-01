@@ -292,6 +292,13 @@ class Mirror(TaskListener):
                 self.link = await reply_to.download()
                 file_ = None
 
+        if (self.link and
+            (is_magnet(self.link)
+            or self.link.endswith(".torrent")))
+            or (file_ and file_.file_name.endswith(".torrent"))
+        :
+            self.is_qbit = True
+
         if (
             (not self.link and file_ is None)
             or (is_telegram_link(self.link) and reply_to is None)
@@ -394,15 +401,5 @@ async def mirror(client, message):
     bot_loop.create_task(Mirror(client, message).new_event())
 
 
-async def qb_mirror(client, message):
-    bot_loop.create_task(Mirror(client, message, is_qbit=True).new_event())
-
-
 async def leech(client, message):
     bot_loop.create_task(Mirror(client, message, is_leech=True).new_event())
-
-
-async def qb_leech(client, message):
-    bot_loop.create_task(
-        Mirror(client, message, is_qbit=True, is_leech=True).new_event(),
-    )

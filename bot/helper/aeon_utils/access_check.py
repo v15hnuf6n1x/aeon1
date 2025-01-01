@@ -154,7 +154,7 @@ async def check_is_paid(chat, uid):
 
 
 async def is_paid(user_id):
-    if chat := await get_chat_info(Config.PAID_CHAT_ID):
+    if chat := await get_chat_info(Config.PAID_CHANNEL_ID):
         return await check_is_paid(chat, user_id)
     return True
 
@@ -163,7 +163,7 @@ async def token_check(user_id, button=None):
     token_timeout = Config.TOKEN_TIMEOUT
     if not token_timeout or user_id == Config.OWNER_ID:
         return None, button
-    if Config.PAID_CHAT_ID and await is_paid(user_id):
+    if Config.PAID_CHANNEL_ID and await is_paid(user_id):
         return None, button
 
     user_data.setdefault(user_id, {})
@@ -187,9 +187,9 @@ async def token_check(user_id, button=None):
         )
         button.url_button("Collect token", short_link)
         msg = "Your token has expired, please collect a new token"
-        if Config.PAID_CHAT_ID and Config.PAID_CHAT_LINK:
+        if Config.PAID_CHANNEL_ID and Config.PAID_CHANNEL_LINK:
             msg += " or subscribe to the paid channel for no token."
-            button.url_button("Subscribe", Config.PAID_CHAT_LINK)
+            button.url_button("Subscribe", Config.PAID_CHANNEL_LINK)
 
         return (msg + f"\n<b>It will expire after {time_str}</b>!"), button
 

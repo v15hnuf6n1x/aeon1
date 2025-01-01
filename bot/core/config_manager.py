@@ -30,8 +30,8 @@ class Config:
     MEGA_PASSWORD = ""
     NAME_SUBSTITUTE = ""
     OWNER_ID = 0
-    PAID_CHAT_ID = 0
-    PAID_CHAT_LINK = ""
+    PAID_CHANNEL_ID = 0
+    PAID_CHANNEL_LINK = ""
     QUEUE_ALL = 0
     QUEUE_DOWNLOAD = 0
     QUEUE_UPLOAD = 0
@@ -45,6 +45,7 @@ class Config:
     RSS_DELAY = 600
     SEARCH_API_LINK = ""
     SEARCH_LIMIT = 0
+    SET_COMMANDS = True
     SEARCH_PLUGINS: ClassVar[list[str]] = []
     STOP_DUPLICATE = False
     STREAMWISH_API = ""
@@ -56,7 +57,7 @@ class Config:
     TOKEN_TIMEOUT = 0
     USER_TRANSMISSION = False
     UPSTREAM_REPO = ""
-    UPSTREAM_BRANCH = "master"
+    UPSTREAM_BRANCH = "main"
     USER_SESSION_STRING = ""
     USE_SERVICE_ACCOUNTS = False
     WEB_PINCODE = False
@@ -77,10 +78,13 @@ class Config:
 
     @classmethod
     def get_all(cls):
+        excluded_keys = {"BOT_TOKEN", "TELEGRAM_API", "TELEGRAM_HASH", "DOWNLOAD_DIR", "LEECH_SPLIT_SIZE"}
         return {
             key: getattr(cls, key)
             for key in cls.__dict__
-            if not key.startswith("__") and not callable(getattr(cls, key))
+            if not key.startswith("__")
+            and not callable(getattr(cls, key))
+            and not key in excluded_keys
         }
 
     @classmethod
@@ -95,8 +99,6 @@ class Config:
                     value = value.strip()
                 if attr == "DEFAULT_UPLOAD" and value != "gd":
                     value = "rc"
-                elif attr == "DOWNLOAD_DIR" and not value.endswith("/"):
-                    value = f"{value}/"
                 setattr(cls, attr, value)
         for key in ["BOT_TOKEN", "OWNER_ID", "TELEGRAM_API", "TELEGRAM_HASH"]:
             value = getattr(cls, key)
@@ -111,9 +113,6 @@ class Config:
             if hasattr(cls, key):
                 if key == "DEFAULT_UPLOAD" and value != "gd":
                     value = "rc"
-                elif key == "DOWNLOAD_DIR":
-                    if not value.endswith("/"):
-                        value = f"{value}/"
                 setattr(cls, key, value)
         for key in ["BOT_TOKEN", "OWNER_ID", "TELEGRAM_API", "TELEGRAM_HASH"]:
             value = getattr(cls, key)
