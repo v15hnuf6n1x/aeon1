@@ -9,6 +9,7 @@ from .gd_count import count_node
 from .gd_delete import delete_file
 from .gd_search import gdrive_search, select_type
 from .help import arg_usage, bot_help
+from .mediainfo import mediainfo
 from .mirror_leech import (
     leech,
     mirror,
@@ -19,7 +20,6 @@ from .restart import (
     restart_notification,
     restart_sessions,
 )
-from .mediainfo import mediainfo
 from .rss import get_rss_menu, rss_listener
 from .search import initiate_search_tools, torrent_search, torrent_search_update
 from .services import log, ping, start
@@ -45,7 +45,6 @@ __all__ = [
     "cancel_all_update",
     "cancel_multi",
     "clear",
-    "mediainfo",
     "clone_node",
     "confirm_restart",
     "confirm_selection",
@@ -61,6 +60,7 @@ __all__ = [
     "initiate_search_tools",
     "leech",
     "log",
+    "mediainfo",
     "mirror",
     "ping",
     "remove_from_queue",

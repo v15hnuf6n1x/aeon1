@@ -178,7 +178,8 @@ def add_handlers():
         "mediainfo": (
             mediainfo,
             BotCommands.MediaInfoCommand,
-            CustomFilters.authorized,)
+            CustomFilters.authorized,
+        ),
     }
 
     for handler_func, command_name, custom_filter in command_filters.values():
