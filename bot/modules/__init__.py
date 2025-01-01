@@ -12,8 +12,6 @@ from .help import arg_usage, bot_help
 from .mirror_leech import (
     leech,
     mirror,
-    qb_leech,
-    qb_mirror,
 )
 from .restart import (
     confirm_restart,
@@ -63,8 +61,6 @@ __all__ = [
     "log",
     "mirror",
     "ping",
-    "qb_leech",
-    "qb_mirror",
     "remove_from_queue",
     "remove_sudo",
     "restart_bot",
