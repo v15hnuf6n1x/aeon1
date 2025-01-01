@@ -842,7 +842,7 @@ async def run_metadata_cmd(listener, cmd):
         if listener.is_cancelled:
             return False
     if code == 0:
-        return output
+        return True
     if code == -9:
         listener.is_cancelled = True
         return False

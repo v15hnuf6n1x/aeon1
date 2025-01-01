@@ -1447,7 +1447,10 @@ class TaskConfig:
                         if self.isCancelled:
                             cpu_eater_lock.release()
                             return ""
+                        self.subsize = await aiopath.getsize(file_path)
+                        self.subname = file_
                         await run_metadata_cmd(self, cmd)
+                        self.subproc = None
                         os.replace(temp_file, file_path)
             return None
 
@@ -1457,7 +1460,9 @@ class TaskConfig:
                 if cmd:
                     checked = True
                     await cpu_eater_lock.acquire()
+                    self.subsize = self.size
                     await run_metadata_cmd(self, cmd)
+                    self.subproc = None
                     os.replace(temp_file, up_dir)
                     cpu_eater_lock.release()
         else:
