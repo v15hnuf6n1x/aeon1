@@ -24,7 +24,7 @@ from bot import (
 )
 from bot.core.aeon_client import TgClient
 from bot.core.config_manager import Config
-from bot.helper.aeon_utils.metadata_editor import get_streams
+from bot.helper.aeon_utils.metadata_editor import get_streams, get_metadata_cmd
 
 from .ext_utils.bot_utils import get_size_bytes, new_task, sync_to_async
 from .ext_utils.bulk_links import extract_bulk_links
@@ -51,7 +51,6 @@ from .ext_utils.media_utils import (
     get_document_type,
     is_mkv,
     run_ffmpeg_cmd,
-    run_metadata_cmd,
     split_file,
     take_ss,
 )
@@ -1269,7 +1268,7 @@ class TaskConfig:
                 LOGGER.info(f"Running ffmpeg cmd for: {file_path}")
                 cmd[index + 1] = file_path
                 self.subsize = self.size
-                res = await run_ffmpeg_cmd(self, cmd, file_path)
+                res = await run_ffmpeg_cmd(self, cmd, file_path, True)
                 self.subproc = None
                 if res and delete_files:
                     await remove(file_path)
@@ -1312,7 +1311,7 @@ class TaskConfig:
                         LOGGER.info(f"Running ffmpeg cmd for: {f_path}")
                         self.subsize = await aiopath.getsize(f_path)
                         self.subname = file_
-                        res = await run_ffmpeg_cmd(self, cmd, f_path)
+                        res = await run_ffmpeg_cmd(self, cmd, f_path, True)
                         self.suproc = None
                         if res and delete_files:
                             await remove(f_path)
@@ -1326,112 +1325,12 @@ class TaskConfig:
             cpu_eater_lock.release()
         return dl_path
 
-    async def proceed_metadata(self, up_dir, gid):
+    async def proceed_metadata(self, dl_path, gid):
         key = self.metadata
         async with task_dict_lock:
             task_dict[self.mid] = FFmpegStatus(self, gid, "Metadata")
         checked = False
-
-        async def process_file(file_path, key):
-            """Processes a single file to update metadata."""
-            temp_file = f"{file_path}.temp.mkv"
-            streams = await get_streams(file_path)
-            if not streams:
-                return ""
-
-            languages = {
-                stream["index"]: stream["tags"]["language"]
-                for stream in streams
-                if "tags" in stream and "language" in stream["tags"]
-            }
-
-            cmd = [
-                "xtra",
-                "-hide_banner",
-                "-loglevel",
-                "error",
-                "-progress",
-                "pipe:1",
-                "-i",
-                file_path,
-                "-map_metadata",
-                "-1",
-                "-c",
-                "copy",
-                "-metadata:s:v:0",
-                f"title={key}",
-                "-metadata",
-                f"title={key}",
-            ]
-
-            audio_index = 0
-            subtitle_index = 0
-            first_video = False
-
-            for stream in streams:
-                stream_index = stream["index"]
-                stream_type = stream["codec_type"]
-
-                if stream_type == "video":
-                    if not first_video:
-                        cmd.extend(["-map", f"0:{stream_index}"])
-                        first_video = True
-                    cmd.extend([f"-metadata:s:v:{stream_index}", f"title={key}"])
-                    if stream_index in languages:
-                        cmd.extend(
-                            [
-                                f"-metadata:s:v:{stream_index}",
-                                f"language={languages[stream_index]}",
-                            ],
-                        )
-                elif stream_type == "audio":
-                    cmd.extend(
-                        [
-                            "-map",
-                            f"0:{stream_index}",
-                            f"-metadata:s:a:{audio_index}",
-                            f"title={key}",
-                        ],
-                    )
-                    if stream_index in languages:
-                        cmd.extend(
-                            [
-                                f"-metadata:s:a:{audio_index}",
-                                f"language={languages[stream_index]}",
-                            ],
-                        )
-                    audio_index += 1
-                elif stream_type == "subtitle":
-                    codec_name = stream.get("codec_name", "unknown")
-                    if codec_name in ["webvtt", "unknown"]:
-                        LOGGER.warning(
-                            f"Skipping unsupported subtitle metadata modification: {codec_name} for stream {stream_index}",
-                        )
-                    else:
-                        cmd.extend(
-                            [
-                                "-map",
-                                f"0:{stream_index}",
-                                f"-metadata:s:s:{subtitle_index}",
-                                f"title={key}",
-                            ],
-                        )
-                        if stream_index in languages:
-                            cmd.extend(
-                                [
-                                    f"-metadata:s:s:{subtitle_index}",
-                                    f"language={languages[stream_index]}",
-                                ],
-                            )
-                        subtitle_index += 1
-                else:
-                    cmd.extend(["-map", f"0:{stream_index}"])
-
-            cmd.append(temp_file)
-            return cmd, temp_file
-
-        async def process_directory(directory, key):
-            """Processes all MKV files in a directory."""
+        async def _process_directory(directory, key):
             for dirpath, _, files in await sync_to_async(
                 walk,
                 directory,
@@ -1440,7 +1339,7 @@ class TaskConfig:
                 for file_ in files:
                     file_path = ospath.join(dirpath, file_)
                     if is_mkv(file_path):
-                        cmd, temp_file = await process_file(file_path, key)
+                        cmd, temp_file = await get_metadata_cmd(file_path, key)
                         if not cmd:
                             return ""
                         if not checked:
@@ -1450,24 +1349,23 @@ class TaskConfig:
                             return ""
                         self.subsize = await aiopath.getsize(file_path)
                         self.subname = file_
-                        await run_metadata_cmd(self, cmd)
+                        await run_ffmpeg_cmd(self, cmd)
                         self.subproc = None
                         os.replace(temp_file, file_path)
             return None
-
         if self.is_file:
-            if is_mkv(up_dir):
-                cmd, temp_file = await process_file(up_dir, key)
+            if is_mkv(dl_path):
+                cmd, temp_file = await get_metadata_cmd(dl_path, key)
                 if cmd:
                     checked = True
                     await cpu_eater_lock.acquire()
                     self.subsize = self.size
-                    await run_metadata_cmd(self, cmd)
+                    await run_ffmpeg_cmd(self, cmd)
                     self.subproc = None
-                    os.replace(temp_file, up_dir)
+                    os.replace(temp_file, dl_path)
         else:
-            await process_directory(up_dir, key)
+            await _process_directory(dl_path, key)
 
         if checked:
             cpu_eater_lock.release()
-        return up_dir
+        return dl_path

@@ -33,19 +33,18 @@ async def get_streams(file):
         return None
 
 
-async def change_metadata(file, key):
-    LOGGER.info(f"Starting metadata modification for file: {file}")
-    temp_file = f"{file}.temp.mkv"
-
-    streams = await get_streams(file)
+async def get_metadata_cmd(file_path, key):
+    """Processes a single file to update metadata."""
+    temp_file = f"{file_path}.temp.mkv"
+    streams = await get_streams(file_path)
     if not streams:
-        return
+        return None, None
 
-    languages = {}
-    for stream in streams:
-        stream_index = stream["index"]
-        if "tags" in stream and "language" in stream["tags"]:
-            languages[stream_index] = stream["tags"]["language"]
+    languages = {
+        stream["index"]: stream["tags"]["language"]
+        for stream in streams
+        if "tags" in stream and "language" in stream["tags"]
+    }
 
     cmd = [
         "xtra",
@@ -55,7 +54,7 @@ async def change_metadata(file, key):
         "-progress",
         "pipe:1",
         "-i",
-        file,
+        file_path,
         "-map_metadata",
         "-1",
         "-c",
@@ -130,19 +129,7 @@ async def change_metadata(file, key):
             cmd.extend(["-map", f"0:{stream_index}"])
 
     cmd.append(temp_file)
-
-    process = await create_subprocess_exec(*cmd, stderr=PIPE, stdout=PIPE)
-    stdout, stderr = await process.communicate()
-
-    if process.returncode != 0:
-        err = stderr.decode().strip()
-        LOGGER.error(err)
-        LOGGER.error(f"Error modifying metadata for file: {file}")
-        return
-
-    os.replace(temp_file, file)
-    LOGGER.info(f"Metadata modified successfully for file: {file}")
-    return
+    return cmd, temp_file
 
 
 async def add_attachment(file, attachment_path):

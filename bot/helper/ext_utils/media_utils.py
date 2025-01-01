@@ -504,7 +504,6 @@ async def split_file(
             async with listener.subprocess_lock:
                 if listener.is_cancelled:
                     return False
-                code = listener.subproc.returncode
             if code == -9:
                 listener.is_cancelled = True
                 return False
@@ -677,184 +676,58 @@ async def create_sample_video(listener, video_file, sample_duration, part_durati
         await remove(output_file)
     return False
 
-    """finished_segments = []
-    await makedirs(f"{dir}/segments/", exist_ok=True)
-    ext = name.rsplit(".", 1)[-1]
-    for index, (start_time, end_time) in enumerate(segments, start=1):
-        output_seg = f"{dir}/segments/segment{index}.{ext}"
-        cmd = [
-            "xtra",
-            "-hide_banner",
-            "-loglevel",
-            "error",
-            "-i",
-            video_file,
-            "-ss",
-            f"{start_time}",
-            "-to",
-            f"{end_time}",
-            "-c",
-            "copy",
-            output_seg,
-        ]
-        if listener.is_cancelled:
-            return False
-        listener.subproc = await create_subprocess_exec(*cmd, stderr=PIPE)
-        _, stderr = await listener.subproc.communicate()
-        if listener.is_cancelled:
-            return False
-        code = listener.subproc.returncode
-        if code == -9:
-            listener.is_cancelled = True
-            return False
-        elif code != 0:
-            try:
-                stderr = stderr.decode().strip()
-            except Exception:
-                stderr = "Unable to decode the error!"
-            LOGGER.error(
-                f"{stderr}. Something went wrong while splitting file for sample video, mostly file is corrupted. Path: {video_file}"
-            )
-            if await aiopath.exists(output_file):
-                await remove(output_file)
-            return False
+async def run_ffmpeg_cmd(listener, cmd, path=None, is_ffmpeg=False):
+    if is_ffmpeg and path:
+        base_name, ext = ospath.splitext(path)
+        dir, base_name = base_name.rsplit("/", 1)
+        output_file = cmd[-1]
+        if output_file != "mltb" and output_file.startswith("mltb"):
+            oext = ospath.splitext(output_file)[-1]
+            if ext == oext:
+                base_name = f"ffmpeg.{base_name}"
+            else:
+                ext = oext
         else:
-            finished_segments.append(f"file '{output_seg}'")
-
-    segments_file = f"{dir}/segments.txt"
-
-    async with aiopen(segments_file, "w+") as f:
-        await f.write("\n".join(finished_segments))
-
-    cmd = [
-        "xtra",
-        "-hide_banner",
-        "-loglevel",
-        "error",
-        "-f",
-        "concat",
-        "-safe",
-        "0",
-        "-i",
-        segments_file,
-        "-c:v",
-        "libx264",
-        "-c:a",
-        "aac",
-        "-threads",
-        f"{cpu_count() // 2}",
-        output_file,
-    ]
-    if listener.is_cancelled:
-        return False
-    listener.subproc = await create_subprocess_exec(*cmd, stderr=PIPE)
-    _, stderr = await listener.subproc.communicate()
-    if listener.is_cancelled:
-        return False
-    code = listener.subproc.returncode
-    if code == -9:
-        listener.is_cancelled = True
-        return False
-    elif code != 0:
-        try:
-            stderr = stderr.decode().strip()
-        except Exception:
-            stderr = "Unable to decode the error!"
-        LOGGER.error(
-            f"{stderr}. Something went wrong while creating sample video, mostly file is corrupted. Path: {video_file}"
-        )
-        if await aiopath.exists(output_file):
-            await remove(output_file)
-        await gather(remove(segments_file), rmtree(f"{dir}/segments"))
-        return False
-    await gather(remove(segments_file), rmtree(f"{dir}/segments"))
-    return output_file"""
-    return None
-
-
-async def run_ffmpeg_cmd(listener, cmd, path):
-    base_name, ext = ospath.splitext(path)
-    dir, base_name = base_name.rsplit("/", 1)
-    output_file = cmd[-1]
-    if output_file != "mltb" and output_file.startswith("mltb"):
-        oext = ospath.splitext(output_file)[-1]
-        if ext == oext:
             base_name = f"ffmpeg.{base_name}"
-        else:
-            ext = oext
+        output = f"{dir}/{base_name}{ext}"
+        cmd[-1] = output
+
+    if listener.is_cancelled:
+        return False
+
+    async with listener.subprocess_lock:
+        listener.subproc = await create_subprocess_exec(
+            *cmd,
+            stdout=PIPE,
+            stderr=PIPE,
+        )
+    code = await listener.subproc.wait()
+
+    async with listener.subprocess_lock:
+        if listener.is_cancelled:
+            return False
+
+    if code == 0:
+        return output if is_ffmpeg and path else True
+    if code == -9:
+        listener.is_cancelled = True
+        return False
+
+    try:
+        stderr = (await listener.subproc.stderr.read()).decode().strip()
+    except Exception:
+        stderr = "Unable to decode the error!"
+
+    if is_ffmpeg and path:
+        LOGGER.error(
+            f"{stderr}. Something went wrong while running ffmpeg cmd, mostly file requires different/specific arguments. Path: {path}",
+        )
+        if await aiopath.exists(output):
+            await remove(output)
     else:
-        base_name = f"ffmpeg.{base_name}"
-    output = f"{dir}/{base_name}{ext}"
-    cmd[-1] = output
-    if listener.is_cancelled:
-        return False
-    async with listener.subprocess_lock:
-        listener.subproc = await create_subprocess_exec(
-            *cmd,
-            stdout=PIPE,
-            stderr=PIPE,
+        LOGGER.error(
+            f"{stderr}. Something went wrong while running metadata cmd, mostly file requires different/specific arguments.",
         )
-    code = await listener.subproc.wait()
-    async with listener.subprocess_lock:
-        if listener.is_cancelled:
-            return False
-    if code == 0:
-        return output
-    if code == -9:
-        listener.is_cancelled = True
-        return False
-    try:
-        stderr = (await listener.subproc.stderr.read()).decode().strip()
-    except Exception:
-        stderr = "Unable to decode the error!"
-    LOGGER.error(
-        f"{stderr}. Something went wrong while running ffmpeg cmd, mostly file requires different/specific arguments. Path: {path}",
-    )
-    if await aiopath.exists(output):
-        await remove(output)
-    return False
-
-
-async def run_metadata_cmd(listener, cmd):
-    # base_name, ext = ospath.splitext(path)
-    # dir, base_name = base_name.rsplit("/", 1)
-    # output_file = cmd[-1]
-    # if output_file != "mltb" and output_file.startswith("mltb"):
-    #     oext = ospath.splitext(output_file)[-1]
-    #     if ext == oext:
-    #         base_name = f"ffmpeg.{base_name}"
-    #     else:
-    #         ext = oext
-    # else:
-    #     base_name = f"ffmpeg.{base_name}"
-    # output = f"{dir}/{base_name}{ext}"
-    # cmd[-1] = output
-    if listener.is_cancelled:
-        return False
-    async with listener.subprocess_lock:
-        listener.subproc = await create_subprocess_exec(
-            *cmd,
-            stdout=PIPE,
-            stderr=PIPE,
-        )
-    code = await listener.subproc.wait()
-    async with listener.subprocess_lock:
-        if listener.is_cancelled:
-            return False
-    if code == 0:
-        return True
-    if code == -9:
-        listener.is_cancelled = True
-        return False
-    try:
-        stderr = (await listener.subproc.stderr.read()).decode().strip()
-    except Exception:
-        stderr = "Unable to decode the error!"
-    LOGGER.error(
-        f"{stderr}. Something went wrong while running metadata cmd, mostly file requires different/specific arguments.",
-    )
-    # if await aiopath.exists(output):
-    #     await remove(output)
     return False
 
 
