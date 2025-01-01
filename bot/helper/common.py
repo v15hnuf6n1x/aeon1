@@ -1,7 +1,7 @@
 import contextlib
+import os
 from asyncio import Lock, create_subprocess_exec, gather, sleep
 from asyncio.subprocess import PIPE
-import os
 from os import path as ospath
 from os import walk
 from re import IGNORECASE, sub
