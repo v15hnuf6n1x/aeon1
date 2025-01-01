@@ -689,7 +689,8 @@ Here I will explain how to use mltb.* which is reference to files you want to wo
         buttons = ButtonMaker()
         if user_dict.get("session_string", False):
             buttons.data_button(
-                "Remove session", f"userset {user_id} session_string"
+                "Remove session",
+                f"userset {user_id} session_string",
             )
         buttons.data_button("Back", f"userset {user_id} leech")
         buttons.data_button("Close", f"userset {user_id} close")
