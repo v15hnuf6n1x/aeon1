@@ -218,7 +218,7 @@ class TaskListener(TaskConfig):
             self.subproc = None
             self.subname = ""
             self.subsize = 0
-        
+
         if self.screen_shots:
             up_path = await self.generate_screenshots(up_path)
             if self.is_cancelled:

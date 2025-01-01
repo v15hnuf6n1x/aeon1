@@ -1432,7 +1432,9 @@ class TaskConfig:
         async def process_directory(directory, key):
             """Processes all MKV files in a directory."""
             for dirpath, _, files in await sync_to_async(
-                walk, directory, topdown=False
+                walk,
+                directory,
+                topdown=False,
             ):
                 for file_ in files:
                     file_path = ospath.join(dirpath, file_)
