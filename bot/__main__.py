@@ -53,7 +53,7 @@ COMMANDS = {
     "UserSetCommand": "- User settings",
     "StatusCommand": "- Get mirror status message",
     "StatsCommand": "- Check Bot & System stats",
-    "StopAllCommand": "- Cancel all tasks added by you to the bot",
+    "CancelAllCommand": "- Cancel all tasks added by you to the bot",
     "HelpCommand": "- Get detailed help",
     "BotSetCommand": "- [ADMIN] Open Bot settings",
     "LogCommand": "- [ADMIN] View log",
