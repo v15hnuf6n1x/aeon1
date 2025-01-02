@@ -143,9 +143,9 @@ def arg_parser(items, arg_base):
                         if not sub_list:
                             break
                         check = " ".join(sub_list).strip()
-                        if check.startswith("[") and check.endswith("]"):
-                            break
-                        elif not check.startswith("["):
+                        if (
+                            check.startswith("[") and check.endswith("]")
+                        ) or not check.startswith("["):
                             break
                     sub_list.append(items[j])
                 if sub_list:

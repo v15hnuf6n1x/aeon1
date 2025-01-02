@@ -512,7 +512,9 @@ async def split_file(
             if code != 0:
                 try:
                     async with listener.subprocess_lock:
-                        stderr = (await listener.subproc.stderr.read()).decode().strip()
+                        stderr = (
+                            (await listener.subproc.stderr.read()).decode().strip()
+                        )
                 except Exception:
                     stderr = "Unable to decode the error!"
                 with contextlib.suppress(Exception):
