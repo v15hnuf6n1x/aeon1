@@ -333,7 +333,7 @@ class YtDlp(TaskListener):
             "-ns": "",
             "-md": "",
             "-tl": "",
-            "-ff": "None",
+            "-ff": None,
         }
 
         arg_parser(input_list[1:], args)

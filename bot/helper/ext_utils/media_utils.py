@@ -88,7 +88,8 @@ async def convert_video(listener, video_file, ext, retry=False):
             await remove(output)
         return await convert_video(listener, video_file, ext, True)
     try:
-        stderr = (await listener.subproc.stderr.read()).decode().strip()
+        async with listener.subprocess_lock:
+            stderr = (await listener.subproc.stderr.read()).decode().strip()
     except Exception:
         stderr = "Unable to decode the error!"
     LOGGER.error(
@@ -131,7 +132,8 @@ async def convert_audio(listener, audio_file, ext):
         listener.is_cancelled = True
         return False
     try:
-        stderr = (await listener.subproc.stderr.read()).decode().strip()
+        async with listener.subprocess_lock:
+            stderr = (await listener.subproc.stderr.read()).decode().strip()
     except Exception:
         stderr = "Unable to decode the error!"
     LOGGER.error(
@@ -509,7 +511,8 @@ async def split_file(
                 return False
             if code != 0:
                 try:
-                    stderr = (await listener.subproc.stderr.read()).decode().strip()
+                    async with listener.subprocess_lock:
+                        stderr = (await listener.subproc.stderr.read()).decode().strip()
                 except Exception:
                     stderr = "Unable to decode the error!"
                 with contextlib.suppress(Exception):
@@ -589,7 +592,8 @@ async def split_file(
             return False
         if code != 0:
             try:
-                stderr = (await listener.subproc.stderr.read()).decode().strip()
+                async with listener.subprocess_lock:
+                    stderr = (await listener.subproc.stderr.read()).decode().strip()
             except Exception:
                 stderr = "Unable to decode the error!"
             LOGGER.error(f"{stderr}. Split Document: {path}")
@@ -666,7 +670,8 @@ async def create_sample_video(listener, video_file, sample_duration, part_durati
     if code == 0:
         return output_file
     try:
-        stderr = (await listener.subproc.stderr.read()).decode().strip()
+        async with listener.subprocess_lock:
+            stderr = (await listener.subproc.stderr.read()).decode().strip()
     except Exception:
         stderr = "Unable to decode the error!"
     LOGGER.error(
@@ -715,7 +720,8 @@ async def run_ffmpeg_cmd(listener, cmd, path=None, is_ffmpeg=False):
         return False
 
     try:
-        stderr = (await listener.subproc.stderr.read()).decode().strip()
+        async with listener.subprocess_lock:
+            stderr = (await listener.subproc.stderr.read()).decode().strip()
     except Exception:
         stderr = "Unable to decode the error!"
 

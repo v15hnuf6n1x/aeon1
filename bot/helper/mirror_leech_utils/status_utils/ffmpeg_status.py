@@ -21,7 +21,11 @@ class FFmpegStatus:
     async def _ffmpeg_progress(self):
         while True:
             async with self.listener.subprocess_lock:
-                if self.listener.subproc is None or self.listener.is_cancelled:
+                if (
+                    self.listener.subproc is None
+                    or self.listener.subproc.returncode is not None
+                    or self.listener.is_cancelled
+                ):
                     break
                 line = await self.listener.subproc.stdout.readline()
                 if not line:
@@ -42,6 +46,9 @@ class FFmpegStatus:
                                 ) * 1000
                             except ValueError:
                                 self._speed_raw = 0
+        self._processed_bytes = 0
+        self._speed_raw = 0
+        self._progress_raw = 0
         self._active = False
 
     def speed(self):

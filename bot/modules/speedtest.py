@@ -21,7 +21,7 @@ async def speedtest(_, message):
         test.upload()
         return test.results
 
-    result = get_speedtest_results
+    result = get_speedtest_results()
 
     if not result:
         await edit_message(speed, "Speedtest failed to complete.")
