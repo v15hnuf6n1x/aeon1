@@ -36,9 +36,12 @@ class FFmpegStatus:
                                 self._processed_bytes / self.listener.subsize * 100
                             )
                         elif key == "bitrate":
-                            self._speed_raw = (
-                                float(value.strip("kbits/s")) / 8
-                            ) * 1000
+                            try:
+                                self._speed_raw = (
+                                    float(value.replace("kbits/s", "").strip()) / 8
+                                ) * 1000
+                            except ValueError:
+                                self._speed_raw = 0
         self._active = False
 
     def speed(self):

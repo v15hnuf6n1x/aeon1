@@ -1,4 +1,3 @@
-import asyncio
 from os import getcwd
 from os import path as ospath
 from re import search as re_search
@@ -20,7 +19,6 @@ from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.button_build import ButtonMaker
 from bot.helper.telegram_helper.message_utils import (
     delete_links,
-    delete_message,
     edit_message,
     five_minute_del,
     send_message,
@@ -67,14 +65,9 @@ async def gen_mediainfo(message, link=None, media=None, msg=None):
         await aioremove(des_path)
 
     link_id = (await telegraph.create_page(title="MediaInfo", content=tc))["path"]
-    link = f"https://graph.org/{link_id}"
-    await delete_message(temp_send)
-    await asyncio.sleep(2)
-    await TgClient.bot.send_web_page(
-        message.chat.id,
-        link,
-        "<blockquote>MediaInfo generated successfully.</blockquote>",
-        invert_media=True,
+    await temp_send.edit(
+        f"<blockquote>MediaInfo generated successfully<a href='https://graph.org/{link_id}'>.</a></blockquote>",
+        disable_web_page_preview=False,
     )
 
 
