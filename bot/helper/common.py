@@ -584,7 +584,7 @@ class TaskConfig:
                                     stderr = (
                                         (await self.subproc.stderr.read())
                                         .decode()
-                                        .strip()
+                                        .strip())
                             except Exception:
                                 stderr = "Unable to decode the error!"
                             LOGGER.error(
@@ -610,7 +610,7 @@ class TaskConfig:
                         stderr = (
                                         (await self.subproc.stderr.read())
                                         .decode()
-                                        .strip()
+                                        .strip())
                 except Exception:
                     stderr = "Unable to decode the error!"
                 LOGGER.error(
@@ -684,7 +684,7 @@ class TaskConfig:
                                         stderr = (
                                             (await self.subproc.stderr.read())
                                             .decode()
-                                            .strip()
+                                            .strip())
                                 except Exception:
                                     stderr = "Unable to decode the error!"
                                 LOGGER.error(
@@ -839,7 +839,7 @@ class TaskConfig:
                 stderr = (
                                         (await self.subproc.stderr.read())
                                         .decode()
-                                        .strip()
+                                        .strip())
         except Exception:
             stderr = "Unable to decode the error!"
         LOGGER.error(f"{stderr}. Unable to zip this path: {dl_path}")
