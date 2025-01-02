@@ -22,6 +22,7 @@ from bot.helper.telegram_helper.message_utils import (
     edit_message,
     five_minute_del,
     send_message,
+    delete_message,
 )
 
 
@@ -65,8 +66,11 @@ async def gen_mediainfo(message, link=None, media=None, msg=None):
         await aioremove(des_path)
 
     link_id = (await telegraph.create_page(title="MediaInfo", content=tc))["path"]
+    link = f'https://graph.org/{link_id}'
+    await delete_message(temp_send)
+    await TgClient.bot.send_web_page(message.chat.id, link, "<blockquote>MediaInfo generated successfully.</blockquote>", invert_media=True)
     await temp_send.edit(
-        f"<blockquote>MediaInfo generated successfully<a href='https://graph.org/{link_id}'>.</a></blockquote>",
+        f,
         disable_web_page_preview=False,
     )
 
