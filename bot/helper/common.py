@@ -686,11 +686,7 @@ class TaskConfig:
                                 LOGGER.error(
                                     f"{stderr}. Unable to extract archive splits!. Path: {f_path}",
                                 )
-                    if (
-                        not self.seed
-                        and self.subproc is not None
-                        and code == 0
-                    ):
+                    if not self.seed and self.subproc is not None and code == 0:
                         for file_ in files:
                             if is_archive_split(file_) or is_archive(file_):
                                 del_path = ospath.join(dirpath, file_)
