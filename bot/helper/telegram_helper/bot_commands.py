@@ -36,6 +36,7 @@ class _BotCommands:
         self.ClearLocalsCommand = f"clearlocals{i}"
         self.BotSetCommand = f"botsettings{i}"
         self.UserSetCommand = f"settings{i}"
+        self.SpeedTest = f"speedtest{i}"
         self.SelectCommand = f"sel{i}"
         self.RssCommand = f"rss{i}"
 

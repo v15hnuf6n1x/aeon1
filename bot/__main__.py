@@ -55,6 +55,7 @@ COMMANDS = {
     "StatsCommand": "- Check Bot & System stats",
     "CancelAllCommand": "- Cancel all tasks added by you to the bot",
     "HelpCommand": "- Get detailed help",
+    "SpeedTest": "- Get speedtest result",
     "BotSetCommand": "- [ADMIN] Open Bot settings",
     "LogCommand": "- [ADMIN] View log",
     "RestartCommand": "- [ADMIN] Restart the bot",

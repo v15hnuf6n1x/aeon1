@@ -180,6 +180,11 @@ def add_handlers():
             BotCommands.MediaInfoCommand,
             CustomFilters.authorized,
         ),
+        "speedtest": (
+            speedtest,
+            BotCommands.SpeedTest,
+            CustomFilters.authorized,
+        ),
     }
 
     for handler_func, command_name, custom_filter in command_filters.values():
