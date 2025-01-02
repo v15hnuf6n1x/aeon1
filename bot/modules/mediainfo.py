@@ -1,3 +1,4 @@
+import asyncio
 from os import getcwd
 from os import path as ospath
 from re import search as re_search
@@ -68,15 +69,12 @@ async def gen_mediainfo(message, link=None, media=None, msg=None):
     link_id = (await telegraph.create_page(title="MediaInfo", content=tc))["path"]
     link = f"https://graph.org/{link_id}"
     await delete_message(temp_send)
+    await asyncio.sleep(2)
     await TgClient.bot.send_web_page(
         message.chat.id,
         link,
         "<blockquote>MediaInfo generated successfully.</blockquote>",
         invert_media=True,
-    )
-    await temp_send.edit(
-        f,
-        disable_web_page_preview=False,
     )
 
 
