@@ -10,13 +10,11 @@ from logging import (
     LogRecord,
     StreamHandler,
     basicConfig,
-    error,
     getLogger,
-    info,
-    warning,
 )
 from socket import setdefaulttimeout
 from time import time
+from datetime import datetime
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from aria2p import API as ariaAPI  # noqa: N811
