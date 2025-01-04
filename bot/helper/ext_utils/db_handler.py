@@ -212,7 +212,6 @@ class DbManager:
             return
         await self.db.access_token.delete_many({})
 
-    
     async def rm_complete_task(self, link):
         if self._return:
             return
