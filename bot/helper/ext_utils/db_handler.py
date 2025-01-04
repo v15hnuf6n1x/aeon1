@@ -168,6 +168,23 @@ class DbManager:
             {"_id": link, "cid": cid, "tag": tag},
         )
 
+    async def get_pm_uids(self):
+        if self._return:
+            return None
+        return [doc["_id"] async for doc in self._db.pm_users[TgClient.ID].find({})]
+
+    async def update_pm_users(self, user_id):
+        if self._return:
+            return
+        if not bool(await self._db.pm_users[TgClient.ID].find_one({"_id": user_id})):
+            await self._db.pm_users[TgClient.ID].insert_one({"_id": user_id})
+            LOGGER.info(f"New PM User Added : {user_id}")
+
+    async def rm_pm_user(self, user_id):
+        if self._return:
+            return
+        await self._db.pm_users[TgClient.ID].delete_one({"_id": user_id})
+    
     async def update_user_tdata(self, user_id, token, time):
         if self._return:
             return

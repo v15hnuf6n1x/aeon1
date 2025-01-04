@@ -37,6 +37,7 @@ class _BotCommands:
         self.BotSetCommand = f"botsettings{i}"
         self.UserSetCommand = f"settings{i}"
         self.SpeedTest = f"speedtest{i}"
+        self.BroadcastCommand = [f"broadcast{i}", "broadcastall"]
         self.SelectCommand = f"sel{i}"
         self.RssCommand = f"rss{i}"
 

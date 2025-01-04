@@ -1,6 +1,7 @@
 from speedtest import Speedtest
 
 from bot import LOGGER
+from bot.core.aeon_client import TgClient
 from bot.helper.ext_utils.bot_utils import new_task
 from bot.helper.ext_utils.status_utils import get_readable_file_size
 from bot.helper.telegram_helper.message_utils import (
@@ -21,7 +22,7 @@ async def speedtest(_, message):
         test.upload()
         return test.results
 
-    result = get_speedtest_results()
+    result = await TgClient.bot.loop.run_in_executor(None, get_speedtest_results)
 
     if not result:
         await edit_message(speed, "Speedtest failed to complete.")

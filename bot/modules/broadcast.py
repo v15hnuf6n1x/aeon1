@@ -7,7 +7,7 @@ from pyrogram.handlers import MessageHandler
 
 from bot import bot
 from bot.helper.ext_utils.bot_utils import new_task
-from bot.helper.ext_utils.db_handler import Database
+from bot.helper.ext_utils.db_handler import database
 from bot.helper.ext_utils.status_utils import get_readable_time
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.filters import CustomFilters
@@ -28,7 +28,7 @@ async def broadcast(_, message):
     updater = time()
     broadcast_message = await send_message(message, "Broadcast in progress...")
 
-    for uid in await Database.get_pm_uids():
+    for uid in await database.get_pm_uids():
         try:
             await message.reply_to_message.copy(uid)
             successful += 1
@@ -37,7 +37,7 @@ async def broadcast(_, message):
             await message.reply_to_message.copy(uid)
             successful += 1
         except (UserIsBlocked, InputUserDeactivated):
-            await Database.rm_pm_user(uid)
+            await database.rm_pm_user(uid)
             blocked += 1
         except Exception:
             unsuccessful += 1
@@ -63,11 +63,3 @@ def generate_status(total, successful, blocked, unsuccessful, elapsed_time=""):
     if elapsed_time:
         status += f"\n\n<b>Elapsed Time:</b> {elapsed_time}"
     return status
-
-
-bot.add_handler(
-    MessageHandler(
-        broadcast,
-        filters=command(BotCommands.BroadcastCommand) & CustomFilters.owner,
-    ),
-)
