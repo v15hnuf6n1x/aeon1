@@ -184,7 +184,7 @@ class DbManager:
         if self._return:
             return
         await self._db.pm_users[TgClient.ID].delete_one({"_id": user_id})
-    
+
     async def update_user_tdata(self, user_id, token, time):
         if self._return:
             return
