@@ -1,6 +1,7 @@
 import os
 import subprocess
 from asyncio import Lock, new_event_loop, set_event_loop
+from datetime import datetime
 from logging import (
     ERROR,
     INFO,
@@ -14,7 +15,6 @@ from logging import (
 )
 from socket import setdefaulttimeout
 from time import time
-from datetime import datetime
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from aria2p import API as ariaAPI  # noqa: N811
