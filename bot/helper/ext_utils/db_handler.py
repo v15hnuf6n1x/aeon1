@@ -117,6 +117,10 @@ class DbManager:
             del data["rclone_config"]
         if data.get("token_pickle"):
             del data["token_pickle"]
+        if data.get("token"):
+            del data["token"]
+        if data.get("time"):
+            del data["time"]
         await self.db.users.replace_one({"_id": user_id}, data, upsert=True)
 
     async def update_user_doc(self, user_id, key, path=""):
@@ -164,6 +168,51 @@ class DbManager:
             {"_id": link, "cid": cid, "tag": tag},
         )
 
+    async def update_user_tdata(self, user_id, token, time):
+        if self._return:
+            return
+        await self.db.access_token.update_one(
+            {"_id": user_id},
+            {"$set": {"token": token, "time": time}},
+            upsert=True,
+        )
+
+    async def update_user_token(self, user_id, token):
+        if self._return:
+            return
+        await self.db.access_token.update_one(
+            {"_id": user_id},
+            {"$set": {"token": token}},
+            upsert=True,
+        )
+
+    async def get_token_expiry(self, user_id):
+        if self._return:
+            return None
+        user_data = await self.db.access_token.find_one({"_id": user_id})
+        if user_data:
+            return user_data.get("time")
+        return None
+
+    async def delete_user_token(self, user_id):
+        if self._return:
+            return
+        await self.db.access_token.delete_one({"_id": user_id})
+
+    async def get_user_token(self, user_id):
+        if self._return:
+            return None
+        user_data = await self.db.access_token.find_one({"_id": user_id})
+        if user_data:
+            return user_data.get("token")
+        return None
+
+    async def delete_all_access_tokens(self):
+        if self._return:
+            return
+        await self.db.access_token.delete_many({})
+
+    
     async def rm_complete_task(self, link):
         if self._return:
             return
