@@ -214,7 +214,8 @@ class TaskConfig:
             self.up_dest = self.user_dict["upload_paths"][self.up_dest]
 
         if self.ffmpeg_cmds and not isinstance(self.ffmpeg_cmds, list):
-            ffmpeg_dict = self.user_dict["ffmpeg_cmds"]
+            if self.user_dict.get("ffmpeg_cmds", None):
+                ffmpeg_dict = self.user_dict["ffmpeg_cmds"]
                 self.ffmpeg_cmds = [
                     value
                     for key in list(self.ffmpeg_cmds)
