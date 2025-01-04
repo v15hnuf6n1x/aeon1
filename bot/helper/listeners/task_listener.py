@@ -190,7 +190,7 @@ class TaskListener(TaskConfig):
         if self.metadata:
             up_path = await self.proceed_metadata(
                 up_path,
-                gid
+                gid,
             )
             if self.is_cancelled:
                 return
@@ -367,7 +367,10 @@ class TaskListener(TaskConfig):
                 for index, (link, name) in enumerate(files.items(), start=1):
                     fmsg += f"{index}. <a href='{link}'>{name}</a>\n"
                     if len(fmsg.encode() + msg.encode()) > 4000:
-                        await send_message(self.user_id, f"{msg}<blockquote expandable>{fmsg}</blockquote>")
+                        await send_message(
+                            self.user_id,
+                            f"{msg}<blockquote expandable>{fmsg}</blockquote>",
+                        )
                         if Config.LOG_CHAT_ID:
                             await send_message(
                                 Config.LOG_CHAT_ID,
@@ -376,7 +379,10 @@ class TaskListener(TaskConfig):
                         await sleep(1)
                         fmsg = ""
                 if fmsg != "":
-                    await send_message(self.user_id, f"{msg}<blockquote expandable>{fmsg}</blockquote>")
+                    await send_message(
+                        self.user_id,
+                        f"{msg}<blockquote expandable>{fmsg}</blockquote>",
+                    )
                     if Config.LOG_CHAT_ID:
                         await send_message(
                             Config.LOG_CHAT_ID,

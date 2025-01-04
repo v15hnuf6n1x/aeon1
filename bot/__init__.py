@@ -17,10 +17,11 @@ from logging import (
 )
 from socket import setdefaulttimeout
 from time import time
-from pytz import timezone
+
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from aria2p import API as ariaAPI  # noqa: N811
 from aria2p import Client as ariaClient
+from pytz import timezone
 from qbittorrentapi import Client as QbClient
 from tzlocal import get_localzone
 from uvloop import install
@@ -42,6 +43,7 @@ bot_start_time = time()
 
 bot_loop = new_event_loop()
 set_event_loop(bot_loop)
+
 
 class CustomFormatter(Formatter):
     def formatTime(  # noqa: N802

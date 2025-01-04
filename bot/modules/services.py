@@ -1,17 +1,16 @@
 from time import time
 from uuid import uuid4
 
-from bot.helper.ext_utils.bot_utils import new_task
 from bot.core.config_manager import Config
+from bot.helper.ext_utils.bot_utils import new_task
+from bot.helper.ext_utils.status_utils import get_readable_time
 from bot.helper.telegram_helper.bot_commands import BotCommands
-from bot.helper.telegram_helper.button_build import ButtonMaker
 from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.message_utils import (
     edit_message,
     send_file,
     send_message,
 )
-from bot.helper.ext_utils.status_utils import get_readable_time
 
 
 @new_task
@@ -50,7 +49,7 @@ async def start(client, message):
         user_data[userid].update(data)
         await database.update_user_tdata(userid, token, token_time)
         msg = "Your token has been successfully generated!\n\n"
-        msg += f'It will be valid for {get_readable_time(int(Config.TOKEN_TIMEOUT), True)}'
+        msg += f"It will be valid for {get_readable_time(int(Config.TOKEN_TIMEOUT), True)}"
         return await send_message(message, msg)
     elif await CustomFilters.authorized(client, message):
         help_command = f"/{BotCommands.HelpCommand}"
@@ -60,6 +59,7 @@ async def start(client, message):
         await send_message(message, "You are not a authorized user!")
     await database.update_pm_users(message.from_user.id)
     return None
+
 
 @new_task
 async def ping(_, message):

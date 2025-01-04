@@ -7,9 +7,7 @@ from logging import (
     LogRecord,
     StreamHandler,
     basicConfig,
-    error,
     getLogger,
-    info,
 )
 from logging import (
     error as log_error,
@@ -20,10 +18,10 @@ from logging import (
 from os import path, remove
 from subprocess import run as srun
 from sys import exit
-from pytz import timezone
-from tzlocal import get_localzone
+
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
+from pytz import timezone
 
 getLogger("pymongo").setLevel(ERROR)
 
@@ -33,6 +31,7 @@ if path.exists("log.txt"):
 
 if path.exists("rlog.txt"):
     remove("rlog.txt")
+
 
 class CustomFormatter(Formatter):
     def formatTime(  # noqa: N802
