@@ -333,7 +333,7 @@ class YtDlp(TaskListener):
             "-ns": "",
             "-md": "",
             "-tl": "",
-            "-ff": None,
+            "-ff": set(),
         }
 
         arg_parser(input_list[1:], args)
@@ -344,10 +344,11 @@ class YtDlp(TaskListener):
             self.multi = 0
 
         try:
-            if args["-ff"].strip().startswith("["):
-                self.ffmpeg_cmds = eval(args["-ff"])
-            else:
-                self.ffmpeg_cmds = args["-ff"]
+            if args["-ff"]:
+                if isinstance(args["-ff"], set):
+                    self.ffmpeg_cmds = args["-ff"]
+                else:
+                    self.ffmpeg_cmds = eval(args["-ff"])
         except Exception as e:
             self.ffmpeg_cmds = None
             LOGGER.error(e)

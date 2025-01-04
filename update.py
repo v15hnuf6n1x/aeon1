@@ -3,9 +3,13 @@ from logging import (
     ERROR,
     INFO,
     FileHandler,
+    Formatter,
+    LogRecord,
     StreamHandler,
     basicConfig,
+    error,
     getLogger,
+    info,
 )
 from logging import (
     error as log_error,
@@ -16,7 +20,8 @@ from logging import (
 from os import path, remove
 from subprocess import run as srun
 from sys import exit
-
+from pytz import timezone
+from tzlocal import get_localzone
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 
@@ -29,11 +34,34 @@ if path.exists("log.txt"):
 if path.exists("rlog.txt"):
     remove("rlog.txt")
 
-basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[FileHandler("log.txt"), StreamHandler()],
-    level=INFO,
+class CustomFormatter(Formatter):
+    def formatTime(  # noqa: N802
+        self,
+        record: LogRecord,
+        datefmt: str | None,
+    ) -> str:
+        dt: datetime = datetime.fromtimestamp(
+            record.created,
+            tz=timezone("Asia/Dhaka"),
+        )
+        return dt.strftime(datefmt)
+
+    def format(self, record: LogRecord) -> str:
+        return super().format(record).replace(record.levelname, record.levelname[:1])
+
+
+formatter = CustomFormatter(
+    "[%(asctime)s] %(levelname)s - %(message)s [%(module)s:%(lineno)d]",
+    datefmt="%d-%b %I:%M:%S %p",
 )
+
+file_handler = FileHandler("log.txt")
+file_handler.setFormatter(formatter)
+
+stream_handler = StreamHandler()
+stream_handler.setFormatter(formatter)
+
+basicConfig(handlers=[file_handler, stream_handler], level=INFO)
 
 settings = import_module("config")
 config_file = {

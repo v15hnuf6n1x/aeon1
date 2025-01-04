@@ -6,13 +6,18 @@ from logging import (
     INFO,
     WARNING,
     FileHandler,
+    Formatter,
+    LogRecord,
     StreamHandler,
     basicConfig,
+    error,
     getLogger,
+    info,
+    warning,
 )
 from socket import setdefaulttimeout
 from time import time
-
+from pytz import timezone
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from aria2p import API as ariaAPI  # noqa: N811
 from aria2p import Client as ariaClient
@@ -38,11 +43,34 @@ bot_start_time = time()
 bot_loop = new_event_loop()
 set_event_loop(bot_loop)
 
-basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[FileHandler("log.txt"), StreamHandler()],
-    level=INFO,
+class CustomFormatter(Formatter):
+    def formatTime(  # noqa: N802
+        self,
+        record: LogRecord,
+        datefmt: str | None,
+    ) -> str:
+        dt: datetime = datetime.fromtimestamp(
+            record.created,
+            tz=timezone("Asia/Dhaka"),
+        )
+        return dt.strftime(datefmt)
+
+    def format(self, record: LogRecord) -> str:
+        return super().format(record).replace(record.levelname, record.levelname[:1])
+
+
+formatter = CustomFormatter(
+    "[%(asctime)s] %(levelname)s - %(message)s [%(module)s:%(lineno)d]",
+    datefmt="%d-%b %I:%M:%S %p",
 )
+
+file_handler = FileHandler("log.txt")
+file_handler.setFormatter(formatter)
+
+stream_handler = StreamHandler()
+stream_handler.setFormatter(formatter)
+
+basicConfig(handlers=[file_handler, stream_handler], level=INFO)
 
 LOGGER = getLogger(__name__)
 

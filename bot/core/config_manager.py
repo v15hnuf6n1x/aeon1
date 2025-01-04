@@ -65,6 +65,7 @@ class Config:
     PAID_CHANNEL_LINK = ""
     DELETE_LINKS = False
     FSUB_IDS = ""
+    LOG_CHAT_ID = 0
 
     @classmethod
     def get(cls, key):

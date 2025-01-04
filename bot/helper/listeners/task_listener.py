@@ -187,6 +187,20 @@ class TaskListener(TaskConfig):
             self.subname = ""
             self.subsize = 0
 
+        if self.metadata:
+            up_path = await self.proceed_metadata(
+                up_path,
+                gid
+            )
+            if self.is_cancelled:
+                return
+            self.is_file = await aiopath.isfile(up_path)
+            up_dir, self.name = up_path.rsplit("/", 1)
+            self.size = await get_path_size(up_dir)
+            self.subproc = None
+            self.subname = ""
+            self.subsize = 0
+
         if self.ffmpeg_cmds:
             up_path = await self.proceed_ffmpeg(
                 up_path,
@@ -207,17 +221,6 @@ class TaskListener(TaskConfig):
                 return
             self.is_file = await aiopath.isfile(up_path)
             self.name = up_path.rsplit("/", 1)[1]
-
-        if self.metadata:
-            up_path = await self.proceed_metadata(up_path, gid)
-            if self.is_cancelled:
-                return
-            self.is_file = await aiopath.isfile(up_path)
-            up_dir, self.name = up_path.rsplit("/", 1)
-            self.size = await get_path_size(up_dir)
-            self.subproc = None
-            self.subname = ""
-            self.subsize = 0
 
         if self.screen_shots:
             up_path = await self.generate_screenshots(up_path)
@@ -350,6 +353,7 @@ class TaskListener(TaskConfig):
         ):
             await database.rm_complete_task(self.message.link)
         msg = f"<b>Name: </b><code>{escape(self.name)}</code>\n\n<b>Size: </b>{get_readable_file_size(self.size)}"
+        done_msg = f"{self.tag}\nYour task is complete\nPlease check your inbox."
         LOGGER.info(f"Task Done: {self.name}")
         if self.is_leech:
             msg += f"\n<b>Total Files: </b>{folders}"
@@ -363,11 +367,22 @@ class TaskListener(TaskConfig):
                 for index, (link, name) in enumerate(files.items(), start=1):
                     fmsg += f"{index}. <a href='{link}'>{name}</a>\n"
                     if len(fmsg.encode() + msg.encode()) > 4000:
-                        await send_message(self.message, msg + fmsg)
+                        await send_message(self.user_id, f"{msg}<blockquote expandable>{fmsg}</blockquote>")
+                        if Config.LOG_CHAT_ID:
+                            await send_message(
+                                Config.LOG_CHAT_ID,
+                                f"{msg}<blockquote expandable>{fmsg}</blockquote>",
+                            )
                         await sleep(1)
                         fmsg = ""
                 if fmsg != "":
-                    await send_message(self.message, msg + fmsg)
+                    await send_message(self.user_id, f"{msg}<blockquote expandable>{fmsg}</blockquote>")
+                    if Config.LOG_CHAT_ID:
+                        await send_message(
+                            Config.LOG_CHAT_ID,
+                            f"{msg}<blockquote expandable>{fmsg}</blockquote>",
+                        )
+                await send_message(self.message, done_msg)
         else:
             msg += f"\n\n<b>Type: </b>{mime_type}"
             if mime_type == "Folder":
@@ -405,7 +420,10 @@ class TaskListener(TaskConfig):
                 msg += f"\n\nPath: <code>{rclone_path}</code>"
                 button = None
             msg += f"\n\n<b>cc: </b>{self.tag}"
-            await send_message(self.message, msg, button)
+            await send_message(self.user_id, msg, button)
+            if Config.LOG_CHAT_ID:
+                await send_message(Config.LOG_CHAT_ID, msg, button)
+            await send_message(self.message, done_msg)
         if self.seed:
             if self.new_dir:
                 await clean_target(self.new_dir)
