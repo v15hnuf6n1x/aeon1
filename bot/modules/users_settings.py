@@ -49,27 +49,7 @@ async def get_user_settings(from_user):
     ffc = user_dict.get("ffmpeg_cmds", Config.FFMPEG_CMDS or "None")
 
     # Conditions
-    "DOCUMENT" if user_dict.get("as_doc", Config.AS_DOCUMENT) else "MEDIA"
-    ("Enabled" if user_dict.get("media_group", Config.MEDIA_GROUP) else "Disabled")
-    (
-        "user"
-        if (
-            TgClient.IS_PREMIUM_USER
-            and user_dict.get("user_transmission", Config.USER_TRANSMISSION)
-        )
-        else "bot"
-    )
-    (
-        "Enabled"
-        if (
-            TgClient.IS_PREMIUM_USER
-            and user_dict.get("mixed_leech", Config.MIXED_LEECH)
-        )
-        else "Disabled"
-    )
-    user_dict.get("thumb_layout", Config.THUMBNAIL_LAYOUT or "None")
     rccmsg = "Exists" if await aiopath.exists(rclone_conf) else "Not Exists"
-    user_dict.get("rclone_path", Config.RCLONE_PATH or "None")
     tokenmsg = "Exists" if await aiopath.exists(token_pickle) else "Not Exists"
     default_upload = user_dict.get("default_upload", Config.DEFAULT_UPLOAD)
     dur = "Gdrive API" if default_upload != "gd" else "Rclone"
@@ -326,12 +306,6 @@ async def edit_user_settings(client, query):
         thumbmsg = "Exists" if await aiopath.exists(thumbpath) else "Not Exists"
         split_size = Config.LEECH_SPLIT_SIZE
         buttons.data_button("Leech Destination", f"userset {user_id} ldest")
-        if user_dict.get("leech_dest", False):
-            user_dict["leech_dest"]
-        elif "leech_dest" not in user_dict and Config.LEECH_DUMP_CHAT:
-            pass
-        else:
-            pass
         buttons.data_button("Leech Prefix", f"userset {user_id} leech_prefix")
         if user_dict.get("lprefix", False):
             lprefix = user_dict["lprefix"]
@@ -380,8 +354,6 @@ async def edit_user_settings(client, query):
                 "Leech by User",
                 f"userset {user_id} user_transmission true",
             )
-        else:
-            pass
 
         if (TgClient.IS_PREMIUM_USER and user_dict.get("mixed_leech", False)) or (
             "mixed_leech" not in user_dict and Config.MIXED_LEECH
@@ -395,8 +367,6 @@ async def edit_user_settings(client, query):
                 "Enable Mixed Leech",
                 f"userset {user_id} mixed_leech true",
             )
-        else:
-            pass
 
         buttons.data_button("Thumbnail Layout", f"userset {user_id} tlayout")
         if user_dict.get("thumb_layout", False):

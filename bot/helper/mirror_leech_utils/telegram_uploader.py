@@ -514,7 +514,7 @@ class TelegramUploader:
                     progress=self._upload_progress,
                 )
 
-            await _copy_message()
+            await self._copy_message()
 
             if (
                 not self._listener.is_cancelled
@@ -574,7 +574,7 @@ class TelegramUploader:
         async def _copy(target, retries=3):
             for attempt in range(retries):
                 try:
-                    msg = await bot.get_messages(
+                    msg = await TgClient.bot.get_messages(
                         self._sent_msg.chat.id,
                         self._sent_msg.id,
                     )
