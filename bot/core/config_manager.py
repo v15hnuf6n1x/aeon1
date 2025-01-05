@@ -66,6 +66,7 @@ class Config:
     DELETE_LINKS = False
     FSUB_IDS = ""
     LOG_CHAT_ID = 0
+    LEECH_FILENAME_CAPTION = ""
 
     @classmethod
     def get(cls, key):

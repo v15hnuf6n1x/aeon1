@@ -23,6 +23,7 @@ from pyrogram.types import (
     InputMediaPhoto,
     InputMediaVideo,
 )
+from bot.helper.aeon_utils.caption_gen import generate_caption
 from tenacity import (
     RetryError,
     retry,
@@ -56,6 +57,7 @@ class TelegramUploader:
         self._last_uploaded = 0
         self._processed_bytes = 0
         self._listener = listener
+        self._user_id = listener.user_id
         self._path = path
         self._start_time = time()
         self._total_files = 0
@@ -67,6 +69,7 @@ class TelegramUploader:
         self._last_msg_in_group = False
         self._up_path = ""
         self._lprefix = ""
+        self._lcaption = ""
         self._media_group = False
         self._is_private = False
         self._sent_msg = None
@@ -92,6 +95,11 @@ class TelegramUploader:
         self._lprefix = self._listener.user_dict.get("lprefix") or (
             Config.LEECH_FILENAME_PREFIX
             if "lprefix" not in self._listener.user_dict
+            else ""
+        )
+        self._lcaption = self._listener.user_dict.get("lcaption") or (
+            Config.LEECH_FILENAME_CAPTION
+            if "lcaption" not in self._listener.user_dict
             else ""
         )
         if self._thumb != "none" and not await aiopath.exists(self._thumb):
@@ -142,8 +150,11 @@ class TelegramUploader:
         return True
 
     async def _prepare_file(self, file_, dirpath, delete_file):
+        if self._lcaption:
+            cap_mono = await generate_caption(file_, dirpath, self._lcaption)
         if self._lprefix:
-            cap_mono = f"{self._lprefix} <code>{file_}</code>"
+            if not self._lcaption:
+                cap_mono = f"{self._lprefix} <code>{file_}</code>"
             self._lprefix = re_sub("<.*?>", "", self._lprefix)
             if (
                 self._listener.seed
@@ -503,6 +514,8 @@ class TelegramUploader:
                     progress=self._upload_progress,
                 )
 
+            await _copy_message()
+
             if (
                 not self._listener.is_cancelled
                 and self._media_group
@@ -554,6 +567,29 @@ class TelegramUploader:
                 LOGGER.error(f"Retrying As Document. Path: {self._up_path}")
                 return await self._upload_file(cap_mono, file, o_path, True)
             raise err
+
+    async def _copy_message(self):
+        await sleep(1)
+
+        async def _copy(target, retries=3):
+            for attempt in range(retries):
+                try:
+                    msg = await bot.get_messages(
+                        self._sent_msg.chat.id, self._sent_msg.id
+                    )
+                    await msg.copy(target)
+                    return
+                except Exception as e:
+                    LOGGER.error(f"Attempt {attempt + 1} failed: {e} {msg.id}")
+                    if attempt < retries - 1:
+                        await sleep(0.5)
+            LOGGER.error(f"Failed to copy message after {retries} attempts")
+
+        # if self.dm_mode: 
+        await _copy(self._user_id)
+
+        # if self._user_dump:
+        #     await _copy(self._user_dump)
 
     @property
     def speed(self):

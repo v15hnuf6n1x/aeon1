@@ -44,12 +44,6 @@ async def get_user_settings(from_user):
     # User Data
     user_dict = user_data.get(user_id, {})
     thumbnail = thumbpath if await aiopath.exists(thumbpath) else no_thumb
-    split_size = Config.LEECH_SPLIT_SIZE
-    lprefix = user_dict.get("lprefix", Config.LEECH_FILENAME_PREFIX or "None")
-    leech_dest = user_dict.get("leech_dest", Config.LEECH_DUMP_CHAT or "None")
-    gdrive_id = user_dict.get("gdrive_id", Config.GDRIVE_ID or "None")
-    index = user_dict.get("index_url", "None")
-    upload_paths = "Added" if user_dict.get("upload_paths", False) else "None"
     ex_ex = user_dict.get("excluded_extensions", extension_filter or "None")
     meta_msg = user_dict.get("metadata", Config.METADATA_KEY or "None")
     ns_msg = "Added" if user_dict.get("name_sub", False) else "None"
@@ -81,11 +75,6 @@ async def get_user_settings(from_user):
     rccmsg = "Exists" if await aiopath.exists(rclone_conf) else "Not Exists"
     rccpath = user_dict.get("rclone_path", Config.RCLONE_PATH or "None")
     tokenmsg = "Exists" if await aiopath.exists(token_pickle) else "Not Exists"
-    sd_msg = (
-        "Enabled"
-        if user_dict.get("stop_duplicate", Config.STOP_DUPLICATE)
-        else "Disabled"
-    )
     default_upload = user_dict.get("default_upload", Config.DEFAULT_UPLOAD)
     du = "Gdrive API" if default_upload == "gd" else "Rclone"
     dur = "Gdrive API" if default_upload != "gd" else "Rclone"
@@ -114,38 +103,23 @@ async def get_user_settings(from_user):
     buttons.data_button("Close", f"userset {user_id} close")
 
     # Text
-    text = (
-        f"<u>Settings for {name}</u>\n"
-        f"Leech Type is <b>{ltype}</b>\n"
-        f"Leech Split Size is <b>{split_size}</b>\n"
-        f"Media Group is <b>{media_group}</b>\n"
-        f"Leech Prefix is <code>{escape(lprefix)}</code>\n"
-        f"Leech Destination is <code>{leech_dest}</code>\n"
-        f"Leech by <b>{leech_method}</b> session\n"
-        f"Mixed Leech is <b>{mixed_leech}</b>\n"
-        f"Thumbnail Layout is <b>{thumb_layout}</b>\n"
-        f"Rclone Config <b>{rccmsg}</b>\n"
-        f"Rclone Path is <code>{rccpath}</code>\n"
-        f"Gdrive Token <b>{tokenmsg}</b>\n"
-        f"Upload Paths is <b>{upload_paths}</b>\n"
-        f"Gdrive ID is <code>{gdrive_id}</code>\n"
-        f"Index Link is <code>{index}</code>\n"
-        f"Stop Duplicate is <b>{sd_msg}</b>\n"
-        f"Default Package is <b>{du}</b>\n"
-        f"Upload using <b>{tr}</b> token/config\n"
-        f"Name substitution is <b>{ns_msg}</b>\n"
-        f"Metadata key is <b>{meta_msg}</b>\n"
-        f"Excluded Extensions is <code>{ex_ex}</code>\n"
-        f"YT-DLP Options is <code>{escape(ytopt)}</code>\n"
-        f"FFMPEG Commands is <code>{ffc}</code>"
-    )
+    text = f""">Settings
+
+**Rclone Config:** {rccmsg}
+**Gdrive Token:** {tokenmsg}
+**Name Substitution:** `{ns_msg}`
+**FFmpeg Commands:** `{ffc}`
+**Metadata Title:** `{meta_msg}`
+**Excluded extension:** `{ex_ex}`
+**YT-DLP Options:** `{ytopt}`
+"""
 
     return text, buttons.build_menu(2), thumbnail
 
 
 async def update_user_settings(query):
     msg, button, thumb = await get_user_settings(query.from_user)
-    await edit_message(query.message, msg, button, thumb)
+    await edit_message(query.message, msg, button, thumb, markdown=True)
 
 
 @new_task
@@ -153,7 +127,7 @@ async def send_user_settings(_, message):
     from_user = message.from_user
     handler_dict[from_user.id] = False
     msg, button, thumb = await get_user_settings(from_user)
-    await send_message(message, msg, button, thumb)
+    await send_message(message, msg, button, thumb, markdown=True)
 
 
 @new_task
@@ -327,6 +301,7 @@ async def edit_user_settings(client, query):
     elif data[2] in [
         "yt_opt",
         "lprefix",
+        "lcaption",
         "index_url",
         "excluded_extensions",
         "name_sub",
@@ -371,6 +346,13 @@ async def edit_user_settings(client, query):
             lprefix = Config.LEECH_FILENAME_PREFIX
         else:
             lprefix = "None"
+        buttons.data_button("Leech Caption", f"userset {user_id} leech_caption")
+        if user_dict.get("lcaption", False):
+            lcaption = user_dict["lcaption"]
+        elif "lcaption" not in user_dict and Config.LEECH_FILENAME_CAPTION:
+            lcaption = Config.LEECH_FILENAME_CAPTION
+        else:
+            lcaption = "None"
         if user_dict.get("as_doc", False) or (
             "as_doc" not in user_dict and Config.AS_DOCUMENT
         ):
@@ -437,19 +419,21 @@ async def edit_user_settings(client, query):
 
         buttons.data_button("Back", f"userset {user_id} back")
         buttons.data_button("Close", f"userset {user_id} close")
-        text = f"""<u>Leech Settings for {name}</u>
-Leech Type is <b>{ltype}</b>
-Custom Thumbnail <b>{thumbmsg}</b>
-Leech Split Size is <b>{split_size}</b>
-Media Group is <b>{media_group}</b>
-Leech Prefix is <code>{escape(lprefix)}</code>
-Leech Destination is <code>{leech_dest}</code>
-Leech by <b>{leech_method}</b> session
-Mixed Leech is <b>{mixed_leech}</b>
-Session string: {session_string}
-Thumbnail Layout is <b>{thumb_layout}</b>
+        text = f""">Leech Settings
+
+**Leech Type:** {ltype}
+**Custom Thumbnail:** {thumbmsg}
+**Media Group:** {media_group}
+**Leech Split Size:** {split_size}
+**Session string:** {session_string}
+**Thumbnail Layout:** {thumb_layout}
+**Leech Prefix:** `{lprefix}`
+**Leech Caption:** `{lcaption}`
 """
-        await edit_message(message, text, buttons.build_menu(2))
+# **User Custom Dump:** `{user_dump}`
+
+
+        await edit_message(message, text, buttons.build_menu(2), markdown=True)
     elif data[2] == "rclone":
         await query.answer()
         buttons = ButtonMaker()
@@ -464,10 +448,11 @@ Thumbnail Layout is <b>{thumb_layout}</b>
             rccpath = RP
         else:
             rccpath = "None"
-        text = f"""<u>Rclone Settings for {name}</u>
-Rclone Config <b>{rccmsg}</b>
-Rclone Path is <code>{rccpath}</code>"""
-        await edit_message(message, text, buttons.build_menu(1))
+        text = f""">Rclone Settings
+
+**Rclone Config:** {rccmsg}
+**Rclone Path:** `{rccpath}`"""
+        await edit_message(message, text, buttons.build_menu(1), markdown=True)
     elif data[2] == "gdrive":
         await query.answer()
         buttons = ButtonMaker()
@@ -500,12 +485,13 @@ Rclone Path is <code>{rccpath}</code>"""
         index = (
             user_dict["index_url"] if user_dict.get("index_url", False) else "None"
         )
-        text = f"""<u>Gdrive Tools Settings for {name}</u>
-Gdrive Token <b>{tokenmsg}</b>
-Gdrive ID is <code>{gdrive_id}</code>
-Index URL is <code>{index}</code>
-Stop Duplicate is <b>{sd_msg}</b>"""
-        await edit_message(message, text, buttons.build_menu(1))
+        text = f""">Gdrive Tools Settings
+
+**Gdrive Token:** {tokenmsg}
+**Gdrive ID:** `{gdrive_id}`
+**Index URL:** `{index}`
+**Stop Duplicate:** {sd_msg}"""
+        await edit_message(message, text, buttons.build_menu(1), markdown=True)
     elif data[2] == "sthumb":
         await query.answer()
         buttons = ButtonMaker()
@@ -516,7 +502,7 @@ Stop Duplicate is <b>{sd_msg}</b>"""
         await edit_message(
             message,
             "Send a photo to save it as custom thumbnail. Timeout: 60 sec",
-            buttons.build_menu(1),
+            buttons.build_menu(1), markdown=True
         )
         pfunc = partial(set_thumb, pre_event=query)
         await event_handler(client, query, pfunc, True)
@@ -537,7 +523,7 @@ Format: key:value|key:value|key:value.
 Example: format:bv*+mergeall[vcodec=none]|nocheckcertificate:True
 Check all yt-dlp api options from this <a href='https://github.com/yt-dlp/yt-dlp/blob/master/yt_dlp/YoutubeDL.py#L184'>FILE</a> or use this <a href='https://t.me/mltb_official_channel/177'>script</a> to convert cli arguments to api options.
         """
-        await edit_message(message, rmsg, buttons.build_menu(1))
+        await edit_message(message, rmsg, buttons.build_menu(1), markdown=True)
         pfunc = partial(set_option, pre_event=query, option="yt_opt")
         await event_handler(client, query, pfunc)
     elif data[2] == "ffc":
@@ -562,7 +548,7 @@ Here I will explain how to use mltb.* which is reference to files you want to wo
 2. Second cmd: the input is mltb.video so this cmd will work on all videos and the output is only mltb so the extenstion is same as input files.
 3. Third cmd: the input in mltb.m4a so this cmd will work only on m4a audios and the output is mltb.mp3 so the output extension is mp3.
 4. Fourth cmd: the input is mltb.audio so this cmd will work on all audios and the output is mltb.mp3 so the output extension is mp3."""
-        await edit_message(message, rmsg, buttons.build_menu(1))
+        await edit_message(message, rmsg, buttons.build_menu(1), markdown=True)
         pfunc = partial(set_option, pre_event=query, option="ffmpeg_cmds")
         await event_handler(client, query, pfunc)
     elif data[2] == "rcc":
@@ -578,7 +564,7 @@ Here I will explain how to use mltb.* which is reference to files you want to wo
         await edit_message(
             message,
             "Send rclone.conf. Timeout: 60 sec",
-            buttons.build_menu(1),
+            buttons.build_menu(1), markdown=True
         )
         pfunc = partial(add_rclone, pre_event=query)
         await event_handler(client, query, pfunc, document=True)
@@ -593,7 +579,7 @@ Here I will explain how to use mltb.* which is reference to files you want to wo
         buttons.data_button("Back", f"userset {user_id} rclone")
         buttons.data_button("Close", f"userset {user_id} close")
         rmsg = "Send Rclone Path. Timeout: 60 sec"
-        await edit_message(message, rmsg, buttons.build_menu(1))
+        await edit_message(message, rmsg, buttons.build_menu(1), markdown=True)
         pfunc = partial(set_option, pre_event=query, option="rclone_path")
         await event_handler(client, query, pfunc)
     elif data[2] == "token":
@@ -609,7 +595,7 @@ Here I will explain how to use mltb.* which is reference to files you want to wo
         await edit_message(
             message,
             "Send token.pickle. Timeout: 60 sec",
-            buttons.build_menu(1),
+            buttons.build_menu(1), markdown=True
         )
         pfunc = partial(add_token_pickle, pre_event=query)
         await event_handler(client, query, pfunc, document=True)
@@ -621,7 +607,7 @@ Here I will explain how to use mltb.* which is reference to files you want to wo
         buttons.data_button("Back", f"userset {user_id} gdrive")
         buttons.data_button("Close", f"userset {user_id} close")
         rmsg = "Send Gdrive ID. Timeout: 60 sec"
-        await edit_message(message, rmsg, buttons.build_menu(1))
+        await edit_message(message, rmsg, buttons.build_menu(1), markdown=True)
         pfunc = partial(set_option, pre_event=query, option="gdrive_id")
         await event_handler(client, query, pfunc)
     elif data[2] == "index":
@@ -632,7 +618,7 @@ Here I will explain how to use mltb.* which is reference to files you want to wo
         buttons.data_button("Back", f"userset {user_id} gdrive")
         buttons.data_button("Close", f"userset {user_id} close")
         rmsg = "Send Index URL. Timeout: 60 sec"
-        await edit_message(message, rmsg, buttons.build_menu(1))
+        await edit_message(message, rmsg, buttons.build_menu(1), markdown=True)
         pfunc = partial(set_option, pre_event=query, option="index_url")
         await event_handler(client, query, pfunc)
     elif data[2] == "leech_prefix":
@@ -647,9 +633,25 @@ Here I will explain how to use mltb.* which is reference to files you want to wo
         await edit_message(
             message,
             "Send Leech Filename Prefix. You can add HTML tags. Timeout: 60 sec",
-            buttons.build_menu(1),
+            buttons.build_menu(1), markdown=True
         )
         pfunc = partial(set_option, pre_event=query, option="lprefix")
+        await event_handler(client, query, pfunc)
+    elif data[2] == "leech_caption":
+        await query.answer()
+        buttons = ButtonMaker()
+        if user_dict.get("lcaption", False) or (
+            "lcaption" not in user_dict and Config.LEECH_FILENAME_CAPTION
+        ):
+            buttons.data_button("Remove", f"userset {user_id} lcaption")
+        buttons.data_button("Back", f"userset {user_id} leech")
+        buttons.data_button("Close", f"userset {user_id} close")
+        await edit_message(
+            message,
+            "Send Leech Filename Caption. You can add HTML tags. Timeout: 60 sec",
+            buttons.build_menu(1), markdown=True
+        )
+        pfunc = partial(set_option, pre_event=query, option="lcaption")
         await event_handler(client, query, pfunc)
     elif data[2] == "ldest":
         await query.answer()
@@ -666,7 +668,7 @@ Here I will explain how to use mltb.* which is reference to files you want to wo
         await edit_message(
             message,
             "Send leech destination ID/USERNAME/PM. Timeout: 60 sec",
-            buttons.build_menu(1),
+            buttons.build_menu(1), markdown=True
         )
         pfunc = partial(set_option, pre_event=query, option="leech_dest")
         await event_handler(client, query, pfunc)
@@ -685,7 +687,7 @@ Here I will explain how to use mltb.* which is reference to files you want to wo
         await edit_message(
             message,
             "Send thumbnail layout (widthxheight, 2x2, 3x3, 2x4, 4x4, ...). Timeout: 60 sec",
-            buttons.build_menu(1),
+            buttons.build_menu(1), markdown=True
         )
         pfunc = partial(set_option, pre_event=query, option="thumb_layout")
         await event_handler(client, query, pfunc)
@@ -722,7 +724,7 @@ Here I will explain how to use mltb.* which is reference to files you want to wo
         await edit_message(
             message,
             "Send exluded extenions seperated by space without dot at beginning. Timeout: 60 sec",
-            buttons.build_menu(1),
+            buttons.build_menu(1), markdown=True
         )
         pfunc = partial(set_option, pre_event=query, option="excluded_extensions")
         await event_handler(client, query, pfunc)
@@ -753,7 +755,7 @@ Example: script/code/s | mirror/leech | tea/ /s | clone | cpu/ | \[mltb\]/mltb |
         await edit_message(
             message,
             emsg,
-            buttons.build_menu(1),
+            buttons.build_menu(1), markdown=True
         )
         pfunc = partial(set_option, pre_event=query, option="name_sub")
         await event_handler(client, query, pfunc)
@@ -795,7 +797,7 @@ Example: script/code/s | mirror/leech | tea/ /s | clone | cpu/ | \[mltb\]/mltb |
         await edit_message(
             message,
             "Add or remove upload path.\n",
-            buttons.build_menu(1),
+            buttons.build_menu(1), markdown=True
         )
     elif data[2] == "new_path":
         await query.answer()
@@ -805,7 +807,7 @@ Example: script/code/s | mirror/leech | tea/ /s | clone | cpu/ | \[mltb\]/mltb |
         await edit_message(
             message,
             "Send path name(no space in name) which you will use it as a shortcut and the path/id seperated by space. You can add multiple names and paths separated by new line. Timeout: 60 sec",
-            buttons.build_menu(1),
+            buttons.build_menu(1), markdown=True
         )
         pfunc = partial(set_option, pre_event=query, option="upload_paths")
         await event_handler(client, query, pfunc)
@@ -817,7 +819,7 @@ Example: script/code/s | mirror/leech | tea/ /s | clone | cpu/ | \[mltb\]/mltb |
         await edit_message(
             message,
             "Send paths names which you want to delete, separated by space. Timeout: 60 sec",
-            buttons.build_menu(1),
+            buttons.build_menu(1), markdown=True
         )
         pfunc = partial(delete_path, pre_event=query)
         await event_handler(client, query, pfunc)
@@ -834,7 +836,7 @@ Example: script/code/s | mirror/leech | tea/ /s | clone | cpu/ | \[mltb\]/mltb |
         await edit_message(
             message,
             msg,
-            buttons.build_menu(1),
+            buttons.build_menu(1), markdown=True
         )
     elif data[2] == "reset":
         await query.answer()
