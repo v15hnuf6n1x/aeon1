@@ -97,7 +97,7 @@ async def log_callback(_, query):
     data = query.data.split()
     if user_id != int(data[1]):
         return await query.answer(text="This message not your's!", show_alert=True)
-    if data[2] == "view"
+    if data[2] == "view":
         await query.answer()
         async with aiopen("log.txt") as f:
             log_file_lines = (await f.read()).splitlines()
