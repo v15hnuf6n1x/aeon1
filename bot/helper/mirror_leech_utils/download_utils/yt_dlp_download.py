@@ -1,4 +1,4 @@
-# ruff: noqa: ARG005
+# ruff: noqa: ARG005, B023
 import contextlib
 from logging import getLogger
 from os import listdir
@@ -379,6 +379,6 @@ class YoutubeDLHelper:
                     self.opts[key].append(value)
             elif key == "download_ranges":
                 if isinstance(value, list):
-                    self.opts[key] = (lambda v: (lambda info, ytdl: v))(value)
+                    self.opts[key] = lambda info, ytdl: value
             else:
                 self.opts[key] = value

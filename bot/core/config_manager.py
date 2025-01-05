@@ -13,7 +13,7 @@ class Config:
     DEFAULT_UPLOAD = "rc"
     DOWNLOAD_DIR = "/usr/src/app/downloads/"
     EXTENSION_FILTER = ""
-    FFMPEG_CMDS: ClassVar[Dict[str, List[str]]] = {}
+    FFMPEG_CMDS: ClassVar[dict[str, list[str]]] = {}
     FILELION_API = ""
     GDRIVE_ID = ""
     INCOMPLETE_TASK_NOTIFIER = False
