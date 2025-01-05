@@ -197,7 +197,7 @@ def add_handlers():
             MessageHandler(
                 handler_func,
                 filters=command(command_name, case_sensitive=True)
-                & (custom_filter or CustomFilters.authorized),
+                & (custom_filter),
             ),
         )
 

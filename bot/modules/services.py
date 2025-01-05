@@ -80,7 +80,7 @@ async def ping(_, message):
 @new_task
 async def log(_, message):
     buttons = ButtonMaker()
-    buttons.data_button("Log display", f"log {message.from_user.id}")
+    buttons.data_button("View log", f"log {message.from_user.id} view")
     reply_message = await send_file(
         message,
         "log.txt",
@@ -97,34 +97,39 @@ async def log_callback(_, query):
     data = query.data.split()
     if user_id != int(data[1]):
         return await query.answer(text="This message not your's!", show_alert=True)
-    await query.answer()
-    async with aiopen("log.txt") as f:
-        log_file_lines = (await f.read()).splitlines()
-
-    def parseline(line):
+    if data[2] == "view"
+        await query.answer()
+        async with aiopen("log.txt") as f:
+            log_file_lines = (await f.read()).splitlines()
+    
+        def parseline(line):
+            try:
+                return line.split("] ", 1)[1]
+            except IndexError:
+                return line
+    
+        ind, log_lines = 1, ""
         try:
-            return line.split("] ", 1)[1]
-        except IndexError:
-            return line
-
-    ind, log_lines = 1, ""
-    try:
-        while len(log_lines) <= 3500:
-            log_lines = parseline(log_file_lines[-ind]) + "\n" + log_lines
-            if ind == len(log_file_lines):
-                break
-            ind += 1
-        start_line = "<pre language='python'>"
-        end_line = "</pre>"
-        btn = ButtonMaker()
-        btn.data_button("Close", f"aeon {user_id} close")
-        reply_message = await send_message(
-            message,
-            start_line + escape(log_lines) + end_line,
-            btn.build_menu(1),
-        )
-        await query.edit_message_reply_markup(None)
+            while len(log_lines) <= 3500:
+                log_lines = parseline(log_file_lines[-ind]) + "\n" + log_lines
+                if ind == len(log_file_lines):
+                    break
+                ind += 1
+            start_line = "<pre language='python'>"
+            end_line = "</pre>"
+            btn = ButtonMaker()
+            btn.data_button("Close", f"log {user_id} close")
+            reply_message = await send_message(
+                message,
+                start_line + escape(log_lines) + end_line,
+                btn.build_menu(1),
+            )
+            await query.edit_message_reply_markup(None)
+            await delete_message(message)
+            await five_minute_del(reply_message)
+        except Exception as err:
+            LOGGER.error(f"TG Log Display : {err!s}")
+    else:
+        await query.answer()
         await delete_message(message)
-        await five_minute_del(reply_message)
-    except Exception as err:
-        LOGGER.error(f"TG Log Display : {err!s}")
+        return None
