@@ -194,10 +194,12 @@ def add_handlers():
 
     for handler_func, command_name, custom_filter in command_filters.values():
         if custom_filter:
-            filters_to_apply = command(command_name, case_sensitive=True) & custom_filter
+            filters_to_apply = (
+                command(command_name, case_sensitive=True) & custom_filter
+            )
         else:
             filters_to_apply = command(command_name, case_sensitive=True)
-    
+
         TgClient.bot.add_handler(
             MessageHandler(
                 handler_func,
