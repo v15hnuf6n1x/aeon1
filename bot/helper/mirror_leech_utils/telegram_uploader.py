@@ -587,7 +587,8 @@ class TelegramUploader:
             LOGGER.error(f"Failed to copy message after {retries} attempts")
 
         # if self.dm_mode:
-        await _copy(self._user_id)
+        if self._sent_msg.chat.id != self._user_id:
+            await _copy(self._user_id)
 
         # if self._user_dump:
         #     await _copy(self._user_dump)

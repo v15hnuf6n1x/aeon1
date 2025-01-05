@@ -23,7 +23,7 @@ from .restart import (
 )
 from .rss import get_rss_menu, rss_listener
 from .search import initiate_search_tools, torrent_search, torrent_search_update
-from .services import log, ping, start
+from .services import log, ping, start, log_callback
 from .shell import run_shell
 from .speedtest import speedtest
 from .stats import bot_stats, get_packages_version
@@ -63,6 +63,7 @@ __all__ = [
     "initiate_search_tools",
     "leech",
     "log",
+    "log_callback",
     "mediainfo",
     "mirror",
     "ping",

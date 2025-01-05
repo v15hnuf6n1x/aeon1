@@ -374,30 +374,26 @@ class Mirror(TaskListener):
                     session,
                 ),
             )
-            return None
-        if isinstance(self.link, dict):
+        elif isinstance(self.link, dict):
             create_task(add_direct_download(self, path))
-            return None
-        if self.is_qbit:
+        elif self.is_qbit:
             create_task(add_qb_torrent(self, path, ratio, seed_time))
-            return None
-        if is_rclone_path(self.link):
+        elif is_rclone_path(self.link):
             create_task(add_rclone_download(self, f"{path}/"))
-            return None
-        if is_mega_link(self.link):
+        elif is_mega_link(self.link):
             create_task(add_mega_download(self, f"{path}/"))
-            return None
-        if is_gdrive_link(self.link) or is_gdrive_id(self.link):
+        elif is_gdrive_link(self.link) or is_gdrive_id(self.link):
             create_task(add_gd_download(self, path))
-            return None
-        ussr = args["-au"]
-        pssw = args["-ap"]
-        if ussr or pssw:
-            auth = f"{ussr}:{pssw}"
-            headers += (
-                f" authorization: Basic {b64encode(auth.encode()).decode('ascii')}"
-            )
-        create_task(add_aria2c_download(self, path, headers, ratio, seed_time))
+        else:
+            ussr = args["-au"]
+            pssw = args["-ap"]
+            if ussr or pssw:
+                auth = f"{ussr}:{pssw}"
+                headers += (
+                    f" authorization: Basic {b64encode(auth.encode()).decode('ascii')}"
+                )
+            create_task(add_aria2c_download(self, path, headers, ratio, seed_time))
+        await delete_links(self.message)
         return None
 
 
