@@ -364,8 +364,8 @@ class TaskListener(TaskConfig):
                 await send_message(self.message, msg)
             else:
                 fmsg = ""
-                for index, (link, name) in enumerate(files.items(), start=1):
-                    fmsg += f"{index}. <a href='{link}'>{name}</a>\n"
+                for index, (url, name) in enumerate(files.items(), start=1):
+                    fmsg += f"{index}. <a href='{url}'>{name}</a>\n"
                     if len(fmsg.encode() + msg.encode()) > 4000:
                         await send_message(
                             self.user_id,

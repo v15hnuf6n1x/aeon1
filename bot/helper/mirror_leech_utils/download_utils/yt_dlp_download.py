@@ -379,6 +379,6 @@ class YoutubeDLHelper:
                     self.opts[key].append(value)
             elif key == "download_ranges":
                 if isinstance(value, list):
-                    self.opts[key] = lambda info, ytdl: value
+                    self.opts[key] = (lambda v: (lambda info, ytdl: v))(value)
             else:
                 self.opts[key] = value

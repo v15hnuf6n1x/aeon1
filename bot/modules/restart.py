@@ -66,26 +66,25 @@ async def send_incomplete_task_message(cid, msg_id, msg):
 
 async def restart_notification():
     if await aiopath.isfile(".restartmsg"):
-        with open(".restartmsg") as f:
-            chat_id, msg_id = map(int, f)
+        with aiopen(".restartmsg", "r") as f:
+            chat_id, msg_id = map(int, await f.read().splitlines())
     else:
         chat_id, msg_id = 0, 0
 
-    if Config.INCOMPLETE_TASK_NOTIFIER and Config.DATABASE_URL:
-        if notifier_dict := await database.get_incomplete_tasks():
-            for cid, data in notifier_dict.items():
-                msg = (
-                    "Restarted Successfully!" if cid == chat_id else "Bot Restarted!"
-                )
-                for tag, links in data.items():
-                    msg += f"\n\n{tag}: "
-                    for index, link in enumerate(links, start=1):
-                        msg += f" <a href='{link}'>{index}</a> |"
-                        if len(msg.encode()) > 4000:
-                            await send_incomplete_task_message(cid, msg_id, msg)
-                            msg = ""
-                if msg:
-                    await send_incomplete_task_message(cid, msg_id, msg)
+    if Config.INCOMPLETE_TASK_NOTIFIER and Config.DATABASE_URL and (notifier_dict := await database.get_incomplete_tasks()):
+        for cid, data in notifier_dict.items():
+            msg = (
+                "Restarted Successfully!" if cid == chat_id else "Bot Restarted!"
+            )
+            for tag, links in data.items():
+                msg += f"\n\n{tag}: "
+                for index, link in enumerate(links, start=1):
+                    msg += f" <a href='{link}'>{index}</a> |"
+                    if len(msg.encode()) > 4000:
+                        await send_incomplete_task_message(cid, msg_id, msg)
+                        msg = ""
+            if msg:
+                await send_incomplete_task_message(cid, msg_id, msg)
 
     if await aiopath.isfile(".restartmsg"):
         with contextlib.suppress(Exception):
