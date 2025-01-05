@@ -101,13 +101,13 @@ async def log_callback(_, query):
         await query.answer()
         async with aiopen("log.txt") as f:
             log_file_lines = (await f.read()).splitlines()
-    
+
         def parseline(line):
             try:
                 return line.split("] ", 1)[1]
             except IndexError:
                 return line
-    
+
         ind, log_lines = 1, ""
         try:
             while len(log_lines) <= 3500:
