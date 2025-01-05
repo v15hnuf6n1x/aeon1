@@ -89,7 +89,7 @@ async def get_packages_version():
         get_version_async(command, regex) for command, regex in commands.values()
     ]
     versions = await gather(*tasks)
-    commands.update({tool: version for tool, version in zip(commands.keys(), versions, strict=False)})
+    commands.update(dict(zip(commands.keys(), versions, strict=False)))
     if await aiopath.exists(".git"):
         last_commit = await cmd_exec(
             "git log -1 --date=short --pretty=format:'%cd <b>From</b> %cr'",

@@ -99,7 +99,7 @@ class GoogleDriveUpload(GoogleDriveHelper):
             self._is_errored = True
         finally:
             self._updater.cancel()
-    
+
         if self.listener.is_cancelled and not self._is_errored:
             if mime_type == "Folder" and dir_id:
                 LOGGER.info("Deleting uploaded data from Drive...")

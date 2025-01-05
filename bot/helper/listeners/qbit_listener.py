@@ -58,7 +58,9 @@ async def _on_seed_finish(tor):
 
 @new_task
 async def _stop_duplicate(tor):
-    if (task := await get_task_by_gid(tor.hash[:12])) and task.listener.stop_duplicate:
+    if (
+        task := await get_task_by_gid(tor.hash[:12])
+    ) and task.listener.stop_duplicate:
         task.listener.name = tor.content_path.rsplit("/", 1)[-1].rsplit(".!qB", 1)[0]
         msg, button = await stop_duplicate_check(task.listener)
         if msg:
