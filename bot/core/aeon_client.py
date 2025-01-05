@@ -43,7 +43,7 @@ class TgClient:
                     Config.TELEGRAM_HASH,
                     session_string=Config.USER_SESSION_STRING,
                     parse_mode=enums.ParseMode.HTML,
-                    no_updates=True
+                    no_updates=True,
                     sleep_threshold=60,
                     max_concurrent_transmissions=10,
                 )
