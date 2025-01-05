@@ -170,11 +170,11 @@ def add_handlers():
             BotCommands.YtdlLeechCommand,
             CustomFilters.authorized,
         ),
-        "restart_sessions": (
-            restart_sessions,
-            BotCommands.RestartSessionsCommand,
-            CustomFilters.sudo,
-        ),
+        #    "restart_sessions": (
+        #        restart_sessions,
+        #        BotCommands.RestartSessionsCommand,
+        #        CustomFilters.sudo,
+        #    ),
         "mediainfo": (
             mediainfo,
             BotCommands.MediaInfoCommand,
