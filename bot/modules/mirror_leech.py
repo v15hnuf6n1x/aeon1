@@ -389,9 +389,7 @@ class Mirror(TaskListener):
             pssw = args["-ap"]
             if ussr or pssw:
                 auth = f"{ussr}:{pssw}"
-                headers += (
-                    f" authorization: Basic {b64encode(auth.encode()).decode('ascii')}"
-                )
+                headers += f" authorization: Basic {b64encode(auth.encode()).decode('ascii')}"
             create_task(add_aria2c_download(self, path, headers, ratio, seed_time))
         await delete_links(self.message)
         return None

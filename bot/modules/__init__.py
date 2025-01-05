@@ -23,7 +23,7 @@ from .restart import (
 )
 from .rss import get_rss_menu, rss_listener
 from .search import initiate_search_tools, torrent_search, torrent_search_update
-from .services import log, ping, start, log_callback
+from .services import log, log_callback, ping, start
 from .shell import run_shell
 from .speedtest import speedtest
 from .stats import bot_stats, get_packages_version
