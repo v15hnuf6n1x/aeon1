@@ -23,7 +23,6 @@ from pyrogram.types import (
     InputMediaPhoto,
     InputMediaVideo,
 )
-from bot.helper.aeon_utils.caption_gen import generate_caption
 from tenacity import (
     RetryError,
     retry,
@@ -34,6 +33,7 @@ from tenacity import (
 
 from bot.core.aeon_client import TgClient
 from bot.core.config_manager import Config
+from bot.helper.aeon_utils.caption_gen import generate_caption
 from bot.helper.ext_utils.bot_utils import sync_to_async
 from bot.helper.ext_utils.files_utils import (
     clean_unwanted,
@@ -575,7 +575,8 @@ class TelegramUploader:
             for attempt in range(retries):
                 try:
                     msg = await bot.get_messages(
-                        self._sent_msg.chat.id, self._sent_msg.id
+                        self._sent_msg.chat.id,
+                        self._sent_msg.id,
                     )
                     await msg.copy(target)
                     return
@@ -585,7 +586,7 @@ class TelegramUploader:
                         await sleep(0.5)
             LOGGER.error(f"Failed to copy message after {retries} attempts")
 
-        # if self.dm_mode: 
+        # if self.dm_mode:
         await _copy(self._user_id)
 
         # if self._user_dump:

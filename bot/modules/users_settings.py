@@ -1,6 +1,5 @@
 from asyncio import sleep
 from functools import partial
-from html import escape
 from io import BytesIO
 from os import getcwd
 from time import time
@@ -33,7 +32,6 @@ no_thumb = "https://graph.org/file/73ae908d18c6b38038071.jpg"
 
 async def get_user_settings(from_user):
     user_id = from_user.id
-    name = from_user.mention
     buttons = ButtonMaker()
 
     # Paths
@@ -51,11 +49,9 @@ async def get_user_settings(from_user):
     ffc = user_dict.get("ffmpeg_cmds", Config.FFMPEG_CMDS or "None")
 
     # Conditions
-    ltype = "DOCUMENT" if user_dict.get("as_doc", Config.AS_DOCUMENT) else "MEDIA"
-    media_group = (
-        "Enabled" if user_dict.get("media_group", Config.MEDIA_GROUP) else "Disabled"
-    )
-    leech_method = (
+    "DOCUMENT" if user_dict.get("as_doc", Config.AS_DOCUMENT) else "MEDIA"
+    ("Enabled" if user_dict.get("media_group", Config.MEDIA_GROUP) else "Disabled")
+    (
         "user"
         if (
             TgClient.IS_PREMIUM_USER
@@ -63,7 +59,7 @@ async def get_user_settings(from_user):
         )
         else "bot"
     )
-    mixed_leech = (
+    (
         "Enabled"
         if (
             TgClient.IS_PREMIUM_USER
@@ -71,15 +67,13 @@ async def get_user_settings(from_user):
         )
         else "Disabled"
     )
-    thumb_layout = user_dict.get("thumb_layout", Config.THUMBNAIL_LAYOUT or "None")
+    user_dict.get("thumb_layout", Config.THUMBNAIL_LAYOUT or "None")
     rccmsg = "Exists" if await aiopath.exists(rclone_conf) else "Not Exists"
-    rccpath = user_dict.get("rclone_path", Config.RCLONE_PATH or "None")
+    user_dict.get("rclone_path", Config.RCLONE_PATH or "None")
     tokenmsg = "Exists" if await aiopath.exists(token_pickle) else "Not Exists"
     default_upload = user_dict.get("default_upload", Config.DEFAULT_UPLOAD)
-    du = "Gdrive API" if default_upload == "gd" else "Rclone"
     dur = "Gdrive API" if default_upload != "gd" else "Rclone"
     user_tokens = user_dict.get("user_tokens", False)
-    tr = "MY" if user_tokens else "OWNER"
     trr = "OWNER" if user_tokens else "MY"
 
     # Buttons
@@ -261,7 +255,6 @@ async def event_handler(client, query, pfunc, photo=False, document=False):
 async def edit_user_settings(client, query):
     from_user = query.from_user
     user_id = from_user.id
-    name = from_user.mention
     message = query.message
     data = query.data.split()
     handler_dict[user_id] = False
@@ -334,11 +327,11 @@ async def edit_user_settings(client, query):
         split_size = Config.LEECH_SPLIT_SIZE
         buttons.data_button("Leech Destination", f"userset {user_id} ldest")
         if user_dict.get("leech_dest", False):
-            leech_dest = user_dict["leech_dest"]
+            user_dict["leech_dest"]
         elif "leech_dest" not in user_dict and Config.LEECH_DUMP_CHAT:
-            leech_dest = Config.LEECH_DUMP_CHAT
+            pass
         else:
-            leech_dest = "None"
+            pass
         buttons.data_button("Leech Prefix", f"userset {user_id} leech_prefix")
         if user_dict.get("lprefix", False):
             lprefix = user_dict["lprefix"]
@@ -382,32 +375,28 @@ async def edit_user_settings(client, query):
                 "Leech by Bot",
                 f"userset {user_id} user_transmission false",
             )
-            leech_method = "user"
         elif TgClient.IS_PREMIUM_USER:
-            leech_method = "bot"
             buttons.data_button(
                 "Leech by User",
                 f"userset {user_id} user_transmission true",
             )
         else:
-            leech_method = "bot"
+            pass
 
         if (TgClient.IS_PREMIUM_USER and user_dict.get("mixed_leech", False)) or (
             "mixed_leech" not in user_dict and Config.MIXED_LEECH
         ):
-            mixed_leech = "Enabled"
             buttons.data_button(
                 "Disable Mixed Leech",
                 f"userset {user_id} mixed_leech false",
             )
         elif TgClient.IS_PREMIUM_USER:
-            mixed_leech = "Disabled"
             buttons.data_button(
                 "Enable Mixed Leech",
                 f"userset {user_id} mixed_leech true",
             )
         else:
-            mixed_leech = "Disabled"
+            pass
 
         buttons.data_button("Thumbnail Layout", f"userset {user_id} tlayout")
         if user_dict.get("thumb_layout", False):
@@ -430,8 +419,7 @@ async def edit_user_settings(client, query):
 **Leech Prefix:** `{lprefix}`
 **Leech Caption:** `{lcaption}`
 """
-# **User Custom Dump:** `{user_dump}`
-
+        # **User Custom Dump:** `{user_dump}`
 
         await edit_message(message, text, buttons.build_menu(2), markdown=True)
     elif data[2] == "rclone":
@@ -502,7 +490,8 @@ async def edit_user_settings(client, query):
         await edit_message(
             message,
             "Send a photo to save it as custom thumbnail. Timeout: 60 sec",
-            buttons.build_menu(1), markdown=True
+            buttons.build_menu(1),
+            markdown=True,
         )
         pfunc = partial(set_thumb, pre_event=query)
         await event_handler(client, query, pfunc, True)
@@ -564,7 +553,8 @@ Here I will explain how to use mltb.* which is reference to files you want to wo
         await edit_message(
             message,
             "Send rclone.conf. Timeout: 60 sec",
-            buttons.build_menu(1), markdown=True
+            buttons.build_menu(1),
+            markdown=True,
         )
         pfunc = partial(add_rclone, pre_event=query)
         await event_handler(client, query, pfunc, document=True)
@@ -595,7 +585,8 @@ Here I will explain how to use mltb.* which is reference to files you want to wo
         await edit_message(
             message,
             "Send token.pickle. Timeout: 60 sec",
-            buttons.build_menu(1), markdown=True
+            buttons.build_menu(1),
+            markdown=True,
         )
         pfunc = partial(add_token_pickle, pre_event=query)
         await event_handler(client, query, pfunc, document=True)
@@ -633,7 +624,8 @@ Here I will explain how to use mltb.* which is reference to files you want to wo
         await edit_message(
             message,
             "Send Leech Filename Prefix. You can add HTML tags. Timeout: 60 sec",
-            buttons.build_menu(1), markdown=True
+            buttons.build_menu(1),
+            markdown=True,
         )
         pfunc = partial(set_option, pre_event=query, option="lprefix")
         await event_handler(client, query, pfunc)
@@ -649,7 +641,8 @@ Here I will explain how to use mltb.* which is reference to files you want to wo
         await edit_message(
             message,
             "Send Leech Filename Caption. You can add HTML tags. Timeout: 60 sec",
-            buttons.build_menu(1), markdown=True
+            buttons.build_menu(1),
+            markdown=True,
         )
         pfunc = partial(set_option, pre_event=query, option="lcaption")
         await event_handler(client, query, pfunc)
@@ -668,7 +661,8 @@ Here I will explain how to use mltb.* which is reference to files you want to wo
         await edit_message(
             message,
             "Send leech destination ID/USERNAME/PM. Timeout: 60 sec",
-            buttons.build_menu(1), markdown=True
+            buttons.build_menu(1),
+            markdown=True,
         )
         pfunc = partial(set_option, pre_event=query, option="leech_dest")
         await event_handler(client, query, pfunc)
@@ -687,7 +681,8 @@ Here I will explain how to use mltb.* which is reference to files you want to wo
         await edit_message(
             message,
             "Send thumbnail layout (widthxheight, 2x2, 3x3, 2x4, 4x4, ...). Timeout: 60 sec",
-            buttons.build_menu(1), markdown=True
+            buttons.build_menu(1),
+            markdown=True,
         )
         pfunc = partial(set_option, pre_event=query, option="thumb_layout")
         await event_handler(client, query, pfunc)
@@ -724,7 +719,8 @@ Here I will explain how to use mltb.* which is reference to files you want to wo
         await edit_message(
             message,
             "Send exluded extenions seperated by space without dot at beginning. Timeout: 60 sec",
-            buttons.build_menu(1), markdown=True
+            buttons.build_menu(1),
+            markdown=True,
         )
         pfunc = partial(set_option, pre_event=query, option="excluded_extensions")
         await event_handler(client, query, pfunc)
@@ -755,7 +751,8 @@ Example: script/code/s | mirror/leech | tea/ /s | clone | cpu/ | \[mltb\]/mltb |
         await edit_message(
             message,
             emsg,
-            buttons.build_menu(1), markdown=True
+            buttons.build_menu(1),
+            markdown=True,
         )
         pfunc = partial(set_option, pre_event=query, option="name_sub")
         await event_handler(client, query, pfunc)
@@ -797,7 +794,8 @@ Example: script/code/s | mirror/leech | tea/ /s | clone | cpu/ | \[mltb\]/mltb |
         await edit_message(
             message,
             "Add or remove upload path.\n",
-            buttons.build_menu(1), markdown=True
+            buttons.build_menu(1),
+            markdown=True,
         )
     elif data[2] == "new_path":
         await query.answer()
@@ -807,7 +805,8 @@ Example: script/code/s | mirror/leech | tea/ /s | clone | cpu/ | \[mltb\]/mltb |
         await edit_message(
             message,
             "Send path name(no space in name) which you will use it as a shortcut and the path/id seperated by space. You can add multiple names and paths separated by new line. Timeout: 60 sec",
-            buttons.build_menu(1), markdown=True
+            buttons.build_menu(1),
+            markdown=True,
         )
         pfunc = partial(set_option, pre_event=query, option="upload_paths")
         await event_handler(client, query, pfunc)
@@ -819,7 +818,8 @@ Example: script/code/s | mirror/leech | tea/ /s | clone | cpu/ | \[mltb\]/mltb |
         await edit_message(
             message,
             "Send paths names which you want to delete, separated by space. Timeout: 60 sec",
-            buttons.build_menu(1), markdown=True
+            buttons.build_menu(1),
+            markdown=True,
         )
         pfunc = partial(delete_path, pre_event=query)
         await event_handler(client, query, pfunc)
@@ -836,7 +836,8 @@ Example: script/code/s | mirror/leech | tea/ /s | clone | cpu/ | \[mltb\]/mltb |
         await edit_message(
             message,
             msg,
-            buttons.build_menu(1), markdown=True
+            buttons.build_menu(1),
+            markdown=True,
         )
     elif data[2] == "reset":
         await query.answer()
