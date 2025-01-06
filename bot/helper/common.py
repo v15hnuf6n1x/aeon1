@@ -1337,47 +1337,48 @@ class TaskConfig:
 
     async def proceed_metadata(self, dl_path, gid):
         key = self.metadata
-        async with task_dict_lock:
-            task_dict[self.mid] = FFmpegStatus(self, gid, "Metadata")
         checked = False
-
-        async def _process_directory(directory, key):
-            for dirpath, _, files in await sync_to_async(
-                walk,
-                directory,
-                topdown=False,
-            ):
-                for file_ in files:
-                    file_path = ospath.join(dirpath, file_)
-                    if is_mkv(file_path):
-                        cmd, temp_file = await get_metadata_cmd(file_path, key)
-                        if not cmd:
-                            return ""
-                        if not checked:
-                            await cpu_eater_lock.acquire()
-                        if self.isCancelled:
-                            cpu_eater_lock.release()
-                            return ""
-                        self.subsize = await aiopath.getsize(file_path)
-                        self.subname = file_
-                        await run_ffmpeg_cmd(self, cmd)
-                        self.subproc = None
-                        os.replace(temp_file, file_path)
-            return None
-
         if self.is_file:
-            if is_mkv(dl_path):
+             if is_mkv(dl_path):
                 cmd, temp_file = await get_metadata_cmd(dl_path, key)
                 if cmd:
-                    checked = True
-                    await cpu_eater_lock.acquire()
+                    if not checked:
+                        checked = True
+                        async with task_dict_lock:
+                            task_dict[self.mid] = FFmpegStatus(self, gid, "Metadata")
+                        await cpu_eater_lock.acquire()
                     self.subsize = self.size
                     await run_ffmpeg_cmd(self, cmd)
                     self.subproc = None
                     os.replace(temp_file, dl_path)
         else:
-            await _process_directory(dl_path, key)
-
+            for dirpath, _, files in await sync_to_async(
+                walk,
+                dl_path,
+                topdown=False,
+            ):
+                for file_ in files:
+                    file_path = ospath.join(dirpath, file_)
+                    if self.is_cancelled:
+                        cpu_eater_lock.release()
+                        return ""
+                    if is_mkv(file_path):
+                        cmd, temp_file = await get_metadata_cmd(file_path, key)
+                        if cmd:
+                            if not checked:
+                                checked = True
+                                async with task_dict_lock:
+                                    task_dict[self.mid] = FFmpegStatus(
+                                            self,
+                                            gid,
+                                            "Metadata",
+                                    )
+                                await cpu_eater_lock.acquire()
+                            LOGGER.info(f"Running metadata cmd for: {file_path}")
+                            self.subsize = await aiopath.getsize(file_path)
+                            self.subname = file_
+                            await run_ffmpeg_cmd(self, cmd)
+                            self.suproc = None
         if checked:
             cpu_eater_lock.release()
         return dl_path
