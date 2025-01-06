@@ -1339,7 +1339,7 @@ class TaskConfig:
         key = self.metadata
         checked = False
         if self.is_file:
-             if is_mkv(dl_path):
+            if is_mkv(dl_path):
                 cmd, temp_file = await get_metadata_cmd(dl_path, key)
                 if cmd:
                     if not checked:
@@ -1369,9 +1369,9 @@ class TaskConfig:
                                 checked = True
                                 async with task_dict_lock:
                                     task_dict[self.mid] = FFmpegStatus(
-                                            self,
-                                            gid,
-                                            "Metadata",
+                                        self,
+                                        gid,
+                                        "Metadata",
                                     )
                                 await cpu_eater_lock.acquire()
                             LOGGER.info(f"Running metadata cmd for: {file_path}")
