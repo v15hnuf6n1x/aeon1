@@ -1379,7 +1379,7 @@ class TaskConfig:
                             self.subname = file_
                             await run_ffmpeg_cmd(self, cmd)
                             self.suproc = None
-                            os.replace(temp_file, dl_path)
+                            os.replace(temp_file, file_path)
         if checked:
             cpu_eater_lock.release()
         return dl_path
