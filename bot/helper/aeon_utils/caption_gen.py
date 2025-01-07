@@ -41,7 +41,7 @@ async def generate_caption(filename, directory, caption_template):
     audio_metadata = [track for track in track_data if track["@type"] == "Audio"]
     subtitle_metadata = [track for track in track_data if track["@type"] == "Text"]
 
-    video_duration = video_metadata.get("Duration", 0)
+    video_duration = round(float(video_metadata.get("Duration", 0)))
     video_quality = get_video_quality(video_metadata.get("Height"))
 
     audio_languages = ", ".join(
@@ -63,7 +63,7 @@ async def generate_caption(filename, directory, caption_template):
     caption_data = DefaultDict(
         filename=filename,
         size=get_readable_file_size(await aiopath.getsize(file_path)),
-        duration=get_readable_time(int(video_duration), True),
+        duration=get_readable_time(video_duration, True),
         quality=video_quality,
         audios=audio_languages,
         subtitles=subtitle_languages,
