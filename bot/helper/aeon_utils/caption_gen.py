@@ -1,9 +1,10 @@
+import json
 import os
 from contextlib import suppress
 from hashlib import md5
+
 from aiofiles.os import path as aiopath
 from langcodes import Language
-import json
 
 from bot import LOGGER
 from bot.helper.ext_utils.bot_utils import cmd_exec
@@ -44,7 +45,9 @@ async def generate_caption(file, dirpath, lcaption):
         update_language("", audio) for audio in audio_info if audio.get("Language")
     )
     stitles = ", ".join(
-        update_subtitles("", subtitle) for subtitle in subtitle_info if subtitle.get("Language")
+        update_subtitles("", subtitle)
+        for subtitle in subtitle_info
+        if subtitle.get("Language")
     )
 
     lang = lang if lang else "Unknown"
