@@ -35,7 +35,8 @@ async def generate_caption(filename, directory, caption_template):
     media_data = mediainfo_data.get("media", {})
     track_data = media_data.get("track", [])
     video_metadata = next(
-        (track for track in track_data if track["@type"] == "Video"), {}
+        (track for track in track_data if track["@type"] == "Video"),
+        {},
     )
     audio_metadata = [track for track in track_data if track["@type"] == "Audio"]
     subtitle_metadata = [track for track in track_data if track["@type"] == "Text"]
