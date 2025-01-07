@@ -1,9 +1,9 @@
 import os
 from contextlib import suppress
 from hashlib import md5
-
 from aiofiles.os import path as aiopath
 from langcodes import Language
+import json
 
 from bot import LOGGER
 from bot.helper.ext_utils.bot_utils import cmd_exec
@@ -22,46 +22,33 @@ async def generate_caption(file, dirpath, lcaption):
     up_path = os.path.join(dirpath, file)
 
     try:
-        result = await cmd_exec(
-            [
-                "ffprobe",
-                "-hide_banner",
-                "-loglevel",
-                "error",
-                "-print_format",
-                "json",
-                "-show_format",
-                "-show_streams",
-                up_path,
-            ],
-        )
+        result = await cmd_exec(["mediainfo", "--Output=JSON", up_path])
         if result[1]:
             LOGGER.info(f"Get Media Info: {result[1]}")
 
-        ffresult = eval(result[0])
+        mediainfo_result = json.loads(result[0])  # Parse JSON output
     except Exception as e:
         LOGGER.error(f"Media Info: {e}. Mostly File not found!")
         return file
 
-    format_info = ffresult.get("format")
-    if not format_info:
-        return file
+    media = mediainfo_result.get("media", {})
+    track = media.get("track", [])
+    video_info = next((t for t in track if t["@type"] == "Video"), {})
+    audio_info = [t for t in track if t["@type"] == "Audio"]
+    subtitle_info = [t for t in track if t["@type"] == "Text"]
 
-    duration = round(float(format_info.get("duration", 0)))
-    lang, stitles, qual = "", "", ""
+    duration = round(float(video_info.get("Duration", 0)) / 1000)
+    qual = get_video_quality(video_info.get("Height"))
 
-    streams = ffresult.get("streams", [])
-    if streams and streams[0].get("codec_type") == "video":
-        qual = get_video_quality(streams[0].get("height"))
+    lang = ", ".join(
+        update_language("", audio) for audio in audio_info if audio.get("Language")
+    )
+    stitles = ", ".join(
+        update_subtitles("", subtitle) for subtitle in subtitle_info if subtitle.get("Language")
+    )
 
-        for stream in streams:
-            if stream.get("codec_type") == "audio":
-                lang = update_language(lang, stream)
-            if stream.get("codec_type") == "subtitle":
-                stitles = update_subtitles(stitles, stream)
-
-    lang = lang[:-2] if lang else "Unknown"
-    stitles = stitles[:-2] if stitles else "Unknown"
+    lang = lang if lang else "Unknown"
+    stitles = stitles if stitles else "Unknown"
     qual = qual if qual else "Unknown"
     md5_hex = calculate_md5(up_path)
 
@@ -89,13 +76,13 @@ def get_video_quality(height):
         8640: "8640p",
     }
     for h, q in sorted(quality_map.items()):
-        if height <= h:
+        if height and int(height) <= h:
             return q
     return "Unknown"
 
 
 def update_language(lang, stream):
-    language_code = stream.get("tags", {}).get("language")
+    language_code = stream.get("Language")
     if language_code:
         with suppress(Exception):
             language_name = Language.get(language_code).display_name()
@@ -105,7 +92,7 @@ def update_language(lang, stream):
 
 
 def update_subtitles(stitles, stream):
-    subtitle_code = stream.get("tags", {}).get("language")
+    subtitle_code = stream.get("Language")
     if subtitle_code:
         with suppress(Exception):
             subtitle_name = Language.get(subtitle_code).display_name()
