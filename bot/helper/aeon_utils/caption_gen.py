@@ -63,7 +63,7 @@ async def generate_caption(filename, directory, caption_template):
     caption_data = DefaultDict(
         filename=filename,
         size=get_readable_file_size(await aiopath.getsize(file_path)),
-        duration=get_readable_time(video_duration, True),
+        duration=get_readable_time(int(video_duration), True),
         quality=video_quality,
         audios=audio_languages,
         subtitles=subtitle_languages,
