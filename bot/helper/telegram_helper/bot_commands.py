@@ -1,6 +1,4 @@
-from bot.core.config_manager import Config
-
-i = Config.CMD_SUFFIX
+from bot.core.config_manager import Config.CMD_SUFFIX as i
 
 
 class _BotCommands:
