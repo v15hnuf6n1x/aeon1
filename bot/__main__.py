@@ -39,7 +39,6 @@ from .modules import (
     restart_notification,
 )
 
-
 # Commands and Descriptions
 COMMANDS = {
     "MirrorCommand": "- Start mirroring",
