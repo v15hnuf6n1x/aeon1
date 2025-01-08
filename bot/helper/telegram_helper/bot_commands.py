@@ -1,4 +1,9 @@
-from bot.core.config_manager import Config.CMD_SUFFIX as i
+from bot.core.config_manager import Config
+
+def get_cmd_suffix():
+    return Config.CMD_SUFFIX
+
+i = get_cmd_suffix()
 
 
 class _BotCommands:
