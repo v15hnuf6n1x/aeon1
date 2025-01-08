@@ -5,9 +5,13 @@ from pyrogram.filters import regex
 from pyrogram.handlers import CallbackQueryHandler
 from pyrogram.types import BotCommand
 
+from .core.config_manager import Config
+
+# Initialize Configurations
+Config.load()
+
 from . import LOGGER, bot_loop
 from .core.aeon_client import TgClient
-from .core.config_manager import Config
 from .core.handlers import add_handlers
 from .core.startup import (
     load_configurations,
@@ -35,8 +39,6 @@ from .modules import (
     restart_notification,
 )
 
-# Initialize Configurations
-Config.load()
 
 # Commands and Descriptions
 COMMANDS = {
