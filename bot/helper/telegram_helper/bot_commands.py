@@ -1,5 +1,6 @@
 from bot.core.config_manager import Config
 
+
 class BotCommands:
     StartCommand = f"start{Config.CMD_SUFFIX}"
     MirrorCommand = [f"mirror{Config.CMD_SUFFIX}", f"m{Config.CMD_SUFFIX}"]
