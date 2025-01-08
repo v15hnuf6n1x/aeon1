@@ -9,13 +9,19 @@ class BotCommands:
         self.MirrorCommand = [f"mirror{Config.CMD_SUFFIX}", f"m{Config.CMD_SUFFIX}"]
         self.YtdlCommand = [f"ytdl{Config.CMD_SUFFIX}", f"y{Config.CMD_SUFFIX}"]
         self.LeechCommand = [f"leech{Config.CMD_SUFFIX}", f"l{Config.CMD_SUFFIX}"]
-        self.YtdlLeechCommand = [f"ytdlleech{Config.CMD_SUFFIX}", f"yl{Config.CMD_SUFFIX}"]
+        self.YtdlLeechCommand = [
+            f"ytdlleech{Config.CMD_SUFFIX}",
+            f"yl{Config.CMD_SUFFIX}",
+        ]
         self.CloneCommand = f"clone{Config.CMD_SUFFIX}"
         self.MediaInfoCommand = f"mediainfo{Config.CMD_SUFFIX}"
         self.CountCommand = f"count{Config.CMD_SUFFIX}"
         self.DeleteCommand = f"del{Config.CMD_SUFFIX}"
         self.CancelAllCommand = f"cancelall{Config.CMD_SUFFIX}"
-        self.ForceStartCommand = [f"forcestart{Config.CMD_SUFFIX}", f"fs{Config.CMD_SUFFIX}"]
+        self.ForceStartCommand = [
+            f"forcestart{Config.CMD_SUFFIX}",
+            f"fs{Config.CMD_SUFFIX}",
+        ]
         self.ListCommand = f"list{Config.CMD_SUFFIX}"
         self.SearchCommand = f"search{Config.CMD_SUFFIX}"
         self.StatusCommand = f"status{Config.CMD_SUFFIX}"
