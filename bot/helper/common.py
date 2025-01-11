@@ -1403,7 +1403,9 @@ class TaskConfig:
                         checked = True
                         async with task_dict_lock:
                             task_dict[self.mid] = FFmpegStatus(
-                                self, gid, "Watermark"
+                                self,
+                                gid,
+                                "Watermark",
                             )
                         await cpu_eater_lock.acquire()
                     self.subsize = self.size

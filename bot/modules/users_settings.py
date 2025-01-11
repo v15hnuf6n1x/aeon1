@@ -739,7 +739,8 @@ Example: script/code/s | mirror/leech | tea/ /s | clone | cpu/ | \[mltb\]/mltb |
         buttons = ButtonMaker()
         if user_dict.get("watermark", False):
             buttons.data_button(
-                "Remove Watermark text", f"userset {user_id} watermark"
+                "Remove Watermark text",
+                f"userset {user_id} watermark",
             )
         buttons.data_button("Back", f"userset {user_id} back")
         buttons.data_button("Close", f"userset {user_id} close")
