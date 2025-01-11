@@ -14,7 +14,7 @@ async def short(long_url):
             shortener_info = choice(shorteners_list)
             try:
                 async with session.get(
-                    f'https://{shortener_info["domain"]}/api?api={shortener_info["api_key"]}&url={quote(long_url)}',
+                    f"https://{shortener_info['domain']}/api?api={shortener_info['api_key']}&url={quote(long_url)}",
                 ) as response:
                     result = await response.json()
                     short_url = result.get("shortenedUrl", long_url)

@@ -519,7 +519,7 @@ class RcloneTransferHelper:
         if unwanted_files is None:
             unwanted_files = []
         if source.split(":")[-1].startswith("rclone_select"):
-            source = f"{source.split(":")[0]}:"
+            source = f"{source.split(':')[0]}:"
             self.rclone_select = True
         else:
             ext = "*.{" + ",".join(self._listener.extension_filter) + "}"

@@ -50,6 +50,7 @@ async def get_watermark_cmd(file, key):
 
     return cmd, temp_file
 
+
 async def get_metadata_cmd(file_path, key):
     """Processes a single file to update metadata."""
     temp_file = f"{file_path}.temp.mkv"
