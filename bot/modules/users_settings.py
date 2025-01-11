@@ -44,6 +44,7 @@ async def get_user_settings(from_user):
     thumbnail = thumbpath if await aiopath.exists(thumbpath) else no_thumb
     ex_ex = user_dict.get("excluded_extensions", extension_filter or "None")
     meta_msg = user_dict.get("metadata", Config.METADATA_KEY or "None")
+    wm_msg = user_dict.get("watermark", Config.WATERMARK_KEY or "None")
     ns_msg = "Added" if user_dict.get("name_sub", False) else "None"
     ytopt = user_dict.get("yt_opt", Config.YT_DLP_OPTIONS or "None")
     ffc = user_dict.get("ffmpeg_cmds", Config.FFMPEG_CMDS or "None")
@@ -68,6 +69,7 @@ async def get_user_settings(from_user):
     )
     buttons.data_button("Excluded Extensions", f"userset {user_id} ex_ex")
     buttons.data_button("Metadata key", f"userset {user_id} metadata_key")
+    buttons.data_button("Watermark text", f"userset {user_id} watermark_key")
     buttons.data_button("Name Subtitute", f"userset {user_id} name_substitute")
     buttons.data_button("YT-DLP Options", f"userset {user_id} yto")
     buttons.data_button("Ffmpeg Cmds", f"userset {user_id} ffc")
@@ -84,6 +86,7 @@ async def get_user_settings(from_user):
 **Name Substitution:** `{ns_msg}`
 **FFmpeg Commands:** `{ffc}`
 **Metadata Title:** `{meta_msg}`
+**Watermark Text:** `{wm_msg}`
 **Excluded extension:** `{ex_ex}`
 **YT-DLP Options:** `{ytopt}`
 """
@@ -279,6 +282,7 @@ async def edit_user_settings(client, query):
         "excluded_extensions",
         "name_sub",
         "metadata",
+        "watermark",
         "thumb_layout",
         "ffmpeg_cmds",
         "session_string",
@@ -496,17 +500,7 @@ Check all yt-dlp api options from this <a href='https://github.com/yt-dlp/yt-dlp
             )
         buttons.data_button("Back", f"userset {user_id} back")
         buttons.data_button("Close", f"userset {user_id} close")
-        rmsg = """Dict of list values of ffmpeg commands. You can set multiple ffmpeg commands for all files before upload. Don't write ffmpeg at beginning, start directly with the arguments.
-Examples: {"subtitle": ["-i mltb.mkv -c copy -c:s srt mltb.mkv", "-i mltb.video -c copy -c:s srt mltb"], "convert": ["-i mltb.m4a -c:a libmp3lame -q:a 2 mltb.mp3", "-i mltb.audio -c:a libmp3lame -q:a 2 mltb.mp3"]}
-Notes:
-- Add `-del` to the list which you want from the bot to delete the original files after command run complete!
-- To execute one of those lists in bot for example, you must use -ff subtitle (list key) or -ff convert (list key)
-- Seed will get disbaled while using this option
-Here I will explain how to use mltb.* which is reference to files you want to work on.
-1. First cmd: the input is mltb.mkv so this cmd will work only on mkv videos and the output is mltb.mkv also so all outputs is mkv. -del will delete the original media after complete run of the cmd.
-2. Second cmd: the input is mltb.video so this cmd will work on all videos and the output is only mltb so the extenstion is same as input files.
-3. Third cmd: the input in mltb.m4a so this cmd will work only on m4a audios and the output is mltb.mp3 so the output extension is mp3.
-4. Fourth cmd: the input is mltb.audio so this cmd will work on all audios and the output is mltb.mp3 so the output extension is mp3."""
+        rmsg = "follow this url https://telegra.ph/Ffmpeg-guide-01-10"
         await edit_message(message, rmsg, buttons.build_menu(1), markdown=True)
         pfunc = partial(set_option, pre_event=query, option="ffmpeg_cmds")
         await event_handler(client, query, pfunc)
@@ -739,6 +733,20 @@ Example: script/code/s | mirror/leech | tea/ /s | clone | cpu/ | \[mltb\]/mltb |
         )
         await edit_message(message, emsg, buttons.build_menu(1), markdown=True)
         pfunc = partial(set_option, pre_event=query, option="metadata")
+        await event_handler(client, query, pfunc)
+    elif data[2] == "watermark_key":
+        await query.answer()
+        buttons = ButtonMaker()
+        if user_dict.get("watermark", False):
+            buttons.data_button("Remove Watermark text", f"userset {user_id} watermark")
+        buttons.data_button("Back", f"userset {user_id} back")
+        buttons.data_button("Close", f"userset {user_id} close")
+        emsg = "Sorry, No doc for now."
+        emsg += (
+            f"Your Current Value is {user_dict.get('watermark') or 'not added yet!'}"
+        )
+        await edit_message(message, emsg, buttons.build_menu(1), markdown=True)
+        pfunc = partial(set_option, pre_event=query, option="watermark")
         await event_handler(client, query, pfunc)
     elif data[2] in ["gd", "rc"]:
         await query.answer()

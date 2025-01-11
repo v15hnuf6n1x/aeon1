@@ -33,6 +33,23 @@ async def get_streams(file):
         return None
 
 
+# Lots of work need
+async def get_watermark_cmd(file, key):
+    temp_file = f"{file}.temp.mkv"
+    font_path = "/rizz.otf"
+
+    cmd = [
+        "xtra",
+        "-y",
+        "-i",
+        file,
+        "-vf",
+        f"drawtext=text='{key}':fontfile={font_path}:fontsize=20:fontcolor=white:x=10:y=10",
+        temp_file,
+    ]
+
+    return cmd, temp_file
+
 async def get_metadata_cmd(file_path, key):
     """Processes a single file to update metadata."""
     temp_file = f"{file_path}.temp.mkv"

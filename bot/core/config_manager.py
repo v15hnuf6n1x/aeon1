@@ -59,6 +59,7 @@ class Config:
 
     # INKYPINKY
     METADATA_KEY = ""
+    WATERMARK_KEY = ""
     SET_COMMANDS = True
     TOKEN_TIMEOUT = 0
     PAID_CHANNEL_ID = 0

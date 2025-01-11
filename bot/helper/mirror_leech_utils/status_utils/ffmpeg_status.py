@@ -94,6 +94,8 @@ class FFmpegStatus:
             return MirrorStatus.STATUS_SAMVID
         if self.cstatus == "Metadata":
             return MirrorStatus.STATUS_METADATA
+        if self.cstatus == "Watermark":
+            return MirrorStatus.STATUS_WATERMARK
         return MirrorStatus.STATUS_FFMPEG
 
     def task(self):

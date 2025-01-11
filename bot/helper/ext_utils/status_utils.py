@@ -30,6 +30,7 @@ class MirrorStatus:
     STATUS_CONVERT = "Convert"
     STATUS_FFMPEG = "FFmpeg"
     STATUS_METADATA = "Metadata"
+    STATUS_WATERMARK = "Watermark"
 
 
 STATUSES = {

@@ -24,7 +24,7 @@ from bot import (
 )
 from bot.core.aeon_client import TgClient
 from bot.core.config_manager import Config
-from bot.helper.aeon_utils.metadata_editor import get_metadata_cmd
+from bot.helper.aeon_utils.metadata_editor import get_metadata_cmd, get_watermark_cmd
 
 from .ext_utils.bot_utils import get_size_bytes, new_task, sync_to_async
 from .ext_utils.bulk_links import extract_bulk_links
@@ -81,6 +81,7 @@ class TaskConfig:
         self.new_dir = ""
         self.name_sub = ""
         self.metadata = ""
+        self.watermark = ""
         self.thumbnail_layout = ""
         self.folder_name = ""
         self.split_size = 0
@@ -165,6 +166,11 @@ class TaskConfig:
             self.metadata
             or self.user_dict.get("metadata", False)
             or (Config.METADATA_KEY if "metadata" not in self.user_dict else "")
+        )
+        self.watermark = (
+            self.watermark
+            or self.user_dict.get("watermark", False)
+            or (Config.WATERMARK_KEY if "watermark" not in self.user_dict else "")
         )
         if self.name_sub:
             self.name_sub = [x.split("/") for x in self.name_sub.split(" | ")]
@@ -1348,9 +1354,10 @@ class TaskConfig:
                             task_dict[self.mid] = FFmpegStatus(self, gid, "Metadata")
                         await cpu_eater_lock.acquire()
                     self.subsize = self.size
-                    await run_ffmpeg_cmd(self, cmd)
+                    res = await run_ffmpeg_cmd(self, cmd)
                     self.subproc = None
-                    os.replace(temp_file, dl_path)
+                    if res:
+                        os.replace(temp_file, dl_path)
         else:
             for dirpath, _, files in await sync_to_async(
                 walk,
@@ -1377,9 +1384,61 @@ class TaskConfig:
                             LOGGER.info(f"Running metadata cmd for: {file_path}")
                             self.subsize = await aiopath.getsize(file_path)
                             self.subname = file_
-                            await run_ffmpeg_cmd(self, cmd)
+                            res = await run_ffmpeg_cmd(self, cmd)
                             self.suproc = None
-                            os.replace(temp_file, file_path)
+                            if res:
+                                os.replace(temp_file, file_path)
+        if checked:
+            cpu_eater_lock.release()
+        return dl_path
+
+    async def proceed_watermark(self, dl_path, gid):
+        key = self.watermark
+        checked = False
+        if self.is_file:
+            if is_mkv(dl_path):
+                cmd, temp_file = await get_watermark_cmd(dl_path, key)
+                if cmd:
+                    if not checked:
+                        checked = True
+                        async with task_dict_lock:
+                            task_dict[self.mid] = FFmpegStatus(self, gid, "Watermark")
+                        await cpu_eater_lock.acquire()
+                    self.subsize = self.size
+                    res = await run_ffmpeg_cmd(self, cmd)
+                    self.subproc = None
+                    if res:
+                        os.replace(temp_file, dl_path)
+        else:
+            for dirpath, _, files in await sync_to_async(
+                walk,
+                dl_path,
+                topdown=False,
+            ):
+                for file_ in files:
+                    file_path = ospath.join(dirpath, file_)
+                    if self.is_cancelled:
+                        cpu_eater_lock.release()
+                        return ""
+                    if is_mkv(file_path):
+                        cmd, temp_file = await get_watermark_cmd(file_path, key)
+                        if cmd:
+                            if not checked:
+                                checked = True
+                                async with task_dict_lock:
+                                    task_dict[self.mid] = FFmpegStatus(
+                                        self,
+                                        gid,
+                                        "Watermark",
+                                    )
+                                await cpu_eater_lock.acquire()
+                            LOGGER.info(f"Running metadata cmd for: {file_path}")
+                            self.subsize = await aiopath.getsize(file_path)
+                            self.subname = file_
+                            res = await run_ffmpeg_cmd(self, cmd)
+                            self.suproc = None
+                            if res:
+                                os.replace(temp_file, file_path)
         if checked:
             cpu_eater_lock.release()
         return dl_path
