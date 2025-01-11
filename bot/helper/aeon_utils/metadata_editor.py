@@ -40,7 +40,11 @@ async def get_watermark_cmd(file, key):
 
     cmd = [
         "xtra",
-        "-y",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-progress",
+        "pipe:1",
         "-i",
         file,
         "-vf",

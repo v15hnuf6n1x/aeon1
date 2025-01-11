@@ -1436,7 +1436,7 @@ class TaskConfig:
                                         "Watermark",
                                     )
                                 await cpu_eater_lock.acquire()
-                            LOGGER.info(f"Running metadata cmd for: {file_path}")
+                            LOGGER.info(f"Runnin cmd for: {file_path}")
                             self.subsize = await aiopath.getsize(file_path)
                             self.subname = file_
                             res = await run_ffmpeg_cmd(self, cmd)
