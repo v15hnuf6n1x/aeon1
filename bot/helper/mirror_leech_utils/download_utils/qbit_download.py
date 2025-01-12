@@ -15,24 +15,6 @@ from bot.helper.telegram_helper.message_utils import (
     send_status_message,
 )
 
-"""
-Only v1 torrents
-#from hashlib import sha1
-#from base64 import b16encode, b32decode
-#from bencoding import bencode, bdecode
-#from re import search as re_search
-def _get_hash_magnet(mgt: str):
-    hash_ = re_search(r'(?<=xt=urn:btih:)[a-zA-Z0-9]+', mgt).group(0)
-    if len(hash_) == 32:
-        hash_ = b16encode(b32decode(hash_.upper())).decode()
-    return hash_
-
-def _get_hash_file(fpath):
-    with open(fpath, "rb") as f:
-        decodedDict = bdecode(f.read())
-        return sha1(bencode(decodedDict[b'info'])).hexdigest()
-"""
-
 
 async def add_qb_torrent(listener, path, ratio, seed_time):
     try:

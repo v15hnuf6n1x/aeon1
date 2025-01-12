@@ -1,3 +1,4 @@
+# ruff: noqa: E402
 from asyncio import gather
 from signal import SIGINT, signal
 
@@ -5,14 +6,8 @@ from pyrogram.filters import regex
 from pyrogram.handlers import CallbackQueryHandler
 from pyrogram.types import BotCommand
 
-from .core.config_manager import Config
-
-# Initialize Configurations
-Config.load()
-
 from . import LOGGER, bot_loop
-from .core.aeon_client import TgClient
-from .core.handlers import add_handlers
+from .core.config_manager import Config
 from .core.startup import (
     load_configurations,
     load_settings,
@@ -21,6 +16,14 @@ from .core.startup import (
     update_qb_options,
     update_variables,
 )
+
+# Initialize Configurations
+Config.load()
+bot_loop.run_until_complete(load_settings())
+
+
+from .core.aeon_client import TgClient
+from .core.handlers import add_handlers
 from .helper.ext_utils.bot_utils import create_help_buttons, new_task, sync_to_async
 from .helper.ext_utils.files_utils import clean_all, exit_clean_up
 from .helper.ext_utils.telegraph_helper import telegraph
@@ -107,7 +110,6 @@ async def set_commands():
 
 # Main Function
 async def main():
-    await load_settings()
     await gather(TgClient.start_bot(), TgClient.start_user())
     await gather(load_configurations(), update_variables())
     await gather(

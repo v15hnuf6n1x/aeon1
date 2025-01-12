@@ -1,45 +1,41 @@
+# ruff: noqa: RUF012
 from bot.core.config_manager import Config
 
+i = Config.CMD_SUFFIX
 
 class BotCommands:
-    StartCommand = f"start{Config.CMD_SUFFIX}"
-    MirrorCommand = [f"mirror{Config.CMD_SUFFIX}", f"m{Config.CMD_SUFFIX}"]
-    YtdlCommand = [f"ytdl{Config.CMD_SUFFIX}", f"y{Config.CMD_SUFFIX}"]
-    LeechCommand = [f"leech{Config.CMD_SUFFIX}", f"l{Config.CMD_SUFFIX}"]
-    YtdlLeechCommand = [
-        f"ytdlleech{Config.CMD_SUFFIX}",
-        f"yl{Config.CMD_SUFFIX}",
-    ]
-    CloneCommand = f"clone{Config.CMD_SUFFIX}"
-    MediaInfoCommand = f"mediainfo{Config.CMD_SUFFIX}"
-    CountCommand = f"count{Config.CMD_SUFFIX}"
-    DeleteCommand = f"del{Config.CMD_SUFFIX}"
-    CancelAllCommand = f"cancelall{Config.CMD_SUFFIX}"
-    ForceStartCommand = [
-        f"forcestart{Config.CMD_SUFFIX}",
-        f"fs{Config.CMD_SUFFIX}",
-    ]
-    ListCommand = f"list{Config.CMD_SUFFIX}"
-    SearchCommand = f"search{Config.CMD_SUFFIX}"
-    StatusCommand = f"status{Config.CMD_SUFFIX}"
-    UsersCommand = f"users{Config.CMD_SUFFIX}"
-    AuthorizeCommand = f"authorize{Config.CMD_SUFFIX}"
-    UnAuthorizeCommand = f"unauthorize{Config.CMD_SUFFIX}"
-    AddSudoCommand = f"addsudo{Config.CMD_SUFFIX}"
-    RmSudoCommand = f"rmsudo{Config.CMD_SUFFIX}"
-    PingCommand = f"ping{Config.CMD_SUFFIX}"
-    RestartCommand = f"restart{Config.CMD_SUFFIX}"
-    RestartSessionsCommand = f"restartses{Config.CMD_SUFFIX}"
-    StatsCommand = f"stats{Config.CMD_SUFFIX}"
-    HelpCommand = f"help{Config.CMD_SUFFIX}"
-    LogCommand = f"log{Config.CMD_SUFFIX}"
-    ShellCommand = f"shell{Config.CMD_SUFFIX}"
-    AExecCommand = f"aexec{Config.CMD_SUFFIX}"
-    ExecCommand = f"exec{Config.CMD_SUFFIX}"
-    ClearLocalsCommand = f"clearlocals{Config.CMD_SUFFIX}"
-    BotSetCommand = f"botsettings{Config.CMD_SUFFIX}"
-    UserSetCommand = f"settings{Config.CMD_SUFFIX}"
-    SpeedTest = f"speedtest{Config.CMD_SUFFIX}"
-    BroadcastCommand = [f"broadcast{Config.CMD_SUFFIX}", "broadcastall"]
-    SelectCommand = f"sel{Config.CMD_SUFFIX}"
-    RssCommand = f"rss{Config.CMD_SUFFIX}"
+    StartCommand = f"start{i}"
+    MirrorCommand = [f"mirror{i}", f"m{i}"]
+    YtdlCommand = [f"ytdl{i}", f"y{i}"]
+    LeechCommand = [f"leech{i}", f"l{i}"]
+    YtdlLeechCommand = [f"ytdlleech{i}", f"yl{i}"]
+    CloneCommand = f"clone{i}"
+    MediaInfoCommand = f"mediainfo{i}"
+    CountCommand = f"count{i}"
+    DeleteCommand = f"del{i}"
+    CancelAllCommand = f"cancelall{i}"
+    ForceStartCommand = [f"forcestart{i}", f"fs{i}"]
+    ListCommand = f"list{i}"
+    SearchCommand = f"search{i}"
+    StatusCommand = f"status{i}"
+    UsersCommand = f"users{i}"
+    AuthorizeCommand = f"authorize{i}"
+    UnAuthorizeCommand = f"unauthorize{i}"
+    AddSudoCommand = f"addsudo{i}"
+    RmSudoCommand = f"rmsudo{i}"
+    PingCommand = f"ping{i}"
+    RestartCommand = f"restart{i}"
+    RestartSessionsCommand = f"restartses{i}"
+    StatsCommand = f"stats{i}"
+    HelpCommand = f"help{i}"
+    LogCommand = f"log{i}"
+    ShellCommand = f"shell{i}"
+    AExecCommand = f"aexec{i}"
+    ExecCommand = f"exec{i}"
+    ClearLocalsCommand = f"clearlocals{i}"
+    BotSetCommand = f"botsettings{i}"
+    UserSetCommand = f"settings{i}"
+    SpeedTest = f"speedtest{i}"
+    BroadcastCommand = [f"broadcast{i}", "broadcastall"]
+    SelectCommand = f"sel{i}"
+    RssCommand = f"rss{i}"

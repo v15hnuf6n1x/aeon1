@@ -123,7 +123,7 @@ async def confirm_restart(_, query):
             "pkill",
             "-9",
             "-f",
-            "gunicorn|xria|xnox|xtra|xone|7z",
+            "gunicorn|xria|xnox|xtra|xone|7z|split",
         )
         proc2 = await create_subprocess_exec("python3", "update.py")
         await gather(proc1.wait(), proc2.wait())

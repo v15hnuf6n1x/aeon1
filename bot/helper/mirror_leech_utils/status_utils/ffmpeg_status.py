@@ -1,71 +1,26 @@
-from bot import LOGGER
-from bot.helper.ext_utils.bot_utils import new_task
-from bot.helper.ext_utils.status_utils import (
-    MirrorStatus,
+from .... import LOGGER
+from ...ext_utils.status_utils import (
     get_readable_file_size,
+    MirrorStatus,
     get_readable_time,
 )
 
 
 class FFmpegStatus:
-    def __init__(self, listener, gid, status=""):
+    def __init__(self, listener, obj, gid, status=""):
         self.listener = listener
+        self._obj = obj
         self._gid = gid
-        self._processed_bytes = 0
-        self._speed_raw = 0
-        self._progress_raw = 0
-        self._active = False
-        self.cstatus = status
-
-    @new_task
-    async def _ffmpeg_progress(self):
-        while True:
-            async with self.listener.subprocess_lock:
-                if (
-                    self.listener.subproc is None
-                    or self.listener.subproc.returncode is not None
-                    or self.listener.is_cancelled
-                ):
-                    break
-                line = await self.listener.subproc.stdout.readline()
-                if not line:
-                    break
-                line = line.decode().strip()
-                if "=" in line:
-                    key, value = line.split("=", 1)
-                    if value != "N/A":
-                        if key == "total_size":
-                            self._processed_bytes = int(value)
-                            self._progress_raw = (
-                                self._processed_bytes / self.listener.subsize * 100
-                            )
-                        elif key == "bitrate":
-                            try:
-                                self._speed_raw = (
-                                    float(value.replace("kbits/s", "").strip()) / 8
-                                ) * 1000
-                            except ValueError:
-                                self._speed_raw = 0
-        self._processed_bytes = 0
-        self._speed_raw = 0
-        self._progress_raw = 0
-        self._active = False
+        self._cstatus = status
 
     def speed(self):
-        return f"{get_readable_file_size(self._speed_raw)}/s"
+        return f"{get_readable_file_size(self._obj.speed_raw)}/s"
 
     def processed_bytes(self):
-        return get_readable_file_size(self._processed_bytes)
+        return get_readable_file_size(self._obj.processed_bytes)
 
     async def progress(self):
-        if (
-            not self._active
-            and self.listener.subsize
-            and self.listener.subproc is not None
-        ):
-            await self._ffmpeg_progress()
-            self._active = True
-        return f"{round(self._progress_raw, 2)}%"
+        return f"{round(self._obj.progress_raw, 2)}%"
 
     def gid(self):
         return self._gid
@@ -77,24 +32,18 @@ class FFmpegStatus:
         return get_readable_file_size(self.listener.size)
 
     def eta(self):
-        try:
-            seconds = (
-                self.listener.subsize - self._processed_bytes
-            ) / self._speed_raw
-            return get_readable_time(seconds)
-        except Exception:
-            return "-"
+        return get_readable_time(self._obj.eta_raw) if self._obj.eta_raw else "-"
 
     def status(self):
-        if self.cstatus == "Convert":
+        if self._cstatus == "Convert":
             return MirrorStatus.STATUS_CONVERT
-        if self.cstatus == "Split":
+        if self._cstatus == "Split":
             return MirrorStatus.STATUS_SPLIT
-        if self.cstatus == "Sample Video":
+        if self._cstatus == "Sample Video":
             return MirrorStatus.STATUS_SAMVID
-        if self.cstatus == "Metadata":
+        if self._cstatus == "Metadata":
             return MirrorStatus.STATUS_METADATA
-        if self.cstatus == "Watermark":
+        if self._cstatus == "Watermark":
             return MirrorStatus.STATUS_WATERMARK
         return MirrorStatus.STATUS_FFMPEG
 
@@ -102,12 +51,14 @@ class FFmpegStatus:
         return self
 
     async def cancel_task(self):
-        LOGGER.info(f"Cancelling {self.cstatus}: {self.listener.name}")
-        async with self.listener.subprocess_lock:
-            self.listener.is_cancelled = True
-            if (
-                self.listener.subproc is not None
-                and self.listener.subproc.returncode is None
-            ):
+        LOGGER.info(f"Cancelling {self._cstatus}: {self.listener.name}")
+        self.listener.is_cancelled = True
+        if (
+            self.listener.subproc is not None
+            and self.listener.subproc.returncode is None
+        ):
+            try:
                 self.listener.subproc.kill()
-        await self.listener.on_upload_error(f"{self.cstatus} stopped by user!")
+            except:
+                pass
+        await self.listener.on_upload_error(f"{self._cstatus} stopped by user!")

@@ -1,5 +1,6 @@
-import contextlib
-from asyncio import create_subprocess_exec, gather
+from aiofiles import open as aiopen
+from aiofiles.os import path as aiopath, makedirs, listdir
+from asyncio import create_subprocess_exec, gather, sleep
 from asyncio.subprocess import PIPE
 from configparser import RawConfigParser
 from json import loads
@@ -7,16 +8,11 @@ from logging import getLogger
 from random import randrange
 from re import findall as re_findall
 
-from aiofiles import open as aiopen
-from aiofiles.os import listdir, makedirs
-from aiofiles.os import path as aiopath
-
-from bot.core.config_manager import Config
-from bot.helper.ext_utils.bot_utils import cmd_exec, sync_to_async
-from bot.helper.ext_utils.files_utils import (
-    clean_unwanted,
-    count_files_and_folders,
+from ....core.config_manager import Config
+from ...ext_utils.bot_utils import cmd_exec, sync_to_async
+from ...ext_utils.files_utils import (
     get_mime_type,
+    count_files_and_folders,
 )
 
 LOGGER = getLogger(__name__)
@@ -37,7 +33,7 @@ class RcloneTransferHelper:
         self._sa_index = 0
         self._sa_number = 0
         self._use_service_accounts = Config.USE_SERVICE_ACCOUNTS
-        self.rclone_select = False
+        self._rclone_select = False
 
     @property
     def transferred_size(self):
@@ -60,13 +56,8 @@ class RcloneTransferHelper:
         return self._size
 
     async def _progress(self):
-        while not (self._proc is None or self._listener.is_cancelled):
-            try:
-                data = (await self._proc.stdout.readline()).decode()
-            except Exception:
-                continue
-            if not data:
-                break
+        while not (self._proc.returncode is not None or self._listener.is_cancelled):
+            data = (await self._proc.stdout.readline()).decode().strip()
             if data := re_findall(
                 r"Transferred:\s+([\d.]+\s*\w+)\s+/\s+([\d.]+\s*\w+),\s+([\d.]+%)\s*,\s+([\d.]+\s*\w+/s),\s+ETA\s+([\dwdhms]+)",
                 data,
@@ -78,6 +69,8 @@ class RcloneTransferHelper:
                     self._speed,
                     self._eta,
                 ) = data[0]
+            await sleep(0.05)
+        return self._proc.returncode
 
     def _switch_service_account(self):
         if self._sa_index == self._sa_number - 1:
@@ -116,27 +109,21 @@ class RcloneTransferHelper:
 
     async def _start_download(self, cmd, remote_type):
         self._proc = await create_subprocess_exec(*cmd, stdout=PIPE, stderr=PIPE)
-        _, return_code = await gather(self._progress(), self._proc.wait())
+        return_code = await self._progress()
 
         if self._listener.is_cancelled:
-            return None
+            return
 
         if return_code == 0:
             await self._listener.on_download_complete()
-            return None
-        if return_code != -9:
+        elif return_code != -9:
             error = (
-                (await self._proc.stderr.read()).decode().strip()
-                or "Use <code>/shell cat rlog.txt</code> to see more information"
-            )
+                await self._proc.stderr.read()
+            ).decode().strip() or "Use <code>/shell cat rlog.txt</code> to see more information"
             if not error and remote_type == "drive" and self._use_service_accounts:
-                error = (
-                    "Mostly your service accounts don't have access to this drive!"
-                )
+                error = "Mostly your service accounts don't have access to this drive!"
             elif not error:
-                error = (
-                    "Use <code>/shell cat rlog.txt</code> to see more information"
-                )
+                error = "Use <code>/shell cat rlog.txt</code> to see more information"
             LOGGER.error(error)
 
             if (
@@ -149,15 +136,14 @@ class RcloneTransferHelper:
                     remote = self._switch_service_account()
                     cmd[6] = f"{remote}:{cmd[6].split(':', 1)[1]}"
                     if self._listener.is_cancelled:
-                        return None
+                        return
                     return await self._start_download(cmd, remote_type)
-                LOGGER.info(
-                    f"Reached maximum number of service accounts switching, which is {self._sa_count}",
-                )
+                else:
+                    LOGGER.info(
+                        f"Reached maximum number of service accounts switching, which is {self._sa_count}"
+                    )
 
             await self._listener.on_download_error(error[:4000])
-            return None
-        return None
 
     async def download(self, remote, config_path, path):
         self._is_download = True
@@ -184,10 +170,7 @@ class RcloneTransferHelper:
                 LOGGER.info(f"Download with service account {remote}")
 
         cmd = self._get_updated_command(
-            config_path,
-            f"{remote}:{self._listener.link}",
-            path,
-            "copy",
+            config_path, f"{remote}:{self._listener.link}", path, "copy"
         )
 
         if (
@@ -222,19 +205,17 @@ class RcloneTransferHelper:
             "--config",
             config_path,
             epath,
+            "-v",
             "--log-systemd",
             "--log-file",
             "rlog.txt",
-            "--log-level",
-            "ERROR",
         ]
         res, err, code = await cmd_exec(cmd)
 
         if code == 0:
             result = loads(res)
             fid = next(
-                (r["ID"] for r in result if r["Path"] == self._listener.name),
-                "err",
+                (r["ID"] for r in result if r["Path"] == self._listener.name), "err"
             )
             link = (
                 f"https://drive.google.com/drive/folders/{fid}"
@@ -245,31 +226,27 @@ class RcloneTransferHelper:
             if not err:
                 err = "Use <code>/shell cat rlog.txt</code> to see more information"
             LOGGER.error(
-                f"while getting drive link. Path: {destination}. Stderr: {err}",
+                f"while getting drive link. Path: {destination}. Stderr: {err}"
             )
             link = ""
         return link, destination
 
     async def _start_upload(self, cmd, remote_type):
         self._proc = await create_subprocess_exec(*cmd, stdout=PIPE, stderr=PIPE)
-        _, return_code = await gather(self._progress(), self._proc.wait())
+        return_code = await self._progress()
 
         if self._listener.is_cancelled:
             return False
-
         if return_code == -9:
             return False
-        if return_code != 0:
+        elif return_code != 0:
             error = (
-                (await self._proc.stderr.read()).decode().strip()
-                or "Use <code>/shell cat rlog.txt</code> to see more information"
-            )
+                await self._proc.stderr.read()
+            ).decode().strip() or "Use <code>/shell cat rlog.txt</code> to see more information"
             if not error and remote_type == "drive" and self._use_service_accounts:
                 error = "Mostly your service accounts don't have access to this drive or RATE_LIMIT_EXCEEDED"
             elif not error:
-                error = (
-                    "Use <code>/shell cat rlog.txt</code> to see more information"
-                )
+                error = "Use <code>/shell cat rlog.txt</code> to see more information"
             LOGGER.error(error)
             if (
                 self._sa_number != 0
@@ -285,14 +262,16 @@ class RcloneTransferHelper:
                         if self._listener.is_cancelled
                         else await self._start_upload(cmd, remote_type)
                     )
-                LOGGER.info(
-                    f"Reached maximum number of service accounts switching, which is {self._sa_count}",
-                )
+                else:
+                    LOGGER.info(
+                        f"Reached maximum number of service accounts switching, which is {self._sa_count}"
+                    )
             await self._listener.on_upload_error(error[:4000])
             return False
-        return True
+        else:
+            return True
 
-    async def upload(self, path, unwanted_files, ft_delete):
+    async def upload(self, path):
         self._is_upload = True
         rc_path = self._listener.up_dest.strip("/")
         if rc_path.startswith("mrcc:"):
@@ -308,13 +287,12 @@ class RcloneTransferHelper:
             folders, files = await count_files_and_folders(
                 path,
                 self._listener.extension_filter,
-                unwanted_files,
             )
             rc_path += f"/{self._listener.name}" if rc_path else self._listener.name
         else:
             if path.lower().endswith(tuple(self._listener.extension_filter)):
                 await self._listener.on_upload_error(
-                    "This file extension is excluded by extension filter!",
+                    "This file extension is excluded by extension filter!"
                 )
                 return
             mime_type = await sync_to_async(get_mime_type, path)
@@ -345,24 +323,16 @@ class RcloneTransferHelper:
                 fremote = f"sa{self._sa_index:03}"
                 LOGGER.info(f"Upload with service account {fremote}")
 
-        method = (
-            "move" if not self._listener.seed or self._listener.new_dir else "copy"
-        )
+        method = "move"
         cmd = self._get_updated_command(
-            fconfig_path,
-            path,
-            f"{fremote}:{rc_path}",
-            method,
-            unwanted_files,
+            fconfig_path, path, f"{fremote}:{rc_path}", method
         )
         if (
             remote_type == "drive"
             and not Config.RCLONE_FLAGS
             and not self._listener.rc_flags
         ):
-            cmd.extend(
-                ("--drive-chunk-size", "128M", "--drive-upload-cutoff", "128M"),
-            )
+            cmd.extend(("--drive-chunk-size", "128M", "--drive-upload-cutoff", "128M"))
 
         result = await self._start_upload(cmd, remote_type)
         if not result:
@@ -370,10 +340,7 @@ class RcloneTransferHelper:
 
         if remote_type == "drive":
             link, destination = await self._get_gdrive_link(
-                oconfig_path,
-                oremote,
-                rc_path,
-                mime_type,
+                oconfig_path, oremote, rc_path, mime_type
             )
         else:
             if mime_type == "Folder":
@@ -389,11 +356,10 @@ class RcloneTransferHelper:
                 "--config",
                 oconfig_path,
                 destination,
+                "-v",
                 "--log-systemd",
                 "--log-file",
                 "rlog.txt",
-                "--log-level",
-                "ERROR",
             ]
             res, err, code = await cmd_exec(cmd)
 
@@ -402,21 +368,13 @@ class RcloneTransferHelper:
             elif code != -9:
                 if not err:
                     err = "Use <code>/shell cat rlog.txt</code> to see more information"
-                LOGGER.error(
-                    f"while getting link. Path: {destination} | Stderr: {err}",
-                )
+                LOGGER.error(f"while getting link. Path: {destination} | Stderr: {err}")
                 link = ""
         if self._listener.is_cancelled:
             return
         LOGGER.info(f"Upload Done. Path: {destination}")
-        if self._listener.seed and not self._listener.new_dir:
-            await clean_unwanted(path, ft_delete)
         await self._listener.on_upload_complete(
-            link,
-            files,
-            folders,
-            mime_type,
-            destination,
+            link, files, folders, mime_type, destination
         )
 
     async def clone(self, config_path, src_remote, src_path, mime_type, method):
@@ -438,10 +396,7 @@ class RcloneTransferHelper:
         )
 
         cmd = self._get_updated_command(
-            config_path,
-            f"{src_remote}:{src_path}",
-            destination,
-            method,
+            config_path, f"{src_remote}:{src_path}", destination, method
         )
         if not self._listener.rc_flags and not Config.RCLONE_FLAGS:
             if src_remote_type == "drive" and dst_remote_type != "drive":
@@ -450,63 +405,59 @@ class RcloneTransferHelper:
                 cmd.extend(("--tpslimit", "3", "--transfers", "3"))
 
         self._proc = await create_subprocess_exec(*cmd, stdout=PIPE, stderr=PIPE)
-        _, return_code = await gather(self._progress(), self._proc.wait())
+        return_code = await self._progress()
 
         if self._listener.is_cancelled:
             return None, None
 
         if return_code == -9:
             return None, None
-        if return_code != 0:
+        elif return_code != 0:
             error = (
-                (await self._proc.stderr.read()).decode().strip()
-                or "Use <code>/shell cat rlog.txt</code> to see more information"
-            )
+                await self._proc.stderr.read()
+            ).decode().strip() or "Use <code>/shell cat rlog.txt</code> to see more information"
             LOGGER.error(error)
             await self._listener.on_upload_error(error[:4000])
             return None, None
-        if dst_remote_type == "drive":
-            link, destination = await self._get_gdrive_link(
-                config_path,
-                dst_remote,
-                dst_path,
-                mime_type,
-            )
-            return (
-                (None, None) if self._listener.is_cancelled else (link, destination)
-            )
-        if mime_type != "Folder":
-            destination += (
-                f"/{self._listener.name}" if dst_path else self._listener.name
-            )
+        else:
+            if dst_remote_type == "drive":
+                link, destination = await self._get_gdrive_link(
+                    config_path, dst_remote, dst_path, mime_type
+                )
+                return (
+                    (None, None) if self._listener.is_cancelled else (link, destination)
+                )
+            else:
+                if mime_type != "Folder":
+                    destination += (
+                        f"/{self._listener.name}" if dst_path else self._listener.name
+                    )
 
-        cmd = [
-            "xone",
-            "link",
-            "--config",
-            config_path,
-            destination,
-            "--log-systemd",
-            "--log-file",
-            "rlog.txt",
-            "--log-level",
-            "ERROR",
-        ]
-        res, err, code = await cmd_exec(cmd)
+                cmd = [
+                    "xone",
+                    "link",
+                    "--config",
+                    config_path,
+                    destination,
+                    "-v",
+                    "--log-systemd",
+                    "--log-file",
+                    "rlog.txt",
+                ]
+                res, err, code = await cmd_exec(cmd)
 
-        if self._listener.is_cancelled:
-            return None, None
+                if self._listener.is_cancelled:
+                    return None, None
 
-        if code == 0:
-            return res, destination
-        if code != -9:
-            if not err:
-                err = "Use <code>/shell cat rlog.txt</code> to see more information"
-            LOGGER.error(
-                f"while getting link. Path: {destination} | Stderr: {err}",
-            )
-            return None, destination
-        return None
+                if code == 0:
+                    return res, destination
+                elif code != -9:
+                    if not err:
+                        err = "Use <code>/shell cat rlog.txt</code> to see more information"
+                    LOGGER.error(
+                        f"while getting link. Path: {destination} | Stderr: {err}"
+                    )
+                    return None, destination
 
     def _get_updated_command(
         self,
@@ -514,13 +465,10 @@ class RcloneTransferHelper:
         source,
         destination,
         method,
-        unwanted_files=None,
     ):
-        if unwanted_files is None:
-            unwanted_files = []
         if source.split(":")[-1].startswith("rclone_select"):
-            source = f"{source.split(':')[0]}:"
-            self.rclone_select = True
+            source = f"{source.split(":")[0]}:"
+            self._rclone_select = True
         else:
             ext = "*.{" + ",".join(self._listener.extension_filter) + "}"
         cmd = [
@@ -532,19 +480,19 @@ class RcloneTransferHelper:
             "-P",
             source,
             destination,
+            "-L",
             "--retries-sleep",
             "3s",
             "--ignore-case",
             "--low-level-retries",
             "1",
             "-M",
+            "-v",
             "--log-systemd",
             "--log-file",
             "rlog.txt",
-            "--log-level",
-            "ERROR",
         ]
-        if self.rclone_select:
+        if self._rclone_select:
             cmd.extend(("--files-from", self._listener.link))
         else:
             cmd.extend(("--exclude", ext))
@@ -556,15 +504,12 @@ class RcloneTransferHelper:
                     cmd.extend((key, value))
                 elif len(flag) > 0:
                     cmd.append(flag.strip())
-        if unwanted_files:
-            for f in unwanted_files:
-                cmd.extend(("--exclude", f.rsplit("/", 1)[1]))
         return cmd
 
     @staticmethod
     async def _get_remote_options(config_path, remote):
         config = RawConfigParser()
-        async with aiopen(config_path) as f:
+        async with aiopen(config_path, "r") as f:
             contents = await f.read()
             config.read_string(contents)
         options = config.options(remote)
@@ -573,8 +518,10 @@ class RcloneTransferHelper:
     async def cancel_task(self):
         self._listener.is_cancelled = True
         if self._proc is not None:
-            with contextlib.suppress(Exception):
+            try:
                 self._proc.kill()
+            except:
+                pass
         if self._is_download:
             LOGGER.info(f"Cancelling Download: {self._listener.name}")
             await self._listener.on_download_error("Stopped by user!")

@@ -42,7 +42,7 @@ class GoogleDriveUpload(GoogleDriveHelper):
             self.listener.up_dest = self.listener.up_dest.replace("sa:", "", 1)
             self.use_sa = True
 
-    def upload(self, unwanted_files, ft_delete):
+    def upload(self):
         self.user_setting()
         self.service = self.authorize()
         LOGGER.info(f"Uploading: {self._path}")
@@ -64,7 +64,6 @@ class GoogleDriveUpload(GoogleDriveHelper):
                     self.listener.name,
                     mime_type,
                     self.listener.up_dest,
-                    ft_delete,
                     in_dir=False,
                 )
                 if self.listener.is_cancelled:
@@ -81,8 +80,6 @@ class GoogleDriveUpload(GoogleDriveHelper):
                 result = self._upload_dir(
                     self._path,
                     dir_id,
-                    unwanted_files,
-                    ft_delete,
                 )
                 if result is None:
                     raise Exception("Upload has been manually cancelled!")
@@ -119,7 +116,7 @@ class GoogleDriveUpload(GoogleDriveHelper):
             dir_id=self.get_id_from_url(link) if link else None,
         )
 
-    def _upload_dir(self, input_directory, dest_id, unwanted_files, ft_delete):
+    def _upload_dir(self, input_directory, dest_id):
         list_dirs = listdir(input_directory)
         if len(list_dirs) == 0:
             return dest_id
@@ -131,16 +128,9 @@ class GoogleDriveUpload(GoogleDriveHelper):
                 new_id = self._upload_dir(
                     current_file_name,
                     current_dir_id,
-                    unwanted_files,
-                    ft_delete,
                 )
                 self.total_folders += 1
-            elif (
-                current_file_name not in unwanted_files
-                and not item.lower().endswith(
-                    tuple(self.listener.extension_filter),
-                )
-            ):
+            elif not item.lower().endswith(tuple(self.listener.extension_filter)):
                 mime_type = get_mime_type(current_file_name)
                 file_name = current_file_name.split("/")[-1]
                 self._upload_file(
@@ -148,13 +138,11 @@ class GoogleDriveUpload(GoogleDriveHelper):
                     file_name,
                     mime_type,
                     dest_id,
-                    ft_delete,
                 )
                 self.total_files += 1
                 new_id = dest_id
             else:
-                if not self.listener.seed or self.listener.new_dir:
-                    remove(current_file_name)
+                remove(current_file_name)
                 new_id = "filter"
             if self.listener.is_cancelled:
                 break
@@ -171,7 +159,6 @@ class GoogleDriveUpload(GoogleDriveHelper):
         file_name,
         mime_type,
         dest_id,
-        ft_delete,
         in_dir=True,
     ):
         # File body description
@@ -253,16 +240,16 @@ class GoogleDriveUpload(GoogleDriveHelper):
                             file_name,
                             mime_type,
                             dest_id,
-                            ft_delete,
                             in_dir,
                         )
                     LOGGER.error(f"Got: {reason}")
                     raise err
         if self.listener.is_cancelled:
             return None
-        if not self.listener.seed or self.listener.new_dir or file_path in ft_delete:
-            with contextlib.suppress(Exception):
-                remove(file_path)
+        try:
+            remove(file_path)
+        except:
+            pass
         self.file_processed_bytes = 0
         # Insert new permissions
         if not Config.IS_TEAM_DRIVE:
