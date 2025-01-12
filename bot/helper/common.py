@@ -808,7 +808,9 @@ class TaskConfig:
         else:
             LOGGER.info(f"Creating Screenshot for: {dl_path}")
             for dirpath, _, files in await sync_to_async(
-                walk, dl_path, topdown=False
+                walk,
+                dl_path,
+                topdown=False,
             ):
                 for file_ in files:
                     f_path = ospath.join(dirpath, file_)
@@ -860,7 +862,9 @@ class TaskConfig:
             all_files.append(dl_path)
         else:
             for dirpath, _, files in await sync_to_async(
-                walk, dl_path, topdown=False
+                walk,
+                dl_path,
+                topdown=False,
             ):
                 for file_ in files:
                     f_path = ospath.join(dirpath, file_)
@@ -941,7 +945,9 @@ class TaskConfig:
             self.files_to_proceed[dl_path] = file_
         else:
             for dirpath, _, files in await sync_to_async(
-                walk, dl_path, topdown=False
+                walk,
+                dl_path,
+                topdown=False,
             ):
                 for file_ in files:
                     f_path = ospath.join(dirpath, file_)
@@ -1002,7 +1008,9 @@ class TaskConfig:
                 self.files_to_proceed[dl_path] = [f_size, ospath.basename(dl_path)]
         else:
             for dirpath, _, files in await sync_to_async(
-                walk, dl_path, topdown=False
+                walk,
+                dl_path,
+                topdown=False,
             ):
                 for file_ in files:
                     f_path = ospath.join(dirpath, file_)
@@ -1057,7 +1065,10 @@ class TaskConfig:
                         self.progress = True
                         async with task_dict_lock:
                             task_dict[self.mid] = FFmpegStatus(
-                                self, ffmpeg, gid, "Metadata"
+                                self,
+                                ffmpeg,
+                                gid,
+                                "Metadata",
                             )
                         await cpu_eater_lock.acquire()
                     self.subsize = self.size
@@ -1094,7 +1105,8 @@ class TaskConfig:
                             self.subsize = await aiopath.getsize(file_path)
                             self.subname = file_
                             res = await ffmpeg.metadata_watermark_cmds(
-                                cmd, file_path
+                                cmd,
+                                file_path,
                             )
                             if res:
                                 os.replace(temp_file, file_path)
@@ -1155,7 +1167,8 @@ class TaskConfig:
                             self.subsize = await aiopath.getsize(file_path)
                             self.subname = file_
                             res = await ffmpeg.metadata_watermark_cmds(
-                                cmd, file_path
+                                cmd,
+                                file_path,
                             )
                             if res:
                                 os.replace(temp_file, file_path)
