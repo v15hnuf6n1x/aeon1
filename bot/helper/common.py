@@ -604,13 +604,13 @@ class TaskConfig:
                             await remove(f_path)
                         except Exception:
                             self.is_cancelled = True
-                for file_ in files:
-                    if is_archive_split(file_):
-                        del_path = ospath.join(dirpath, file_)
-                        try:
-                            await remove(del_path)
-                        except Exception:
-                            self.is_cancelled = True
+            for file_ in files:
+                if is_archive_split(file_):
+                    del_path = ospath.join(dirpath, file_)
+                    try:
+                        await remove(del_path)
+                    except Exception:
+                        self.is_cancelled = True
         return t_path if self.is_file and code == 0 else dl_path
 
     async def proceed_ffmpeg(self, dl_path, gid):
