@@ -3,7 +3,7 @@ import os
 from asyncio import gather, sleep
 from os import path as ospath
 from os import walk
-from re import sub
+from re import sub, IGNORECASE
 from secrets import token_urlsafe
 
 from aiofiles.os import makedirs, remove
@@ -761,7 +761,7 @@ class TaskConfig:
                 else:
                     res = ""
                 try:
-                    name = sub(rf"{pattern}", res, name, flags="I" if sen else 0)
+                    name = sub(rf"{pattern}", res, name, flags=IGNORECASE if sen else 0)
                 except Exception as e:
                     LOGGER.error(
                         f"Substitute Error: pattern: {pattern} res: {res}. Error: {e}",
