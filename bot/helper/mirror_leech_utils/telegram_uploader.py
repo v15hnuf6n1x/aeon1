@@ -159,10 +159,6 @@ class TelegramUploader:
             new_path = ospath.join(dirpath, f"{self._lprefix} {file_}")
             await rename(self._up_path, new_path)
             self._up_path = new_path
-            else:
-                new_path = ospath.join(dirpath, f"{self._lprefix} {file_}")
-                await rename(self._up_path, new_path)
-                self._up_path = new_path
         if not self._lcaption and not self._lprefix:
             cap_mono = f"<code>{file_}</code>"
         if len(file_) > 60:

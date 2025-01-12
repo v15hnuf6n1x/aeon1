@@ -1,6 +1,6 @@
 from asyncio import create_subprocess_exec, sleep, wait_for
 from asyncio.subprocess import PIPE
-from os import makedirs, walk, read link
+from os import makedirs, walk, readlink
 from os import path as ospath
 from re import IGNORECASE, escape
 from re import search as re_search
