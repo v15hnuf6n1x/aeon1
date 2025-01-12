@@ -392,11 +392,7 @@ class SevenZ:
 
     async def zip(self, dl_path, up_path, pswd):
         size = await get_path_size(dl_path)
-        if self._listener.equal_splits:
-            parts = -(-size // self._listener.split_size)
-            split_size = (size // parts) + (size % parts)
-        else:
-            split_size = self._listener.split_size
+        split_size = self._listener.split_size
         cmd = [
             "7z",
             f"-v{split_size}b",
