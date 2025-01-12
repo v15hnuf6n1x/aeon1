@@ -211,7 +211,7 @@ def get_base_name(orig_path):
         (ext for ext in ARCH_EXT if orig_path.lower().endswith(ext)), ""
     )
     if extension != "":
-        return re_split(f"{extension}$", orig_path, maxsplit=1, flags=I)[0]
+        return re_split(f"{extension}$", orig_path, maxsplit=1, flags="I")[0]
     raise NotSupportedExtractionArchive("File format not supported for extraction")
 
 
@@ -294,7 +294,7 @@ async def split_file(f_path, split_size, listener):
     if code != 0:
         try:
             stderr = stderr.decode().strip()
-        except:
+        except Exception:
             stderr = "Unable to decode the error!"
         LOGGER.error(f"{stderr}. Split Document: {f_path}")
     return True
@@ -322,7 +322,7 @@ class SevenZ:
         ):
             try:
                 line = await wait_for(self._listener.subproc.stdout.readline(), 2)
-            except:
+            except Exception:
                 break
             line = line.decode().strip()
             if match := re_search(pattern, line):
@@ -341,7 +341,7 @@ class SevenZ:
                     self._processed_bytes = (
                         int(self._percentage.strip("%")) / 100
                     ) * self._listener.subsize
-                except:
+                except Exception:
                     self._processed_bytes = 0
                     self._percentage = "0%"
                 s = b""
@@ -384,7 +384,7 @@ class SevenZ:
                 stderr = (
                     (await self._listener.subproc.stderr.read()).decode().strip()
                 )
-            except:
+            except Exception:
                 stderr = "Unable to decode the error!"
             LOGGER.error(f"{stderr}. Unable to extract archive!. Path: {f_path}")
         return code
@@ -439,7 +439,7 @@ class SevenZ:
             await remove(up_path)
         try:
             stderr = (await self._listener.subproc.stderr.read()).decode().strip()
-        except:
+        except Exception:
             stderr = "Unable to decode the error!"
         LOGGER.error(f"{stderr}. Unable to zip this path: {dl_path}")
         return dl_path

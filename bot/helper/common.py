@@ -47,7 +47,6 @@ from .ext_utils.media_utils import (
     create_thumb,
     get_document_type,
     is_mkv,
-    split_file,
     take_ss,
 )
 from .mirror_leech_utils.gdrive_utils.list import GoogleDriveList
@@ -610,7 +609,7 @@ class TaskConfig:
                         del_path = ospath.join(dirpath, file_)
                         try:
                             await remove(del_path)
-                        except:
+                        except Exception:
                             self.is_cancelled = True
         return t_path if self.is_file and code == 0 else dl_path
 
@@ -762,7 +761,7 @@ class TaskConfig:
                 else:
                     res = ""
                 try:
-                    name = sub(rf"{pattern}", res, name, flags=I if sen else 0)
+                    name = sub(rf"{pattern}", res, name, flags="I" if sen else 0)
                 except Exception as e:
                     LOGGER.error(
                         f"Substitute Error: pattern: {pattern} res: {res}. Error: {e}",
@@ -915,7 +914,7 @@ class TaskConfig:
                     if res:
                         try:
                             await remove(f_path)
-                        except:
+                        except Exception:
                             self.is_cancelled = True
                             return False
                         if self.is_file:
@@ -1038,7 +1037,7 @@ class TaskConfig:
                 if res or f_size >= self.max_split_size:
                     try:
                         await remove(f_path)
-                    except:
+                    except Exception:
                         self.is_cancelled = True
             return None
         return None

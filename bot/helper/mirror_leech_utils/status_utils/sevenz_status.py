@@ -44,7 +44,7 @@ class SevenZStatus:
                 self.listener.subsize - self._obj.processed_bytes
             ) / self._speed_raw()
             return get_readable_time(seconds)
-        except:
+        except Exception:
             return "-"
 
     def status(self):

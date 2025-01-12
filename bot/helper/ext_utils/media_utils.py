@@ -383,7 +383,7 @@ class FFMpeg:
                             self._eta_raw = (
                                 self._total_time - self._processed_time
                             ) / self._time_rate
-                        except:
+                        except Exception:
                             self._progress_raw = 0
                             self._eta_raw = 0
         return self._listener.subproc.returncode
@@ -427,7 +427,7 @@ class FFMpeg:
             return False
         try:
             stderr = (await self._listener.subproc.stderr.read()).decode().strip()
-        except:
+        except Exception:
             stderr = "Unable to decode the error!"
         LOGGER.error(
             f"{stderr}. Something went wrong while running ffmpeg cmd, mostly file requires different/specific arguments. Path: {f_path}",
@@ -462,13 +462,11 @@ class FFMpeg:
             return False
         try:
             stderr = (await self._listener.subproc.stderr.read()).decode().strip()
-        except:
+        except Exception:
             stderr = "Unable to decode the error!"
         LOGGER.error(
             f"{stderr}. Something went wrong while running ffmpeg cmd, mostly file requires different/specific arguments. Path: {f_path}",
         )
-        if await aiopath.exists(output):
-            await remove(output)
         return False
 
     async def convert_video(self, video_file, ext, retry=False):
@@ -549,7 +547,7 @@ class FFMpeg:
             return await self.convert_video(video_file, ext, True)
         try:
             stderr = (await self._listener.subproc.stderr.read()).decode().strip()
-        except:
+        except Exception:
             stderr = "Unable to decode the error!"
         LOGGER.error(
             f"{stderr}. Something went wrong while converting video, mostly file need specific codec. Path: {video_file}",
@@ -597,7 +595,7 @@ class FFMpeg:
             return False
         try:
             stderr = (await self._listener.subproc.stderr.read()).decode().strip()
-        except:
+        except Exception:
             stderr = "Unable to decode the error!"
         LOGGER.error(
             f"{stderr}. Something went wrong while converting audio, mostly file need specific codec. Path: {audio_file}",
@@ -756,7 +754,7 @@ class FFMpeg:
                     stderr = (
                         (await self._listener.subproc.stderr.read()).decode().strip()
                     )
-                except:
+                except Exception:
                     stderr = "Unable to decode the error!"
                 with contextlib.suppress(Exception):
                     await remove(out_path)
