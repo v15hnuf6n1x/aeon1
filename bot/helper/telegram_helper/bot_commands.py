@@ -3,6 +3,7 @@ from bot.core.config_manager import Config
 
 i = Config.CMD_SUFFIX
 
+
 class BotCommands:
     StartCommand = f"start{i}"
     MirrorCommand = [f"mirror{i}", f"m{i}"]

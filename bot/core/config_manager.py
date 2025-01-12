@@ -111,14 +111,17 @@ class Config:
                     value = value.strip()
                 if attr == "DEFAULT_UPLOAD" and value != "gd":
                     value = "rc"
-                elif attr in [
-                    "BASE_URL",
-                    "RCLONE_SERVE_URL",
-                    "INDEX_URL",
-                    "SEARCH_API_LINK",
-                ]:
-                    if value:
-                        value = value.strip("/")
+                elif (
+                    attr
+                    in [
+                        "BASE_URL",
+                        "RCLONE_SERVE_URL",
+                        "INDEX_URL",
+                        "SEARCH_API_LINK",
+                    ]
+                    and value
+                ):
+                    value = value.strip("/")
                 setattr(cls, attr, value)
         for key in ["BOT_TOKEN", "OWNER_ID", "TELEGRAM_API", "TELEGRAM_HASH"]:
             value = getattr(cls, key)
@@ -133,14 +136,17 @@ class Config:
             if hasattr(cls, key):
                 if key == "DEFAULT_UPLOAD" and value != "gd":
                     value = "rc"
-                elif key in [
-                    "BASE_URL",
-                    "RCLONE_SERVE_URL",
-                    "INDEX_URL",
-                    "SEARCH_API_LINK",
-                ]:
-                    if value:
-                        value = value.strip("/")
+                elif (
+                    key
+                    in [
+                        "BASE_URL",
+                        "RCLONE_SERVE_URL",
+                        "INDEX_URL",
+                        "SEARCH_API_LINK",
+                    ]
+                    and value
+                ):
+                    value = value.strip("/")
                 setattr(cls, key, value)
         for key in ["BOT_TOKEN", "OWNER_ID", "TELEGRAM_API", "TELEGRAM_HASH"]:
             value = getattr(cls, key)

@@ -246,10 +246,8 @@ class GoogleDriveUpload(GoogleDriveHelper):
                     raise err
         if self.listener.is_cancelled:
             return None
-        try:
+        with contextlib.suppress(Exception):
             remove(file_path)
-        except:
-            pass
         self.file_processed_bytes = 0
         # Insert new permissions
         if not Config.IS_TEAM_DRIVE:

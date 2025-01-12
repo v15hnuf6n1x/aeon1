@@ -1,15 +1,14 @@
 import contextlib
 import os
-from asyncio import Lock, create_subprocess_exec, gather, sleep
-from asyncio.subprocess import PIPE
+from asyncio import gather, sleep
 from os import path as ospath
 from os import walk
-from re import IGNORECASE, sub
+from re import sub
 from secrets import token_urlsafe
 
 from aiofiles.os import makedirs, remove
 from aiofiles.os import path as aiopath
-from aioshutil import copy2, move, rmtree
+from aioshutil import move, rmtree
 from pyrogram.enums import ChatAction
 
 from bot import (
@@ -28,21 +27,14 @@ from bot.helper.aeon_utils.metadata_editor import get_metadata_cmd, get_watermar
 
 from .ext_utils.bot_utils import get_size_bytes, new_task, sync_to_async
 from .ext_utils.bulk_links import extract_bulk_links
-from .ext_utils.exceptions import NotSupportedExtractionArchive
-from .mirror_leech_utils.gdrive_utils.list import GoogleDriveList
-from .mirror_leech_utils.rclone_utils.list import RcloneList
-from .mirror_leech_utils.status_utils.sevenz_status import SevenZStatus
-from .mirror_leech_utils.status_utils.ffmpeg_status import FFmpegStatus
-from .telegram_helper.bot_commands import BotCommands
 from .ext_utils.files_utils import (
-    clean_target,
+    SevenZ,
     get_base_name,
     get_path_size,
     is_archive,
     is_archive_split,
     is_first_archive_split,
     split_file,
-    SevenZ,
 )
 from .ext_utils.links_utils import (
     is_gdrive_id,
@@ -51,16 +43,12 @@ from .ext_utils.links_utils import (
     is_telegram_link,
 )
 from .ext_utils.media_utils import (
-    convert_audio,
-    convert_video,
-    create_sample_video,
+    FFMpeg,
     create_thumb,
     get_document_type,
     is_mkv,
-    run_ffmpeg_cmd,
     split_file,
     take_ss,
-    FFMpeg
 )
 from .mirror_leech_utils.gdrive_utils.list import GoogleDriveList
 from .mirror_leech_utils.rclone_utils.list import RcloneList
@@ -589,10 +577,8 @@ class TaskConfig:
                 topdown=False,
             ):
                 for file_ in files:
-                    if (
-                        is_first_archive_split(file_)
-                        or is_archive(file_)
-                        and not file_.endswith(".rar")
+                    if is_first_archive_split(file_) or (
+                        is_archive(file_) and not file_.endswith(".rar")
                     ):
                         f_path = ospath.join(dirpath, file_)
                         self.files_to_proceed.append(f_path)
@@ -605,10 +591,8 @@ class TaskConfig:
             task_dict[self.mid] = SevenZStatus(self, sevenz, gid, "Extract")
         for dirpath, _, files in await sync_to_async(walk, self.dir, topdown=False):
             for file_ in files:
-                if (
-                    is_first_archive_split(file_)
-                    or is_archive(file_)
-                    and not file_.endswith(".rar")
+                if is_first_archive_split(file_) or (
+                    is_archive(file_) and not file_.endswith(".rar")
                 ):
                     self.proceed_count += 1
                     f_path = ospath.join(dirpath, file_)
@@ -648,7 +632,8 @@ class TaskConfig:
                     "error",
                     "-progress",
                     "pipe:1",
-                ] + ffmpeg_cmd
+                    *ffmpeg_cmd,
+                ]
                 if "-del" in cmd:
                     cmd.remove("-del")
                     delete_files = True
@@ -666,13 +651,13 @@ class TaskConfig:
                     ext = ospath.splitext(input_file)[-1].lower()
                 if await aiopath.isfile(dl_path):
                     is_video, is_audio, _ = await get_document_type(dl_path)
-                    if not is_video and not is_audio:
+                    if (not is_video and not is_audio) or (
+                        is_video and ext == "audio"
+                    ):
                         break
-                    elif is_video and ext == "audio":
-                        break
-                    elif is_audio and ext == "video":
-                        break
-                    elif ext != "all" and not dl_path.lower().endswith(ext):
+                    if (is_audio and ext == "video") or (
+                        ext != "all" and not dl_path.lower().endswith(ext)
+                    ):
                         break
                     new_folder = ospath.splitext(dl_path)[0]
                     name = ospath.basename(dl_path)
@@ -683,7 +668,10 @@ class TaskConfig:
                         checked = True
                         async with task_dict_lock:
                             task_dict[self.mid] = FFmpegStatus(
-                                self, ffmpeg, gid, "FFmpeg"
+                                self,
+                                ffmpeg,
+                                gid,
+                                "FFmpeg",
                             )
                         await cpu_eater_lock.acquire()
                         self.progress = True
@@ -709,7 +697,9 @@ class TaskConfig:
                         await rmtree(new_folder)
                 else:
                     for dirpath, _, files in await sync_to_async(
-                        walk, dl_path, topdown=False
+                        walk,
+                        dl_path,
+                        topdown=False,
                     ):
                         for file_ in files:
                             if self.is_cancelled:
@@ -720,13 +710,13 @@ class TaskConfig:
                             # if f_path in self.files_no_upload:
                             #     continue
                             is_video, is_audio, _ = await get_document_type(f_path)
-                            if not is_video and not is_audio:
+                            if (not is_video and not is_audio) or (
+                                is_video and ext == "audio"
+                            ):
                                 continue
-                            elif is_video and ext == "audio":
-                                continue
-                            elif is_audio and ext == "video":
-                                continue
-                            elif ext != "all" and not f_path.lower().endswith(ext):
+                            if (is_audio and ext == "video") or (
+                                ext != "all" and not f_path.lower().endswith(ext)
+                            ):
                                 continue
                             self.proceed_count += 1
                             cmd[index + 1] = f_path
@@ -734,7 +724,10 @@ class TaskConfig:
                                 checked = True
                                 async with task_dict_lock:
                                     task_dict[self.mid] = FFmpegStatus(
-                                        self, ffmpeg, gid, "FFmpeg"
+                                        self,
+                                        ffmpeg,
+                                        gid,
+                                        "FFmpeg",
                                     )
                                 await cpu_eater_lock.acquire()
                             LOGGER.info(f"Running ffmpeg cmd for: {f_path}")
@@ -772,7 +765,7 @@ class TaskConfig:
                     name = sub(rf"{pattern}", res, name, flags=I if sen else 0)
                 except Exception as e:
                     LOGGER.error(
-                        f"Substitute Error: pattern: {pattern} res: {res}. Error: {e}"
+                        f"Substitute Error: pattern: {pattern} res: {res}. Error: {e}",
                     )
                     return False
                 if len(name.encode()) > 255:
@@ -788,15 +781,14 @@ class TaskConfig:
             new_path = ospath.join(up_dir, new_name)
             await move(dl_path, new_path)
             return new_path
-        else:
-            for dirpath, _, files in await sync_to_async(walk, dl_path, topdown=False):
-                for file_ in files:
-                    f_path = ospath.join(dirpath, file_)
-                    new_name = perform_substitution(file_, self.name_sub)
-                    if not new_name:
-                        continue
-                    await move(f_path, ospath.join(dirpath, new_name))
-            return dl_path
+        for dirpath, _, files in await sync_to_async(walk, dl_path, topdown=False):
+            for file_ in files:
+                f_path = ospath.join(dirpath, file_)
+                new_name = perform_substitution(file_, self.name_sub)
+                if not new_name:
+                    continue
+                await move(f_path, ospath.join(dirpath, new_name))
+        return dl_path
 
     async def generate_screenshots(self, dl_path):
         ss_nb = int(self.screen_shots) if isinstance(self.screen_shots, str) else 10
@@ -816,7 +808,9 @@ class TaskConfig:
                     return new_folder
         else:
             LOGGER.info(f"Creating Screenshot for: {dl_path}")
-            for dirpath, _, files in await sync_to_async(walk, dl_path, topdown=False):
+            for dirpath, _, files in await sync_to_async(
+                walk, dl_path, topdown=False
+            ):
                 for file_ in files:
                     f_path = ospath.join(dirpath, file_)
                     if (await get_document_type(f_path))[0]:
@@ -866,7 +860,9 @@ class TaskConfig:
         if self.is_file:
             all_files.append(dl_path)
         else:
-            for dirpath, _, files in await sync_to_async(walk, dl_path, topdown=False):
+            for dirpath, _, files in await sync_to_async(
+                walk, dl_path, topdown=False
+            ):
                 for file_ in files:
                     f_path = ospath.join(dirpath, file_)
                     all_files.append(f_path)
@@ -878,10 +874,8 @@ class TaskConfig:
                 and vext
                 and not f_path.lower().endswith(f".{vext}")
                 and (
-                    vstatus == "+"
-                    and f_path.lower().endswith(tuple(fvext))
-                    or vstatus == "-"
-                    and not f_path.lower().endswith(tuple(fvext))
+                    (vstatus == "+" and f_path.lower().endswith(tuple(fvext)))
+                    or (vstatus == "-" and not f_path.lower().endswith(tuple(fvext)))
                     or not vstatus
                 )
             ):
@@ -892,10 +886,8 @@ class TaskConfig:
                 and not is_video
                 and not f_path.lower().endswith(f".{aext}")
                 and (
-                    astatus == "+"
-                    and f_path.lower().endswith(tuple(faext))
-                    or astatus == "-"
-                    and not f_path.lower().endswith(tuple(faext))
+                    (astatus == "+" and f_path.lower().endswith(tuple(faext)))
+                    or (astatus == "-" and not f_path.lower().endswith(tuple(faext)))
                     or not astatus
                 )
             ):
@@ -933,7 +925,9 @@ class TaskConfig:
     async def generate_sample_video(self, dl_path, gid):
         self.progress = False
         data = (
-            self.sample_video.split(":") if isinstance(self.sample_video, str) else ""
+            self.sample_video.split(":")
+            if isinstance(self.sample_video, str)
+            else ""
         )
         if data:
             sample_duration = int(data[0]) if data[0] else 60
@@ -947,7 +941,9 @@ class TaskConfig:
             file_ = ospath.basename(dl_path)
             self.files_to_proceed[dl_path] = file_
         else:
-            for dirpath, _, files in await sync_to_async(walk, dl_path, topdown=False):
+            for dirpath, _, files in await sync_to_async(
+                walk, dl_path, topdown=False
+            ):
                 for file_ in files:
                     f_path = ospath.join(dirpath, file_)
                     if (await get_document_type(f_path))[0]:
@@ -967,7 +963,9 @@ class TaskConfig:
                         self.subsize = await get_path_size(f_path)
                         self.subname = file_
                     res = await ffmpeg.sample_video(
-                        f_path, sample_duration, part_duration
+                        f_path,
+                        sample_duration,
+                        part_duration,
                     )
                     if res and self.is_file:
                         new_folder = ospath.splitext(f_path)[0]
@@ -1004,7 +1002,9 @@ class TaskConfig:
             if f_size > self.split_size:
                 self.files_to_proceed[dl_path] = [f_size, ospath.basename(dl_path)]
         else:
-            for dirpath, _, files in await sync_to_async(walk, dl_path, topdown=False):
+            for dirpath, _, files in await sync_to_async(
+                walk, dl_path, topdown=False
+            ):
                 for file_ in files:
                     f_path = ospath.join(dirpath, file_)
                     f_size = await get_path_size(f_path)
@@ -1040,7 +1040,8 @@ class TaskConfig:
                         await remove(f_path)
                     except:
                         self.is_cancelled = True
-
+            return None
+        return None
 
     # change according sync
     async def proceed_metadata(self, dl_path, gid):
@@ -1056,7 +1057,9 @@ class TaskConfig:
                         checked = True
                         self.progress = True
                         async with task_dict_lock:
-                            task_dict[self.mid] = FFmpegStatus(self, ffmpeg, gid, "Metadata")
+                            task_dict[self.mid] = FFmpegStatus(
+                                self, ffmpeg, gid, "Metadata"
+                            )
                         await cpu_eater_lock.acquire()
                     self.subsize = self.size
                     res = await ffmpeg.metadata_watermark_cmds(cmd, dl_path)
@@ -1091,7 +1094,9 @@ class TaskConfig:
                             LOGGER.info(f"Running metadata cmd for: {file_path}")
                             self.subsize = await aiopath.getsize(file_path)
                             self.subname = file_
-                            res = await ffmpeg.metadata_watermark_cmds(cmd, file_path)
+                            res = await ffmpeg.metadata_watermark_cmds(
+                                cmd, file_path
+                            )
                             if res:
                                 os.replace(temp_file, file_path)
         if checked:
@@ -1150,7 +1155,9 @@ class TaskConfig:
                             LOGGER.info(f"Running cmd for: {file_path}")
                             self.subsize = await aiopath.getsize(file_path)
                             self.subname = file_
-                            res = await ffmpeg.metadata_watermark_cmds(cmd, file_path)
+                            res = await ffmpeg.metadata_watermark_cmds(
+                                cmd, file_path
+                            )
                             if res:
                                 os.replace(temp_file, file_path)
         if checked:

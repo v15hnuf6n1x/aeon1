@@ -7,14 +7,13 @@ from re import sub as re_sub
 from time import time
 
 from aiofiles.os import (
-    makedirs,
+    path as aiopath,
+)
+from aiofiles.os import (
     remove,
     rename,
 )
-from aiofiles.os import (
-    path as aiopath,
-)
-from aioshutil import copy, rmtree
+from aioshutil import rmtree
 from natsort import natsorted
 from PIL import Image
 from pyrogram.errors import BadRequest, FloodPremiumWait, FloodWait, RPCError
@@ -36,7 +35,6 @@ from bot.core.config_manager import Config
 from bot.helper.aeon_utils.caption_gen import generate_caption
 from bot.helper.ext_utils.bot_utils import sync_to_async
 from bot.helper.ext_utils.files_utils import (
-    clean_unwanted,
     get_base_name,
     is_archive,
 )
@@ -336,7 +334,7 @@ class TelegramUploader:
                     if self._listener.is_cancelled:
                         return
                 if not self._listener.is_cancelled and await aiopath.exists(
-                    self._up_path
+                    self._up_path,
                 ):
                     await remove(self._up_path)
         for key, value in list(self._media_dict.items()):

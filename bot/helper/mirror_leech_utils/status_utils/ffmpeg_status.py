@@ -1,7 +1,9 @@
-from .... import LOGGER
-from ...ext_utils.status_utils import (
-    get_readable_file_size,
+import contextlib
+
+from bot import LOGGER
+from bot.helper.ext_utils.status_utils import (
     MirrorStatus,
+    get_readable_file_size,
     get_readable_time,
 )
 
@@ -57,8 +59,6 @@ class FFmpegStatus:
             self.listener.subproc is not None
             and self.listener.subproc.returncode is None
         ):
-            try:
+            with contextlib.suppress(Exception):
                 self.listener.subproc.kill()
-            except:
-                pass
         await self.listener.on_upload_error(f"{self._cstatus} stopped by user!")

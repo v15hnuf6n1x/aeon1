@@ -1,5 +1,5 @@
 import contextlib
-from asyncio import create_subprocess_exec, gather, wait_for, sleep
+from asyncio import create_subprocess_exec, gather, sleep, wait_for
 from asyncio.subprocess import PIPE
 from os import cpu_count
 from os import path as ospath
@@ -18,7 +18,6 @@ from bot.core.config_manager import Config
 from .bot_utils import cmd_exec, sync_to_async
 from .files_utils import ARCH_EXT, get_mime_type
 from .status_utils import time_to_seconds
-
 
 
 async def create_thumb(msg, _id=""):
@@ -325,7 +324,6 @@ def is_mkv(file):
 
 
 class FFMpeg:
-
     def __init__(self, listener):
         self._listener = listener
         self._processed_bytes = 0
@@ -357,7 +355,8 @@ class FFMpeg:
 
     async def _ffmpeg_progress(self):
         while not (
-            self._listener.subproc.returncode is not None or self._listener.is_cancelled
+            self._listener.subproc.returncode is not None
+            or self._listener.is_cancelled
         ):
             line = (await self._listener.subproc.stdout.readline()).decode().strip()
             await sleep(0.05)
@@ -365,7 +364,9 @@ class FFMpeg:
                 key, value = line.split("=", 1)
                 if value != "N/A":
                     if key == "total_size":
-                        self._processed_bytes = int(value) + self._last_processed_bytes
+                        self._processed_bytes = (
+                            int(value) + self._last_processed_bytes
+                        )
                         self._speed_raw = self._processed_bytes / (
                             time() - self._start_time
                         )
@@ -412,27 +413,28 @@ class FFMpeg:
         if self._listener.is_cancelled:
             return False
         self._listener.subproc = await create_subprocess_exec(
-            *ffmpeg, stdout=PIPE, stderr=PIPE
+            *ffmpeg,
+            stdout=PIPE,
+            stderr=PIPE,
         )
         code = await self._ffmpeg_progress()
         if self._listener.is_cancelled:
             return False
         if code == 0:
             return output
-        elif code == -9:
+        if code == -9:
             self._listener.is_cancelled = True
             return False
-        else:
-            try:
-                stderr = (await self._listener.subproc.stderr.read()).decode().strip()
-            except:
-                stderr = "Unable to decode the error!"
-            LOGGER.error(
-                f"{stderr}. Something went wrong while running ffmpeg cmd, mostly file requires different/specific arguments. Path: {f_path}"
-            )
-            if await aiopath.exists(output):
-                await remove(output)
-            return False
+        try:
+            stderr = (await self._listener.subproc.stderr.read()).decode().strip()
+        except:
+            stderr = "Unable to decode the error!"
+        LOGGER.error(
+            f"{stderr}. Something went wrong while running ffmpeg cmd, mostly file requires different/specific arguments. Path: {f_path}",
+        )
+        if await aiopath.exists(output):
+            await remove(output)
+        return False
 
     async def metadata_watermark_cmds(self, ffmpeg, f_path):
         self._start_time = time()
@@ -446,28 +448,29 @@ class FFMpeg:
         if self._listener.is_cancelled:
             return False
         self._listener.subproc = await create_subprocess_exec(
-            *ffmpeg, stdout=PIPE, stderr=PIPE
+            *ffmpeg,
+            stdout=PIPE,
+            stderr=PIPE,
         )
         code = await self._ffmpeg_progress()
         if self._listener.is_cancelled:
             return False
         if code == 0:
             return True
-        elif code == -9:
+        if code == -9:
             self._listener.is_cancelled = True
             return False
-        else:
-            try:
-                stderr = (await self._listener.subproc.stderr.read()).decode().strip()
-            except:
-                stderr = "Unable to decode the error!"
-            LOGGER.error(
-                f"{stderr}. Something went wrong while running ffmpeg cmd, mostly file requires different/specific arguments. Path: {f_path}"
-            )
-            if await aiopath.exists(output):
-                await remove(output)
-            return False
-    
+        try:
+            stderr = (await self._listener.subproc.stderr.read()).decode().strip()
+        except:
+            stderr = "Unable to decode the error!"
+        LOGGER.error(
+            f"{stderr}. Something went wrong while running ffmpeg cmd, mostly file requires different/specific arguments. Path: {f_path}",
+        )
+        if await aiopath.exists(output):
+            await remove(output)
+        return False
+
     async def convert_video(self, video_file, ext, retry=False):
         self._start_time = time()
         self._processed_bytes = 0
@@ -528,28 +531,29 @@ class FFMpeg:
         if self._listener.is_cancelled:
             return False
         self._listener.subproc = await create_subprocess_exec(
-            *cmd, stdout=PIPE, stderr=PIPE
+            *cmd,
+            stdout=PIPE,
+            stderr=PIPE,
         )
         code = await self._ffmpeg_progress()
         if self._listener.is_cancelled:
             return False
         if code == 0:
             return output
-        elif code == -9:
+        if code == -9:
             self._listener.is_cancelled = True
             return False
-        else:
-            if await aiopath.exists(output):
-                await remove(output)
-            if not retry:
-                return await self.convert_video(video_file, ext, True)
-            try:
-                stderr = (await self._listener.subproc.stderr.read()).decode().strip()
-            except:
-                stderr = "Unable to decode the error!"
-            LOGGER.error(
-                f"{stderr}. Something went wrong while converting video, mostly file need specific codec. Path: {video_file}"
-            )
+        if await aiopath.exists(output):
+            await remove(output)
+        if not retry:
+            return await self.convert_video(video_file, ext, True)
+        try:
+            stderr = (await self._listener.subproc.stderr.read()).decode().strip()
+        except:
+            stderr = "Unable to decode the error!"
+        LOGGER.error(
+            f"{stderr}. Something went wrong while converting video, mostly file need specific codec. Path: {video_file}",
+        )
         return False
 
     async def convert_audio(self, audio_file, ext):
@@ -579,26 +583,27 @@ class FFMpeg:
         if self._listener.is_cancelled:
             return False
         self._listener.subproc = await create_subprocess_exec(
-            *cmd, stdout=PIPE, stderr=PIPE
+            *cmd,
+            stdout=PIPE,
+            stderr=PIPE,
         )
         code = await self._ffmpeg_progress()
         if self._listener.is_cancelled:
             return False
         if code == 0:
             return output
-        elif code == -9:
+        if code == -9:
             self._listener.is_cancelled = True
             return False
-        else:
-            try:
-                stderr = (await self._listener.subproc.stderr.read()).decode().strip()
-            except:
-                stderr = "Unable to decode the error!"
-            LOGGER.error(
-                f"{stderr}. Something went wrong while converting audio, mostly file need specific codec. Path: {audio_file}"
-            )
-            if await aiopath.exists(output):
-                await remove(output)
+        try:
+            stderr = (await self._listener.subproc.stderr.read()).decode().strip()
+        except:
+            stderr = "Unable to decode the error!"
+        LOGGER.error(
+            f"{stderr}. Something went wrong while converting audio, mostly file need specific codec. Path: {audio_file}",
+        )
+        if await aiopath.exists(output):
+            await remove(output)
         return False
 
     async def sample_video(self, video_file, sample_duration, part_duration):
@@ -664,7 +669,9 @@ class FFMpeg:
         if self._listener.is_cancelled:
             return False
         self._listener.subproc = await create_subprocess_exec(
-            *cmd, stdout=PIPE, stderr=PIPE
+            *cmd,
+            stdout=PIPE,
+            stderr=PIPE,
         )
         code = await self._ffmpeg_progress()
         if self._listener.is_cancelled:
@@ -672,19 +679,18 @@ class FFMpeg:
         if code == -9:
             self._listener.is_cancelled = True
             return False
-        elif code == 0:
+        if code == 0:
             return output_file
-        else:
-            try:
-                stderr = (await self._listener.subproc.stderr.read()).decode().strip()
-            except Exception:
-                stderr = "Unable to decode the error!"
-            LOGGER.error(
-                f"{stderr}. Something went wrong while creating sample video, mostly file is corrupted. Path: {video_file}"
-            )
-            if await aiopath.exists(output_file):
-                await remove(output_file)
-            return False
+        try:
+            stderr = (await self._listener.subproc.stderr.read()).decode().strip()
+        except Exception:
+            stderr = "Unable to decode the error!"
+        LOGGER.error(
+            f"{stderr}. Something went wrong while creating sample video, mostly file is corrupted. Path: {video_file}",
+        )
+        if await aiopath.exists(output_file):
+            await remove(output_file)
+        return False
 
     async def split(self, f_path, file_, parts, split_size):
         self._start_time = time()
@@ -735,7 +741,9 @@ class FFMpeg:
             if self._listener.is_cancelled:
                 return False
             self._listener.subproc = await create_subprocess_exec(
-                *cmd, stdout=PIPE, stderr=PIPE
+                *cmd,
+                stdout=PIPE,
+                stderr=PIPE,
             )
             code = await self._ffmpeg_progress()
             if self._listener.is_cancelled:
@@ -743,27 +751,24 @@ class FFMpeg:
             if code == -9:
                 self._listener.is_cancelled = True
                 return False
-            elif code != 0:
+            if code != 0:
                 try:
                     stderr = (
                         (await self._listener.subproc.stderr.read()).decode().strip()
                     )
                 except:
                     stderr = "Unable to decode the error!"
-                try:
+                with contextlib.suppress(Exception):
                     await remove(out_path)
-                except:
-                    pass
                 if multi_streams:
                     LOGGER.warning(
-                        f"{stderr}. Retrying without map, -map 0 not working in all situations. Path: {f_path}"
+                        f"{stderr}. Retrying without map, -map 0 not working in all situations. Path: {f_path}",
                     )
                     multi_streams = False
                     continue
-                else:
-                    LOGGER.warning(
-                        f"{stderr}. Unable to split this video, if it's size less than {self._listener.max_split_size} will be uploaded as it is. Path: {f_path}"
-                    )
+                LOGGER.warning(
+                    f"{stderr}. Unable to split this video, if it's size less than {self._listener.max_split_size} will be uploaded as it is. Path: {f_path}",
+                )
                 self._last_processed_time = 0
                 self._last_processed_bytes = 0
                 return False
@@ -772,22 +777,22 @@ class FFMpeg:
                 dif = out_size - self._listener.max_split_size
                 split_size -= dif
                 LOGGER.warning(
-                    f"Part size is {out_size}. Trying again with lower split size!. Path: {f_path}"
+                    f"Part size is {out_size}. Trying again with lower split size!. Path: {f_path}",
                 )
                 await remove(out_path)
                 continue
             lpd = (await get_media_info(out_path))[0]
             if lpd == 0:
                 LOGGER.error(
-                    f"Something went wrong while splitting, mostly file is corrupted. Path: {f_path}"
+                    f"Something went wrong while splitting, mostly file is corrupted. Path: {f_path}",
                 )
                 break
-            elif duration == lpd:
+            if duration == lpd:
                 LOGGER.warning(
-                    f"This file has been splitted with default stream and audio, so you will only see one part with less size from orginal one because it doesn't have all streams and audios. This happens mostly with MKV videos. Path: {f_path}"
+                    f"This file has been splitted with default stream and audio, so you will only see one part with less size from orginal one because it doesn't have all streams and audios. This happens mostly with MKV videos. Path: {f_path}",
                 )
                 break
-            elif lpd <= 3:
+            if lpd <= 3:
                 await remove(out_path)
                 break
             self._last_processed_time += lpd
