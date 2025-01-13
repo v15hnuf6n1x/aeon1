@@ -764,7 +764,10 @@ class TaskConfig:
                     res = ""
                 try:
                     name = sub(
-                        rf"{pattern}", res, name, flags=IGNORECASE if sen else 0
+                        rf"{pattern}",
+                        res,
+                        name,
+                        flags=IGNORECASE if sen else 0,
                     )
                 except Exception as e:
                     LOGGER.error(

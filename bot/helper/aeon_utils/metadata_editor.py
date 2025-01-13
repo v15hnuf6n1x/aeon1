@@ -155,6 +155,7 @@ async def get_metadata_cmd(file_path, key):
     cmd.extend(["-threads", f"{max(1, os.cpu_count() // 2)}", temp_file])
     return cmd, temp_file
 
+
 # later
 async def add_attachment(file, attachment_path):
     LOGGER.info(f"Adding photo attachment to file: {file}")
