@@ -49,6 +49,8 @@ async def get_watermark_cmd(file, key):
         file,
         "-vf",
         f"drawtext=text='{key}':fontfile={font_path}:fontsize=20:fontcolor=white:x=10:y=10",
+        "-threads",
+        f"{max(1, os.cpu_count() // 2)}",
         temp_file,
     ]
 
@@ -150,10 +152,10 @@ async def get_metadata_cmd(file_path, key):
         else:
             cmd.extend(["-map", f"0:{stream_index}"])
 
-    cmd.append(temp_file)
+    cmd.extend(["-threads", f"{max(1, os.cpu_count() // 2)}", temp_file])
     return cmd, temp_file
 
-
+# later
 async def add_attachment(file, attachment_path):
     LOGGER.info(f"Adding photo attachment to file: {file}")
 
