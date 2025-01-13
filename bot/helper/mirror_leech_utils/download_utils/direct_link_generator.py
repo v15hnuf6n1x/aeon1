@@ -229,18 +229,20 @@ def buzzheavier(url):
     session = Session()
     if not "/download" in url:
         url += "/download"
-    
+
     # Normalize URL
     url = url.strip()
-    session.headers.update({
-        'referer': url.split("/download")[0],
-        'hx-current-url': url.split("/download")[0],
-        'hx-request': 'true',
-        'priority': 'u=1, i'
-    })
+    session.headers.update(
+        {
+            "referer": url.split("/download")[0],
+            "hx-current-url": url.split("/download")[0],
+            "hx-request": "true",
+            "priority": "u=1, i",
+        }
+    )
     try:
         response = session.get(url)
-        d_url = response.headers.get('Hx-Redirect')
+        d_url = response.headers.get("Hx-Redirect")
 
         if not d_url:
             raise DirectDownloadLinkException("ERROR: Failed to fetch direct link.")

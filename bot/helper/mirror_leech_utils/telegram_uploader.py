@@ -158,7 +158,7 @@ class TelegramUploader:
             LOGGER.info(self._up_path)
             await rename(self._up_path, new_path)
             self._up_path = new_path
-            LOGGER.info(self._up_path) # nxt
+            LOGGER.info(self._up_path)  # nxt
         if not self._lcaption and not self._lprefix:
             cap_mono = f"<code>{file_}</code>"
         if len(file_) > 60:
