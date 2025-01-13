@@ -152,11 +152,13 @@ class TelegramUploader:
             cap_mono = await generate_caption(file_, dirpath, self._lcaption)
         if self._lprefix:
             if not self._lcaption:
-                cap_mono = f"{self._lprefix} <code>{file_}</code>"
+                cap_mono = f"{self._lprefix} {file_}"
             self._lprefix = re_sub("<.*?>", "", self._lprefix)
             new_path = ospath.join(dirpath, f"{self._lprefix} {file_}")
+            LOGGER.info(self._up_path)
             await rename(self._up_path, new_path)
             self._up_path = new_path
+            LOGGER.info(self._up_path) # nxt
         if not self._lcaption and not self._lprefix:
             cap_mono = f"<code>{file_}</code>"
         if len(file_) > 60:
