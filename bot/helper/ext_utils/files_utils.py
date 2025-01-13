@@ -2,7 +2,7 @@ from asyncio import create_subprocess_exec, sleep, wait_for
 from asyncio.subprocess import PIPE
 from os import makedirs, readlink, walk
 from os import path as ospath
-from re import IGNORECASE, escape
+from re import escape, IGNORECASE
 from re import search as re_search
 from re import split as re_split
 from shutil import rmtree
@@ -320,6 +320,7 @@ class SevenZ:
         while not (
             self._listener.subproc.returncode is not None
             or self._listener.is_cancelled
+            or self._listener.subproc.stdout.at_eof()
         ):
             try:
                 line = await wait_for(self._listener.subproc.stdout.readline(), 2)
@@ -333,8 +334,14 @@ class SevenZ:
         while not (
             self._listener.is_cancelled
             or self._listener.subproc.returncode is not None
+            or self._listener.subproc.stdout.at_eof()
         ):
-            char = await self._listener.subproc.stdout.read(1)
+            try:
+                char = await wait_for(self._listener.subproc.stdout.read(1), 30)
+            except:
+                break
+            if not char:
+                break
             s += char
             if char == b"%":
                 try:
@@ -346,11 +353,10 @@ class SevenZ:
                     self._processed_bytes = 0
                     self._percentage = "0%"
                 s = b""
-            await sleep(0.05)
+            await sleep(0.1)
 
         self._processed_bytes = 0
         self._percentage = "0%"
-        return self._listener.subproc.returncode
 
     async def extract(self, f_path, t_path, pswd):
         cmd = [
@@ -374,7 +380,9 @@ class SevenZ:
             stdout=PIPE,
             stderr=PIPE,
         )
-        code = await self._sevenz_progress()
+        await self._sevenz_progress()
+        _, stderr = await self._listener.subproc.communicate()
+        code = self._listener.subproc.returncode
         if self._listener.is_cancelled:
             return False
         if code == -9:
@@ -382,9 +390,7 @@ class SevenZ:
             return False
         if code != 0:
             try:
-                stderr = (
-                    (await self._listener.subproc.stderr.read()).decode().strip()
-                )
+                stderr = stderr.decode().strip()
             except Exception:
                 stderr = "Unable to decode the error!"
             LOGGER.error(f"{stderr}. Unable to extract archive!. Path: {f_path}")
@@ -423,7 +429,9 @@ class SevenZ:
             stdout=PIPE,
             stderr=PIPE,
         )
-        code = await self._sevenz_progress()
+        await self._sevenz_progress()
+        _, stderr = await self._listener.subproc.communicate()
+        code = self._listener.subproc.returncode
         if self._listener.is_cancelled:
             return False
         if code == -9:
@@ -435,7 +443,7 @@ class SevenZ:
         if await aiopath.exists(up_path):
             await remove(up_path)
         try:
-            stderr = (await self._listener.subproc.stderr.read()).decode().strip()
+            stderr = stderr.decode().strip()
         except Exception:
             stderr = "Unable to decode the error!"
         LOGGER.error(f"{stderr}. Unable to zip this path: {dl_path}")

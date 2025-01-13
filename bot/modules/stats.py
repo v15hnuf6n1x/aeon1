@@ -19,7 +19,7 @@ from bot.helper.ext_utils.status_utils import (
     get_readable_file_size,
     get_readable_time,
 )
-from bot.helper.telegram_helper.message_utils import send_message
+from bot.helper.telegram_helper.message_utils import send_message, delete_message, one_minute_del
 
 commands = {
     "aria2": (["xria", "--version"], r"aria2 version ([\d.]+)"),
@@ -69,7 +69,9 @@ async def bot_stats(_, message):
 <b>ffmpeg:</b> {commands["ffmpeg"]}
 <b>7z:</b> {commands["7z"]}
 """
-    await send_message(message, stats)
+    reply_message = await send_message(message, stats)
+    await delete_message(message)
+    await one_minute_del(reply_message)
 
 
 async def get_version_async(command, regex):

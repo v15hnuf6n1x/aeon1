@@ -1,4 +1,4 @@
-from asyncio import gather, sleep
+from asyncio import gather, sleep, create_task
 from html import escape
 
 from aiofiles.os import listdir, makedirs, remove
@@ -45,6 +45,7 @@ from bot.helper.mirror_leech_utils.telegram_uploader import TelegramUploader
 from bot.helper.telegram_helper.button_build import ButtonMaker
 from bot.helper.telegram_helper.message_utils import (
     delete_status,
+    five_minute_del,
     send_message,
     update_status_message,
 )
@@ -483,7 +484,8 @@ class TaskListener(TaskConfig):
             count = len(task_dict)
         await self.remove_from_same_dir()
         msg = f"{self.tag} Download: {escape(str(error))}"
-        await send_message(self.message, msg, button)
+        x = await send_message(self.message, msg, button)
+        create_task(five_minute_del(x))
         if count == 0:
             await self.clean()
         else:
@@ -521,7 +523,8 @@ class TaskListener(TaskConfig):
             if self.mid in task_dict:
                 del task_dict[self.mid]
             count = len(task_dict)
-        await send_message(self.message, f"{self.tag} {escape(str(error))}")
+        x = await send_message(self.message, f"{self.tag} {escape(str(error))}")
+        create_task(five_minute_del(x))
         if count == 0:
             await self.clean()
         else:

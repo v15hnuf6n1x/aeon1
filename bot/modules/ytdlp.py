@@ -1,4 +1,4 @@
-from asyncio import Event, wait_for
+from asyncio import Event, wait_for, create_task
 from functools import partial
 from time import time
 
@@ -500,7 +500,8 @@ class YtDlp(TaskListener):
         LOGGER.info(f"Downloading with YT-DLP: {self.link}")
         playlist = "entries" in result
         ydl = YoutubeDLHelper(self)
-        await ydl.add_download(path, qual, playlist, opt)
+        create_task(ydl.add_download(path, qual, playlist, opt))
+        await delete_links(self.message)
         return None
 
 

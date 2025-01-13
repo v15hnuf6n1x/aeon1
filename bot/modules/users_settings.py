@@ -21,6 +21,7 @@ from bot.helper.ext_utils.media_utils import create_thumb
 from bot.helper.telegram_helper.button_build import ButtonMaker
 from bot.helper.telegram_helper.message_utils import (
     delete_message,
+    five_minute_del,
     edit_message,
     send_file,
     send_message,
@@ -62,7 +63,7 @@ async def get_user_settings(from_user):
     buttons.data_button("Rclone", f"userset {user_id} rclone")
     buttons.data_button("Gdrive Tools", f"userset {user_id} gdrive")
     buttons.data_button("Upload Paths", f"userset {user_id} upload_paths")
-    buttons.data_button(f"Upload using {dur}", f"userset {user_id} {default_upload}")
+    buttons.data_button(f"Use {dur}", f"userset {user_id} {default_upload}")
     buttons.data_button(
         f"Use {trr} token/config",
         f"userset {user_id} user_tokens {user_tokens}",
@@ -104,7 +105,9 @@ async def send_user_settings(_, message):
     from_user = message.from_user
     handler_dict[from_user.id] = False
     msg, button, thumb = await get_user_settings(from_user)
-    await send_message(message, msg, button, thumb, markdown=True)
+    x = await send_message(message, msg, button, thumb, markdown=True)
+    await five_minute_del(message)
+    await delete_message(x)
 
 
 @new_task

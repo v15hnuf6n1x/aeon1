@@ -3,7 +3,7 @@ import os
 from asyncio import gather, sleep
 from os import path as ospath
 from os import walk
-from re import IGNORECASE, sub
+from re import sub, IGNORECASE
 from secrets import token_urlsafe
 
 from aiofiles.os import makedirs, remove
@@ -614,7 +614,6 @@ class TaskConfig:
         return t_path if self.is_file and code == 0 else dl_path
 
     async def proceed_ffmpeg(self, dl_path, gid):
-        self.progress = False
         checked = False
         cmds = [
             [part.strip() for part in item.split() if part.strip()]
@@ -672,6 +671,7 @@ class TaskConfig:
                                 gid,
                                 "FFmpeg",
                             )
+                        self.progress = False
                         await cpu_eater_lock.acquire()
                         self.progress = True
                     LOGGER.info(f"Running ffmpeg cmd for: {file_path}")
@@ -681,17 +681,20 @@ class TaskConfig:
                     if res:
                         if delete_files:
                             await remove(file_path)
-                            directory = ospath.dirname(res)
-                            directory = directory.rsplit("/", 1)[0]
-                            file_name = ospath.basename(res)
-                            if file_name.startswith("ffmpeg."):
-                                self.name = file_name.replace("ffmpeg.", "", 1)
-                                newres = ospath.join(directory, self.name)
-                                await move(res, newres)
-                                dl_path = newres
+                            if len(res) == 1:
+                                folder = new_folder.rsplit("/", 1)[0]
+                                self.name = ospath.basename(res[0])
+                                if self.name.startswith("ffmpeg"):
+                                    self.name = self.name.split(".", 1)[-1]
+                                dl_path = ospath.join(folder, self.name)
+                                await move(res[0], dl_path)
+                                await rmtree(new_folder)
+                            else:
+                                dl_path = new_folder
+                                self.name = new_folder.rsplit("/", 1)[-1]
                         else:
                             dl_path = new_folder
-                            self.name = directory.rsplit("/", 1)[-1]
+                            self.name = new_folder.rsplit("/", 1)[-1]
                     else:
                         await rmtree(new_folder)
                 else:
@@ -702,12 +705,8 @@ class TaskConfig:
                     ):
                         for file_ in files:
                             if self.is_cancelled:
-                                if checked:
-                                    cpu_eater_lock.release()
                                 return False
                             f_path = ospath.join(dirpath, file_)
-                            # if f_path in self.files_no_upload:
-                            #     continue
                             is_video, is_audio, _ = await get_document_type(f_path)
                             if (not is_video and not is_audio) or (
                                 is_video and ext == "audio"
@@ -728,18 +727,21 @@ class TaskConfig:
                                         gid,
                                         "FFmpeg",
                                     )
+                                self.progress = False
                                 await cpu_eater_lock.acquire()
+                                self.progress = True
                             LOGGER.info(f"Running ffmpeg cmd for: {f_path}")
                             self.subsize = await get_path_size(f_path)
                             self.subname = file_
                             res = await ffmpeg.ffmpeg_cmds(cmd, f_path)
                             if res and delete_files:
                                 await remove(f_path)
-                                file_name = ospath.basename(res)
-                                if file_name.startswith("ffmpeg."):
-                                    newname = file_name.replace("ffmpeg.", "", 1)
-                                    newres = ospath.join(dirpath, newname)
-                                    await move(res, newres)
+                                if len(res) == 1:
+                                    file_name = ospath.basename(res[0])
+                                    if file_name.startswith("ffmpeg"):
+                                        newname = file_name.split(".", 1)[-1]
+                                        newres = ospath.join(dirpath, newname)
+                                        await move(res[0], newres)
         finally:
             if checked:
                 cpu_eater_lock.release()
@@ -761,9 +763,7 @@ class TaskConfig:
                 else:
                     res = ""
                 try:
-                    name = sub(
-                        rf"{pattern}", res, name, flags=IGNORECASE if sen else 0
-                    )
+                    name = sub(rf"{pattern}", res, name, flags=IGNORECASE if sen else 0)
                 except Exception as e:
                     LOGGER.error(
                         f"Substitute Error: pattern: {pattern} res: {res}. Error: {e}",
@@ -821,7 +821,6 @@ class TaskConfig:
         return dl_path
 
     async def convert_media(self, dl_path, gid):
-        self.progress = False
         fvext = []
         if self.convert_video:
             vdata = self.convert_video.split()
@@ -903,6 +902,7 @@ class TaskConfig:
             ffmpeg = FFMpeg(self)
             async with task_dict_lock:
                 task_dict[self.mid] = FFmpegStatus(self, ffmpeg, gid, "Convert")
+            self.progress = False
             async with cpu_eater_lock:
                 self.progress = True
                 for f_path, f_type in self.files_to_proceed.items():
@@ -928,7 +928,6 @@ class TaskConfig:
         return dl_path
 
     async def generate_sample_video(self, dl_path, gid):
-        self.progress = False
         data = (
             self.sample_video.split(":")
             if isinstance(self.sample_video, str)
@@ -959,6 +958,7 @@ class TaskConfig:
             ffmpeg = FFMpeg(self)
             async with task_dict_lock:
                 task_dict[self.mid] = FFmpegStatus(self, ffmpeg, gid, "Sample Video")
+            self.progress = False
             async with cpu_eater_lock:
                 self.progress = True
                 LOGGER.info(f"Creating Sample video: {self.name}")
@@ -1052,7 +1052,6 @@ class TaskConfig:
     # change according sync
     async def proceed_metadata(self, dl_path, gid):
         key = self.metadata
-        self.progress = False
         ffmpeg = FFMpeg(self)
         checked = False
         if self.is_file:
@@ -1061,7 +1060,6 @@ class TaskConfig:
                 if cmd:
                     if not checked:
                         checked = True
-                        self.progress = True
                         async with task_dict_lock:
                             task_dict[self.mid] = FFmpegStatus(
                                 self,
@@ -1069,7 +1067,9 @@ class TaskConfig:
                                 gid,
                                 "Metadata",
                             )
+                        self.progress = False
                         await cpu_eater_lock.acquire()
+                        self.progress = True
                     self.subsize = self.size
                     res = await ffmpeg.metadata_watermark_cmds(cmd, dl_path)
                     if res:
@@ -1091,7 +1091,6 @@ class TaskConfig:
                         if cmd:
                             if not checked:
                                 checked = True
-                                self.progress = True
                                 async with task_dict_lock:
                                     task_dict[self.mid] = FFmpegStatus(
                                         self,
@@ -1099,7 +1098,9 @@ class TaskConfig:
                                         gid,
                                         "Metadata",
                                     )
+                                self.progress = False
                                 await cpu_eater_lock.acquire()
+                                self.progress = True
                             LOGGER.info(f"Running metadata cmd for: {file_path}")
                             self.subsize = await aiopath.getsize(file_path)
                             self.subname = file_
@@ -1115,7 +1116,6 @@ class TaskConfig:
 
     async def proceed_watermark(self, dl_path, gid):
         key = self.watermark
-        self.progress = False
         ffmpeg = FFMpeg(self)
         checked = False
         if self.is_file:
@@ -1124,7 +1124,6 @@ class TaskConfig:
                 if cmd:
                     if not checked:
                         checked = True
-                        self.progress = True
                         async with task_dict_lock:
                             task_dict[self.mid] = FFmpegStatus(
                                 self,
@@ -1132,7 +1131,9 @@ class TaskConfig:
                                 gid,
                                 "Watermark",
                             )
+                        self.progress = False
                         await cpu_eater_lock.acquire()
+                        self.progress = True
                     self.subsize = self.size
                     res = await ffmpeg.metadata_watermark_cmds(cmd, dl_path)
                     if res:
@@ -1153,7 +1154,6 @@ class TaskConfig:
                         if cmd:
                             if not checked:
                                 checked = True
-                                self.progress = True
                                 async with task_dict_lock:
                                     task_dict[self.mid] = FFmpegStatus(
                                         self,
@@ -1161,7 +1161,9 @@ class TaskConfig:
                                         gid,
                                         "Watermark",
                                     )
+                                self.progress = False
                                 await cpu_eater_lock.acquire()
+                                self.progress = True
                             LOGGER.info(f"Running cmd for: {file_path}")
                             self.subsize = await aiopath.getsize(file_path)
                             self.subname = file_
