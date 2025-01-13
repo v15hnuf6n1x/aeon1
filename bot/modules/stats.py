@@ -19,7 +19,11 @@ from bot.helper.ext_utils.status_utils import (
     get_readable_file_size,
     get_readable_time,
 )
-from bot.helper.telegram_helper.message_utils import send_message, delete_message, one_minute_del
+from bot.helper.telegram_helper.message_utils import (
+    delete_message,
+    one_minute_del,
+    send_message,
+)
 
 commands = {
     "aria2": (["xria", "--version"], r"aria2 version ([\d.]+)"),

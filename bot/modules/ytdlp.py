@@ -1,4 +1,4 @@
-from asyncio import Event, wait_for, create_task
+from asyncio import Event, create_task, wait_for
 from functools import partial
 from time import time
 

@@ -2,7 +2,7 @@ from asyncio import create_subprocess_exec, sleep, wait_for
 from asyncio.subprocess import PIPE
 from os import makedirs, readlink, walk
 from os import path as ospath
-from re import escape, IGNORECASE
+from re import IGNORECASE, escape
 from re import search as re_search
 from re import split as re_split
 from shutil import rmtree
