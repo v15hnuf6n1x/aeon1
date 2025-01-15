@@ -166,10 +166,6 @@ class SystemEnv:
                 if env_value is not None:
                     converted_value = cls._convert_type(key, env_value)
                     Config.set(key, converted_value)
-                else:
-                    raise ValueError(
-                        f"Missing required value for {key}: Not in config or environment"
-                    )
 
     @classmethod
     def _convert_type(cls, key: str, value: str) -> Any:
