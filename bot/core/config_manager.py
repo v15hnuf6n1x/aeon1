@@ -1,6 +1,7 @@
 from importlib import import_module
-from typing import ClassVar
+from typing import ClassVar, Any
 
+import os
 
 class Config:
     AS_DOCUMENT = False
@@ -84,19 +85,19 @@ class Config:
 
     @classmethod
     def get_all(cls):
-        excluded_keys = {
-            "BOT_TOKEN",
-            "TELEGRAM_API",
-            "TELEGRAM_HASH",
-            "DOWNLOAD_DIR",
-            "LEECH_SPLIT_SIZE",
-        }
+        # excluded_keys = {
+        #     "BOT_TOKEN",
+        #     "TELEGRAM_API",
+        #     "TELEGRAM_HASH",
+        #     "DOWNLOAD_DIR",
+        #     "LEECH_SPLIT_SIZE",
+        # }
         return {
             key: getattr(cls, key)
             for key in cls.__dict__
             if not key.startswith("__")
             and not callable(getattr(cls, key))
-            and key not in excluded_keys
+            # and key not in excluded_keys
         }
 
     @classmethod
@@ -154,3 +155,31 @@ class Config:
                 value = value.strip()
             if not value:
                 raise ValueError(f"{key} variable is missing!")
+
+
+class SystemEnv:
+    @classmethod
+    def load(cls):
+        config_vars = Config.get_all()
+        for key, value in config_vars.items():
+            if value is None or value == "":
+                env_value = os.getenv(key)
+                if env_value is not None:
+                    converted_value = cls._convert_type(key, env_value)
+                    Config.set(key, converted_value)
+                else:
+                    raise ValueError(f"Missing required value for {key}: Not in config or environment")
+
+    @classmethod
+    def _convert_type(cls, key: str, value: str) -> Any:
+        original_value = getattr(Config, key, None)
+        if original_value is None:
+            return value
+        if isinstance(original_value, bool):
+            return value.lower() in ("true", "1", "yes")
+        if isinstance(original_value, int):
+            return int(value)
+        if isinstance(original_value, float):
+            return float(value)
+        return value
+

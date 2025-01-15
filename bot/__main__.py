@@ -7,7 +7,7 @@ from pyrogram.handlers import CallbackQueryHandler
 from pyrogram.types import BotCommand
 
 from . import LOGGER, bot_loop
-from .core.config_manager import Config
+from .core.config_manager import Config, SystemEnv
 from .core.startup import (
     load_configurations,
     load_settings,
@@ -19,6 +19,7 @@ from .core.startup import (
 
 # Initialize Configurations
 Config.load()
+SystemEnv.load()
 bot_loop.run_until_complete(load_settings())
 
 
