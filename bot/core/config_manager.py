@@ -1,7 +1,7 @@
-from importlib import import_module
-from typing import ClassVar, Any
-
 import os
+from importlib import import_module
+from typing import Any, ClassVar
+
 
 class Config:
     AS_DOCUMENT = False
@@ -95,8 +95,7 @@ class Config:
         return {
             key: getattr(cls, key)
             for key in cls.__dict__
-            if not key.startswith("__")
-            and not callable(getattr(cls, key))
+            if not key.startswith("__") and not callable(getattr(cls, key))
             # and key not in excluded_keys
         }
 
@@ -168,7 +167,9 @@ class SystemEnv:
                     converted_value = cls._convert_type(key, env_value)
                     Config.set(key, converted_value)
                 else:
-                    raise ValueError(f"Missing required value for {key}: Not in config or environment")
+                    raise ValueError(
+                        f"Missing required value for {key}: Not in config or environment"
+                    )
 
     @classmethod
     def _convert_type(cls, key: str, value: str) -> Any:
@@ -182,4 +183,3 @@ class SystemEnv:
         if isinstance(original_value, float):
             return float(value)
         return value
-
