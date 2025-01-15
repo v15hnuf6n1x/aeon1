@@ -632,7 +632,7 @@ class TaskConfig:
                     "error",
                     "-progress",
                     "pipe:1",
-                    "-threads", # Should work
+                    "-threads",  # Should work
                     "4",
                     *ffmpeg_cmd,
                 ]
@@ -658,11 +658,14 @@ class TaskConfig:
                     ):
                         break
                     if (is_audio and not is_video and ext == "video") or (
-                        ext not in [
-                        "all",
-                        "audio",
-                        "video",
-                    ] and not dl_path.lower().endswith(ext)):
+                        ext
+                        not in [
+                            "all",
+                            "audio",
+                            "video",
+                        ]
+                        and not dl_path.lower().endswith(ext)
+                    ):
                         break
                     new_folder = ospath.splitext(dl_path)[0]
                     name = ospath.basename(dl_path)
@@ -721,11 +724,14 @@ class TaskConfig:
                             ):
                                 continue
                             if (is_audio and not is_video and ext == "video") or (
-                                ext not in [
-                                "all",
-                                "audio",
-                                "video",
-                            ] and not f_path.lower().endswith(ext)):
+                                ext
+                                not in [
+                                    "all",
+                                    "audio",
+                                    "video",
+                                ]
+                                and not f_path.lower().endswith(ext)
+                            ):
                                 continue
                             self.proceed_count += 1
                             var_cmd[index + 1] = f_path

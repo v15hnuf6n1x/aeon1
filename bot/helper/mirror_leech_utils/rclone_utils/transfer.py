@@ -444,7 +444,9 @@ class RcloneTransferHelper:
                 )
             if dst_remote_type == "drive":
                 link = await self._get_gdrive_link(
-                    config_path, destination, mime_type
+                    config_path,
+                    destination,
+                    mime_type,
                 )
                 return (
                     (None, None)
