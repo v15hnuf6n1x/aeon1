@@ -4,7 +4,8 @@ from asyncio import gather, sleep
 from os import path as ospath
 from os import walk
 from re import IGNORECASE, sub
-from secrets import token_urlsafe
+from secrets import token_hex
+from shlex import split
 
 from aiofiles.os import makedirs, remove
 from aiofiles.os import path as aiopath
@@ -262,6 +263,7 @@ class TaskConfig:
                     False,
                 ):
                     self.up_dest = f"mrcc:{self.up_dest}"
+                self.up_dest = self.up_dest.strip("/")
             else:
                 raise ValueError("Wrong Upload Destination!")
 
@@ -465,7 +467,7 @@ class TaskConfig:
     async def run_multi(self, input_list, obj):
         await sleep(7)
         if not self.multi_tag and self.multi > 1:
-            self.multi_tag = token_urlsafe(3)
+            self.multi_tag = token_hex(2)
             multi_tags.add(self.multi_tag)
         elif self.multi <= 1:
             if self.multi_tag in multi_tags:
@@ -536,7 +538,7 @@ class TaskConfig:
             b_msg.append(f"{self.bulk[0]} -i {len(self.bulk)} {self.options}")
             msg = " ".join(b_msg)
             if len(self.bulk) > 2:
-                self.multi_tag = token_urlsafe(3)
+                self.multi_tag = token_hex(2)
                 multi_tags.add(self.multi_tag)
                 msg += f"\nCancel Multi: <code>/stop {self.multi_tag}</code>"
             nextmsg = await send_message(self.message, msg)
@@ -577,7 +579,7 @@ class TaskConfig:
             ):
                 for file_ in files:
                     if is_first_archive_split(file_) or (
-                        is_archive(file_) and not file_.endswith(".rar")
+                        is_archive(file_) and not file_.lower().endswith(".rar")
                     ):
                         f_path = ospath.join(dirpath, file_)
                         self.files_to_proceed.append(f_path)
@@ -591,7 +593,7 @@ class TaskConfig:
         for dirpath, _, files in await sync_to_async(walk, self.dir, topdown=False):
             for file_ in files:
                 if is_first_archive_split(file_) or (
-                    is_archive(file_) and not file_.endswith(".rar")
+                    is_archive(file_) and not file_.lower().endswith(".rar")
                 ):
                     self.proceed_count += 1
                     f_path = ospath.join(dirpath, file_)
@@ -616,7 +618,7 @@ class TaskConfig:
     async def proceed_ffmpeg(self, dl_path, gid):
         checked = False
         cmds = [
-            [part.strip() for part in item.split() if part.strip()]
+            [part.strip() for part in split(item) if part.strip()]
             for item in self.ffmpeg_cmds
         ]
         try:
@@ -704,6 +706,7 @@ class TaskConfig:
                         topdown=False,
                     ):
                         for file_ in files:
+                            var_cmd = cmd.copy()
                             if self.is_cancelled:
                                 return False
                             f_path = ospath.join(dirpath, file_)
@@ -717,7 +720,7 @@ class TaskConfig:
                             ):
                                 continue
                             self.proceed_count += 1
-                            cmd[index + 1] = f_path
+                            var_cmd[index + 1] = f_path
                             if not checked:
                                 checked = True
                                 async with task_dict_lock:
@@ -733,7 +736,7 @@ class TaskConfig:
                             LOGGER.info(f"Running ffmpeg cmd for: {f_path}")
                             self.subsize = await get_path_size(f_path)
                             self.subname = file_
-                            res = await ffmpeg.ffmpeg_cmds(cmd, f_path)
+                            res = await ffmpeg.ffmpeg_cmds(var_cmd, f_path)
                             if res and delete_files:
                                 await remove(f_path)
                                 if len(res) == 1:
@@ -810,7 +813,6 @@ class TaskConfig:
                         move(dl_path, f"{new_folder}/{name}"),
                         move(res, new_folder),
                     )
-                    self.name = new_folder.rsplit("/", 1)[-1]
                     return new_folder
         else:
             LOGGER.info(f"Creating Screenshot for: {dl_path}")

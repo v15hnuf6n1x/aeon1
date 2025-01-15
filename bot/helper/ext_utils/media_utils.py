@@ -219,10 +219,16 @@ async def get_audio_thumbnail(audio_file):
         f"{max(1, cpu_count() // 2)}",
         output,
     ]
-    _, err, code = await cmd_exec(cmd)
-    if code != 0 or not await aiopath.exists(output):
+    try:
+        _, err, code = await wait_for(cmd_exec(cmd), timeout=60)
+        if code != 0 or not await aiopath.exists(output):
+            LOGGER.error(
+                f"Error while extracting thumbnail from audio. Name: {audio_file} stderr: {err}"
+            )
+            return None
+    except Exception:
         LOGGER.error(
-            f"Error while extracting thumbnail from audio. Name: {audio_file} stderr: {err}",
+            f"Error while extracting thumbnail from audio. Name: {audio_file}. Error: Timeout some issues with ffmpeg with specific arch!",
         )
         return None
     return output
@@ -371,7 +377,7 @@ class FFMpeg:
             or self._listener.subproc.stdout.at_eof()
         ):
             try:
-                line = await wait_for(self._listener.subproc.stdout.readline(), 2)
+                line = await wait_for(self._listener.subproc.stdout.readline(), 10)
             except:
                 break
             line = line.decode().strip()
@@ -503,9 +509,7 @@ class FFMpeg:
                 "-i",
                 video_file,
                 "-map",
-                "0:v",
-                "-map",
-                "0:a",
+                "0",
                 "-c:v",
                 "libx264",
                 "-c:a",
@@ -515,11 +519,11 @@ class FFMpeg:
                 output,
             ]
             if ext == "mp4":
-                cmd[16:16] = ["-c:s", "mov_text"]
+                cmd[14:14] = ["-c:s", "mov_text"]
             elif ext == "mkv":
-                cmd[16:16] = ["-c:s", "ass"]
+                cmd[14:14] = ["-c:s", "ass"]
             else:
-                cmd[16:16] = ["-c:s", "copy"]
+                cmd[14:14] = ["-c:s", "copy"]
         else:
             cmd = [
                 "xtra",
@@ -698,7 +702,7 @@ class FFMpeg:
 
     async def split(self, f_path, file_, parts, split_size):
         self.clear()
-        multi_streams = await is_multi_streams(f_path)
+        multi_streams = True
         self._total_time = duration = (await get_media_info(f_path))[0]
         base_name, extension = ospath.splitext(file_)
         split_size -= 3000000

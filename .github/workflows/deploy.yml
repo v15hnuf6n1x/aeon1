@@ -15,6 +15,21 @@ on:
       HEROKU_TEAM_NAME:
         description: "Heroku Team Name"
         required: false
+      BOT_TOKEN:
+        description: "Telegram bot token"
+        required: true
+      OWNER_ID:
+        description: "Owner's telegram ID"
+        required: true
+      DATABASE_URL:
+        description: "Database URL from MongoDB"
+        required: true
+      TELEGRAM_API:
+        description: "Telegram API ID from https://my.telegram.org/"
+        required: true
+      TELEGRAM_HASH:
+        description: "Telegram HASH from https://my.telegram.org/"
+        required: true
 
 jobs:
   deploy:
@@ -54,3 +69,9 @@ jobs:
           docker_heroku_process_type: web
           stack: "container"
           region: "eu"
+        env:
+          HD_OWNER_ID: ${{inputs.OWNER_ID}}
+          HD_TELEGRAM_API: ${{inputs.TELEGRAM_API}}
+          HD_TELEGRAM_HASH: ${{inputs.TELEGRAM_HASH}}
+          HD_DATABASE_URL: ${{inputs.DATABASE_URL}}
+          HD_BOT_TOKEN: ${{inputs.BOT_TOKEN}}
