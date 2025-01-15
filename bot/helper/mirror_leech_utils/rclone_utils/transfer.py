@@ -205,7 +205,9 @@ class RcloneTransferHelper:
         await self._start_download(cmd, remote_type)
 
     async def _get_gdrive_link(self, config_path, destination, mime_type):
-        epath = destination.rsplit("/", 1)[0] if mime_type == "Folder" else destination
+        epath = (
+            destination.rsplit("/", 1)[0] if mime_type == "Folder" else destination
+        )
 
         cmd = [
             "xone",
@@ -441,7 +443,9 @@ class RcloneTransferHelper:
                     f"/{self._listener.name}" if dst_path else self._listener.name
                 )
             if dst_remote_type == "drive":
-                link = await self._get_gdrive_link(config_path, destination, mime_type)
+                link = await self._get_gdrive_link(
+                    config_path, destination, mime_type
+                )
                 return (
                     (None, None)
                     if self._listener.is_cancelled

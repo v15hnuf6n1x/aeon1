@@ -331,7 +331,9 @@ async def update_status_message(sid, force=False):
                 del intervals["status"][sid]
             return
         if text != status_dict[sid]["message"].text:
-            message = await edit_message(status_dict[sid]["message"], text, buttons, block=False)
+            message = await edit_message(
+                status_dict[sid]["message"], text, buttons, block=False
+            )
             if isinstance(message, str):
                 if message.startswith("Telegram says: [40"):
                     del status_dict[sid]
@@ -340,7 +342,7 @@ async def update_status_message(sid, force=False):
                         del intervals["status"][sid]
                 else:
                     LOGGER.error(
-                        f"Status with id: {sid} haven't been updated. Error: {message}"
+                        f"Status with id: {sid} haven't been updated. Error: {message}",
                     )
                 return
             status_dict[sid]["message"].text = text

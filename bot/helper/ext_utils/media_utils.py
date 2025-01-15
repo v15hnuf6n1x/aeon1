@@ -223,7 +223,7 @@ async def get_audio_thumbnail(audio_file):
         _, err, code = await wait_for(cmd_exec(cmd), timeout=60)
         if code != 0 or not await aiopath.exists(output):
             LOGGER.error(
-                f"Error while extracting thumbnail from audio. Name: {audio_file} stderr: {err}"
+                f"Error while extracting thumbnail from audio. Name: {audio_file} stderr: {err}",
             )
             return None
     except Exception:
