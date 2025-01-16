@@ -8,6 +8,10 @@ from pyrogram.types import BotCommand
 
 from . import LOGGER, bot_loop
 from .core.config_manager import Config, SystemEnv
+# Initialize Configurations
+Config.load()
+SystemEnv.load()
+
 from .core.startup import (
     load_configurations,
     load_settings,
@@ -17,9 +21,6 @@ from .core.startup import (
     update_variables,
 )
 
-# Initialize Configurations
-Config.load()
-SystemEnv.load()
 bot_loop.run_until_complete(load_settings())
 
 
