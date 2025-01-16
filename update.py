@@ -73,7 +73,9 @@ try:
         if not key.startswith("__")
     }
 except ModuleNotFoundError:
-    log_error("The 'config.py' file is missing! Falling back to environment variables.")
+    log_error(
+        "The 'config.py' file is missing! Falling back to environment variables."
+    )
     config_file = {}
 
 # Fallback to environment variables if BOT_TOKEN is not set
@@ -85,7 +87,10 @@ if not BOT_TOKEN:
 BOT_ID = BOT_TOKEN.split(":", 1)[0]
 
 # Fallback to environment variables for DATABASE_URL
-DATABASE_URL = config_file.get("DATABASE_URL", "").strip() or os.getenv("DATABASE_URL", "").strip()
+DATABASE_URL = (
+    config_file.get("DATABASE_URL", "").strip()
+    or os.getenv("DATABASE_URL", "").strip()
+)
 
 if DATABASE_URL:
     try:
