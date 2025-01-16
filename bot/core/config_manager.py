@@ -145,7 +145,7 @@ class SystemEnv:
     @classmethod
     def load(cls):
         config_vars = Config.get_all()
-        for key, value in config_vars.items():
+        for key in config_vars:
             # Fetch environment variable
             env_value = os.getenv(key)
             if env_value is not None:
