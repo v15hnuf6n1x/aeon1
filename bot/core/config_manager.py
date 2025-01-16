@@ -86,50 +86,40 @@ class Config:
 
     @classmethod
     def get_all(cls):
-        # excluded_keys = {
-        #     "BOT_TOKEN",
-        #     "TELEGRAM_API",
-        #     "TELEGRAM_HASH",
-        #     "DOWNLOAD_DIR",
-        #     "LEECH_SPLIT_SIZE",
-        # }
         return {
             key: getattr(cls, key)
             for key in cls.__dict__
             if not key.startswith("__") and not callable(getattr(cls, key))
-            # and key not in excluded_keys
         }
 
     @classmethod
     def load(cls):
-        settings = import_module("config")
-        for attr in dir(settings):
-            if hasattr(cls, attr):
-                value = getattr(settings, attr)
-                if not value:
-                    continue
-                if isinstance(value, str):
-                    value = value.strip()
-                if attr == "DEFAULT_UPLOAD" and value != "gd":
-                    value = "rc"
-                elif (
-                    attr
-                    in [
-                        "BASE_URL",
-                        "RCLONE_SERVE_URL",
-                        "INDEX_URL",
-                        "SEARCH_API_LINK",
-                    ]
-                    and value
-                ):
-                    value = value.strip("/")
-                setattr(cls, attr, value)
-        for key in ["BOT_TOKEN", "OWNER_ID", "TELEGRAM_API", "TELEGRAM_HASH"]:
-            value = getattr(cls, key)
-            if isinstance(value, str):
-                value = value.strip()
-            if not value:
-                raise ValueError(f"{key} variable is missing!")
+        try:
+            settings = import_module("config")
+        except ModuleNotFoundError:
+            return
+        else:
+            for attr in dir(settings):
+                if hasattr(cls, attr):
+                    value = getattr(settings, attr)
+                    if not value:
+                        continue
+                    if isinstance(value, str):
+                        value = value.strip()
+                    if attr == "DEFAULT_UPLOAD" and value != "gd":
+                        value = "rc"
+                    elif (
+                        attr
+                        in [
+                            "BASE_URL",
+                            "RCLONE_SERVE_URL",
+                            "INDEX_URL",
+                            "SEARCH_API_LINK",
+                        ]
+                        and value
+                    ):
+                        value = value.strip("/")
+                    setattr(cls, attr, value)
 
     @classmethod
     def load_dict(cls, config_dict):
@@ -149,12 +139,6 @@ class Config:
                 ):
                     value = value.strip("/")
                 setattr(cls, key, value)
-        for key in ["BOT_TOKEN", "OWNER_ID", "TELEGRAM_API", "TELEGRAM_HASH"]:
-            value = getattr(cls, key)
-            if isinstance(value, str):
-                value = value.strip()
-            if not value:
-                raise ValueError(f"{key} variable is missing!")
 
 
 class SystemEnv:

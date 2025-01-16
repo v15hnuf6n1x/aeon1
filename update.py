@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 from importlib import import_module
 from logging import (
@@ -63,28 +64,35 @@ stream_handler.setFormatter(formatter)
 
 basicConfig(handlers=[file_handler, stream_handler], level=INFO)
 
-settings = import_module("config")
-config_file = {
-    key: value.strip() if isinstance(value, str) else value
-    for key, value in vars(settings).items()
-    if not key.startswith("__")
-}
+# Attempt to load from config.py
+try:
+    settings = import_module("config")
+    config_file = {
+        key: value.strip() if isinstance(value, str) else value
+        for key, value in vars(settings).items()
+        if not key.startswith("__")
+    }
+except ModuleNotFoundError:
+    log_error("The 'config.py' file is missing! Falling back to environment variables.")
+    config_file = {}
 
-BOT_TOKEN = config_file.get("BOT_TOKEN", "")
+# Fallback to environment variables if BOT_TOKEN is not set
+BOT_TOKEN = config_file.get("BOT_TOKEN") or os.getenv("BOT_TOKEN")
 if not BOT_TOKEN:
-    log_error("BOT_TOKEN variable is missing! Exiting now")
+    log_error("BOT_TOKEN variable is missing! Exiting now.")
     exit(1)
 
 BOT_ID = BOT_TOKEN.split(":", 1)[0]
 
-if DATABASE_URL := config_file.get("DATABASE_URL", "").strip():
+# Fallback to environment variables for DATABASE_URL
+DATABASE_URL = config_file.get("DATABASE_URL", "").strip() or os.getenv("DATABASE_URL", "").strip()
+
+if DATABASE_URL:
     try:
         conn = MongoClient(DATABASE_URL, server_api=ServerApi("1"))
         db = conn.luna
-        old_config = db.settings.deployConfig.find_one({"_id": BOT_ID})
+        old_config = db.settings.deployConfig.find_one({"_id": BOT_ID}, {"_id": 0})
         config_dict = db.settings.config.find_one({"_id": BOT_ID})
-        if old_config is not None:
-            del old_config["_id"]
         if (
             (old_config is not None and old_config == config_file)
             or old_config is None

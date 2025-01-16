@@ -53,7 +53,7 @@ async def load_settings():
         BOT_ID = Config.BOT_TOKEN.split(":", 1)[0]
         config_file = Config.get_all()
         old_config = await database.db.settings.deployConfig.find_one(
-            {"_id": BOT_ID},
+            {"_id": BOT_ID}, {"_id": 0}
         )
         if old_config is None:
             database.db.settings.deployConfig.replace_one(
@@ -61,8 +61,6 @@ async def load_settings():
                 config_file,
                 upsert=True,
             )
-        else:
-            del old_config["_id"]
         if old_config and old_config != config_file:
             await database.db.settings.deployConfig.replace_one(
                 {"_id": BOT_ID},
