@@ -10,8 +10,11 @@ from . import LOGGER, bot_loop
 from .core.config_manager import Config, SystemEnv
 
 # Initialize Configurations
+LOGGER.info("Loading config")
 Config.load()
+LOGGER.info(Config.TELEGRAM_API)
 SystemEnv.load()
+LOGGER.info(Config.TELEGRAM_API)
 
 from .core.startup import (
     load_configurations,
