@@ -74,7 +74,7 @@ try:
     }
 except ModuleNotFoundError:
     log_error(
-        "The 'config.py' file is missing! Falling back to environment variables."
+        "The 'config.py' file is missing! Falling back to environment variables.",
     )
     config_file = {}
 

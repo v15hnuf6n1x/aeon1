@@ -8,6 +8,7 @@ from pyrogram.types import BotCommand
 
 from . import LOGGER, bot_loop
 from .core.config_manager import Config, SystemEnv
+
 # Initialize Configurations
 Config.load()
 SystemEnv.load()
