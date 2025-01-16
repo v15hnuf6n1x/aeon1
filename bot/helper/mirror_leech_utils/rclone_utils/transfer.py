@@ -63,7 +63,7 @@ class RcloneTransferHelper:
         ):
             try:
                 data = await wait_for(self._proc.stdout.readline(), 10)
-            except:
+            except Exception:
                 break
             if not data:
                 break

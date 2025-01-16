@@ -500,7 +500,7 @@ class YtDlp(TaskListener):
         LOGGER.info(f"Downloading with YT-DLP: {self.link}")
         playlist = "entries" in result
         ydl = YoutubeDLHelper(self)
-        create_task(ydl.add_download(path, qual, playlist, opt))
+        create_task(ydl.add_download(path, qual, playlist, opt)) # noqa: RUF006
         await delete_links(self.message)
         return None
 

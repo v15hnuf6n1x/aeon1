@@ -176,7 +176,7 @@ async def clean_unwanted(opath):
                 await remove(f_path)
         if dirpath.endswith(".unwanted"):
             await aiormtree(dirpath, ignore_errors=True)
-    for dirpath, _, files in await sync_to_async(walk, opath, topdown=False):
+    for dirpath, _, __ in await sync_to_async(walk, opath, topdown=False):
         if not await listdir(dirpath):
             await rmdir(dirpath)
 
@@ -339,7 +339,7 @@ class SevenZ:
         ):
             try:
                 char = await wait_for(self._listener.subproc.stdout.read(1), 30)
-            except:
+            except Exception:
                 break
             if not char:
                 break

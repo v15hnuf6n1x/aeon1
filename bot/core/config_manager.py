@@ -146,10 +146,8 @@ class SystemEnv:
     def load(cls):
         config_vars = Config.get_all()
         for key in config_vars:
-            # Fetch environment variable
             env_value = os.getenv(key)
             if env_value is not None:
-                print(f"Loading {key} from environment with value: {env_value}")
                 converted_value = cls._convert_type(key, env_value)
                 Config.set(key, converted_value)
 
@@ -164,10 +162,10 @@ class SystemEnv:
             try:
                 return int(value)
             except ValueError:
-                return original_value  # Fall back to the default if invalid
+                return original_value
         if isinstance(original_value, float):
             try:
                 return float(value)
             except ValueError:
-                return original_value  # Fall back to the default if invalid
+                return original_value
         return value

@@ -378,7 +378,7 @@ class FFMpeg:
         ):
             try:
                 line = await wait_for(self._listener.subproc.stdout.readline(), 10)
-            except:
+            except Exception:
                 break
             line = line.decode().strip()
             if not line:

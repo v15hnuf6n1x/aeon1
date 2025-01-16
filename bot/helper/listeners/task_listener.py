@@ -485,7 +485,7 @@ class TaskListener(TaskConfig):
         await self.remove_from_same_dir()
         msg = f"{self.tag} Download: {escape(str(error))}"
         x = await send_message(self.message, msg, button)
-        create_task(five_minute_del(x))
+        create_task(five_minute_del(x)) # noqa: RUF006
         if count == 0:
             await self.clean()
         else:
@@ -524,7 +524,7 @@ class TaskListener(TaskConfig):
                 del task_dict[self.mid]
             count = len(task_dict)
         x = await send_message(self.message, f"{self.tag} {escape(str(error))}")
-        create_task(five_minute_del(x))
+        create_task(five_minute_del(x)) # noqa: RUF006
         if count == 0:
             await self.clean()
         else:

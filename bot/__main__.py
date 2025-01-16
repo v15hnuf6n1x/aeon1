@@ -10,11 +10,9 @@ from . import LOGGER, bot_loop
 from .core.config_manager import Config, SystemEnv
 
 # Initialize Configurations
-LOGGER.info("Loading config")
+LOGGER.info("Loading config...")
 Config.load()
-LOGGER.info(Config.TELEGRAM_API)
 SystemEnv.load()
-LOGGER.info(Config.TELEGRAM_API)
 
 from .core.startup import (
     load_configurations,
@@ -69,7 +67,7 @@ COMMANDS = {
     "BotSetCommand": "- [ADMIN] Open Bot settings",
     "LogCommand": "- [ADMIN] View log",
     "RestartCommand": "- [ADMIN] Restart the bot",
-    "RestartSessionsCommand": "- [ADMIN] Restart the session instead of the bot",
+    # "RestartSessionsCommand": "- [ADMIN] Restart the session instead of the bot",
 }
 
 
