@@ -289,7 +289,7 @@ async def edit_user_settings(client, query):
         "thumb_layout",
         "ffmpeg_cmds",
         "session_string",
-        "user_dump"
+        "user_dump",
     ]:
         await query.answer()
         update_user_ldata(user_id, data[2], "")

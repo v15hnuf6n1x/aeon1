@@ -1,3 +1,4 @@
+import contextlib
 from asyncio import sleep
 from logging import getLogger
 from os import path as ospath
@@ -555,10 +556,8 @@ class TelegramUploader:
             await _copy(self._user_id)
 
         if self._user_dump:
-            try:
+            with contextlib.suppress(Exception):
                 await _copy(int(self._user_dump))
-            except Exception:
-                pass
 
     @property
     def speed(self):
