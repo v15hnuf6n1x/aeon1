@@ -248,10 +248,11 @@ def source(self):
 
 
 def get_readable_message():
-    msg = "<b>Powered by Aeon</b>\n\n"
+    msg = '<b><a href="https://t.me/nothing_bots">Powered by Nothing Bots</a></b>\n\n'
     button = None
     tasks = len(download_dict)
     current_time = get_readable_time(time() - bot_start_time)
+
     if config_dict["BOT_MAX_TASKS"]:
         bmax_task = f"/{config_dict['BOT_MAX_TASKS']}"
     else:
