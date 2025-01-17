@@ -48,7 +48,11 @@ async def get_user_settings(from_user):
     wm_msg = user_dict.get("watermark", Config.WATERMARK_KEY or "None")
     ns_msg = "Added" if user_dict.get("name_sub", False) else "None"
     ytopt = user_dict.get("yt_opt", Config.YT_DLP_OPTIONS or "None")
-    ffc = "Added" if user_dict.get("ffmpeg_cmds") or Config.FFMPEG_CMDS else "Not added"
+    ffc = (
+        "Added"
+        if user_dict.get("ffmpeg_cmds") or Config.FFMPEG_CMDS
+        else "Not added"
+    )
 
     # Conditions
     rccmsg = "Exists" if await aiopath.exists(rclone_conf) else "Not Exists"
