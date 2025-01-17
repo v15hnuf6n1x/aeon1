@@ -289,6 +289,7 @@ async def edit_user_settings(client, query):
         "thumb_layout",
         "ffmpeg_cmds",
         "session_string",
+        "user_dump"
     ]:
         await query.answer()
         update_user_ldata(user_id, data[2], "")
@@ -305,6 +306,11 @@ async def edit_user_settings(client, query):
         thumbpath = f"Thumbnails/{user_id}.jpg"
         buttons = ButtonMaker()
         buttons.data_button("Thumbnail", f"userset {user_id} sthumb")
+        if user_dict.get("user_dump", False):
+            dump = user_dict["user_dump"]
+        else:
+            dump = "None"
+        buttons.data_button("Dump", f"userset {user_id} u_dump")
         buttons.data_button("Session", f"userset {user_id} s_string")
         if user_dict.get("session_string", False):
             session_string = "Exists"
@@ -394,6 +400,7 @@ async def edit_user_settings(client, query):
 **Session string:** {session_string}
 **Thumbnail Layout:** {thumb_layout}
 **Leech Prefix:** `{lprefix}`
+**Leech dump chat:** `{dump}`
 **Leech Caption:** `{lcaption}`
 """
         # **User Custom Dump:** `{user_dump}`
@@ -487,7 +494,7 @@ async def edit_user_settings(client, query):
 Send YT-DLP Options. Timeout: 60 sec
 Format: key:value|key:value|key:value.
 Example: format:bv*+mergeall[vcodec=none]|nocheckcertificate:True
-Check all yt-dlp api options from this <a href='https://github.com/yt-dlp/yt-dlp/blob/master/yt_dlp/YoutubeDL.py#L184'>FILE</a> or use this <a href='https://t.me/mltb_official_channel/177'>script</a> to convert cli arguments to api options.
+Check all yt-dlp api options from this <a href='https://github.com/yt-dlp/yt-dlp/blob/master/yt_dlp/YoutubeDL.py#L212'>FILE</a> or use this <a href='https://t.me/mltb_official_channel/177'>script</a> to convert cli arguments to api options.
         """
         await edit_message(message, rmsg, buttons.build_menu(1), markdown=True)
         pfunc = partial(set_option, pre_event=query, option="yt_opt")
@@ -670,6 +677,24 @@ Check all yt-dlp api options from this <a href='https://github.com/yt-dlp/yt-dlp
             markdown=True,
         )
         pfunc = partial(set_option, pre_event=query, option="session_string")
+        await event_handler(client, query, pfunc)
+    elif data[2] == "u_dump":
+        await query.answer()
+        buttons = ButtonMaker()
+        if user_dict.get("user_dump", False):
+            buttons.data_button(
+                "Remove dump",
+                f"userset {user_id} user_dump",
+            )
+        buttons.data_button("Back", f"userset {user_id} leech")
+        buttons.data_button("Close", f"userset {user_id} close")
+        await edit_message(
+            message,
+            "Send your dump chat id, example: -10025638428. Timeout: 60 sec",
+            buttons.build_menu(1),
+            markdown=True,
+        )
+        pfunc = partial(set_option, pre_event=query, option="user_dump")
         await event_handler(client, query, pfunc)
     elif data[2] == "ex_ex":
         await query.answer()

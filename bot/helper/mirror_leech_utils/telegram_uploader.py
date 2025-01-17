@@ -67,6 +67,7 @@ class TelegramUploader:
         self._last_msg_in_group = False
         self._up_path = ""
         self._lprefix = ""
+        self._user_dump = ""
         self._lcaption = ""
         self._media_group = False
         self._is_private = False
@@ -95,6 +96,7 @@ class TelegramUploader:
             if "lprefix" not in self._listener.user_dict
             else ""
         )
+        self._user_dump = self._listener.user_dict.get("user_dump")
         self._lcaption = self._listener.user_dict.get("lcaption") or (
             Config.LEECH_FILENAME_CAPTION
             if "lcaption" not in self._listener.user_dict
@@ -548,12 +550,15 @@ class TelegramUploader:
                         await sleep(0.5)
             LOGGER.error(f"Failed to copy message after {retries} attempts")
 
-        # if self.dm_mode:
+        # TODO if self.dm_mode:
         if self._sent_msg.chat.id != self._user_id:
             await _copy(self._user_id)
 
-        # if self._user_dump:
-        #     await _copy(self._user_dump)
+        if self._user_dump:
+            try:
+                await _copy(int(self._user_dump))
+            except Exception:
+                pass
 
     @property
     def speed(self):

@@ -7,7 +7,7 @@ from re import IGNORECASE, sub
 from secrets import token_hex
 from shlex import split
 
-from aiofiles.os import makedirs, remove
+from aiofiles.os import makedirs, remove, listdir
 from aiofiles.os import path as aiopath
 from aioshutil import move, rmtree
 from pyrogram.enums import ChatAction
@@ -691,7 +691,7 @@ class TaskConfig:
                     if res:
                         if delete_files:
                             await remove(file_path)
-                            if len(res) == 1:
+                            if len(await listdir(new_folder)) == 1:
                                 folder = new_folder.rsplit("/", 1)[0]
                                 self.name = ospath.basename(res[0])
                                 if self.name.startswith("ffmpeg"):
@@ -706,6 +706,7 @@ class TaskConfig:
                             dl_path = new_folder
                             self.name = new_folder.rsplit("/", 1)[-1]
                     else:
+                        await move(file_path, dl_path)
                         await rmtree(new_folder)
                 else:
                     for dirpath, _, files in await sync_to_async(

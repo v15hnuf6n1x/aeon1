@@ -36,7 +36,7 @@ async def get_streams(file):
 # Lots of work need
 async def get_watermark_cmd(file, key):
     temp_file = f"{file}.temp.mkv"
-    font_path = "rizz.otf"
+    font_path = "default.otf"
 
     cmd = [
         "xtra",
