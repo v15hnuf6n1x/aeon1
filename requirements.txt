@@ -9,6 +9,7 @@ beautifulsoup4
 bencoding
 cinemagoer
 cloudscraper
+config
 dnspython
 electrogram
 feedparser
@@ -32,6 +33,7 @@ pycountry
 python-dotenv
 pyshorteners
 python-magic
+pytz
 qbittorrent-api
 requests
 speedtest-cli
@@ -40,4 +42,4 @@ tenacity
 uv
 uvloop
 xattr
-yt-dlp[default]
+yt-dlp[default,curl-cffi]
