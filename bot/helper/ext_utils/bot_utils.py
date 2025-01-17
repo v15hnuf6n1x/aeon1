@@ -20,7 +20,22 @@ from aiohttp import ClientSession as aioClientSession
 from aiofiles import open as aiopen
 from aiofiles.os import path as aiopath
 from aiofiles.os import mkdir
-from pyrogram.types import BotCommand
+from pyrogram.types import InputMediaPhoto
+
+async def start_command(client, message):
+    # Image URL or path
+    image_url = "https://example.com/path-to-your-image.jpg"
+    
+    # Start message
+    text = '<b><a href="https://t.me/nothing_bots">Powered by Nothing Bots</a></b>\n\nWelcome to the bot! Use the commands below to get started.'
+    
+    # Send the image with caption
+    await client.send_photo(
+        chat_id=message.chat.id,
+        photo=image_url,
+        caption=text,
+        parse_mode="HTML"
+    )
 
 from bot import (
     LOGGER,
