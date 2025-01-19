@@ -9,6 +9,9 @@ from bot import shorteners_list
 
 
 async def short(long_url):
+    if not shorteners_list:
+        return long_url
+
     async with ClientSession() as session:
         for _attempt in range(4):
             shortener_info = choice(shorteners_list)
