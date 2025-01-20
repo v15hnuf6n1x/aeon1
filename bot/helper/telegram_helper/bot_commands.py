@@ -5,7 +5,7 @@ i = Config.CMD_SUFFIX
 
 
 class BotCommands:
-    StartCommand = f"start{i}"
+    StartCommand = f"start"
     MirrorCommand = [f"mirror{i}", f"m{i}"]
     YtdlCommand = [f"ytdl{i}", f"y{i}"]
     LeechCommand = [f"leech{i}", f"l{i}"]
