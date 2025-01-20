@@ -111,9 +111,9 @@ if DATABASE_URL:
 UPSTREAM_REPO = config_file.get(
     "UPSTREAM_REPO",
     "https://github.com/AeonOrg/Aeon-MLTB",
-).strip()
+)
 
-UPSTREAM_BRANCH = config_file.get("UPSTREAM_BRANCH", "").strip() or "beta"
+UPSTREAM_BRANCH = config_file.get("UPSTREAM_BRANCH", "") or "main"
 
 if UPSTREAM_REPO:
     if path.exists(".git"):
