@@ -111,7 +111,6 @@ class Config:
                             "BASE_URL",
                             "RCLONE_SERVE_URL",
                             "INDEX_URL",
-                            "SEARCH_API_LINK",
                         ]
                         and value
                     ):
@@ -130,7 +129,6 @@ class Config:
                         "BASE_URL",
                         "RCLONE_SERVE_URL",
                         "INDEX_URL",
-                        "SEARCH_API_LINK",
                     ]
                     and value
                 ):
