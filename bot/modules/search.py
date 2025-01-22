@@ -46,7 +46,7 @@ async def initiate_search_tools():
     )
 
 
-async def search(key, site, message, method):
+async def search(key, site, message):
     LOGGER.info(f"PLUGINS Searching: {key} from {site}")
     search = await sync_to_async(
         xnox_client.search_start,
@@ -79,17 +79,17 @@ async def search(key, site, message, method):
     msg = f"<b>Found {min(total_results, TELEGRAPH_LIMIT)}</b>"
     msg += f" <b>result(s) for <i>{key}</i>\nTorrent Site:- <i>{site.capitalize()}</i></b>"
     await sync_to_async(xnox_client.search_delete, search_id=search_id)
-    link = await get_result(search_results, key, message, method)
+    link = await get_result(search_results, key, message)
     buttons = ButtonMaker()
     buttons.url_button("🔎 VIEW", link)
     button = buttons.build_menu(1)
     await edit_message(message, msg, button)
 
 
-async def get_result(search_results, key, message, method):
+async def get_result(search_results, key, message):
     telegraph_content = []
     msg = f"<h4>PLUGINS Search Result(s) For {key}</h4>"
-    for index, result in enumerate(search_results, start=1):
+    for _, result in enumerate(search_results, start=1):
         msg += f"<a href='{result.descrLink}'>{escape(result.fileName)}</a><br>"
         msg += f"<b>Size: </b>{get_readable_file_size(result.fileSize)}<br>"
         msg += f"<b>Seeders: </b>{result.nbSeeders} | <b>Leechers: </b>{result.nbLeechers}<br>"
@@ -99,12 +99,12 @@ async def get_result(search_results, key, message, method):
         else:
             msg += f"<a href='{link}'>Direct Link</a><br><br>"
 
-    if len(msg.encode("utf-8")) > 39000:
-        telegraph_content.append(msg)
-        msg = ""
-
-    if index == TELEGRAPH_LIMIT:
-        break
+        if len(msg.encode("utf-8")) > 39000:
+            telegraph_content.append(msg)
+            msg = ""
+    
+        if index == TELEGRAPH_LIMIT:
+            break
 
     if msg != "":
         telegraph_content.append(msg)
@@ -150,7 +150,6 @@ async def plugin_buttons(user_id):
 @new_task
 async def torrent_search(_, message):
     user_id = message.from_user.id
-    ButtonMaker()
     key = message.text.split()
     if len(key) == 1:
         await send_message(message, "Send a search key along with command")
@@ -175,12 +174,11 @@ async def torrent_search_update(_, query):
     elif data[2] != "cancel":
         await query.answer()
         site = data[2]
-        method = data[3]
         await edit_message(
             message,
             f"<b>Searching for <i>{key}</i>\nTorrent Site:- <i>{site.capitalize()}</i></b>",
         )
-        await search(key, site, message, method)
+        await search(key, site, message)
     else:
         await query.answer()
         await edit_message(message, "Search has been canceled!")
