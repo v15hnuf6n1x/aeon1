@@ -89,7 +89,7 @@ async def search(key, site, message):
 async def get_result(search_results, key, message):
     telegraph_content = []
     msg = f"<h4>PLUGINS Search Result(s) For {key}</h4>"
-    for _, result in enumerate(search_results, start=1):
+    for index, result in enumerate(search_results, start=1):
         msg += f"<a href='{result.descrLink}'>{escape(result.fileName)}</a><br>"
         msg += f"<b>Size: </b>{get_readable_file_size(result.fileSize)}<br>"
         msg += f"<b>Seeders: </b>{result.nbSeeders} | <b>Leechers: </b>{result.nbLeechers}<br>"
