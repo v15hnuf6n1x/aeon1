@@ -24,7 +24,11 @@ from bot import (
 )
 from bot.core.aeon_client import TgClient
 from bot.core.config_manager import Config
-from bot.helper.aeon_utils.metadata_editor import get_metadata_cmd, get_watermark_cmd, get_embed_thumb_cmd
+from bot.helper.aeon_utils.metadata_editor import (
+    get_embed_thumb_cmd,
+    get_metadata_cmd,
+    get_watermark_cmd,
+)
 
 from .ext_utils.bot_utils import get_size_bytes, new_task, sync_to_async
 from .ext_utils.bulk_links import extract_bulk_links

@@ -87,10 +87,7 @@ if not BOT_TOKEN:
 BOT_ID = BOT_TOKEN.split(":", 1)[0]
 
 # Fallback to environment variables for DATABASE_URL
-DATABASE_URL = (
-    config_file.get("DATABASE_URL", "")
-    or os.getenv("DATABASE_URL", "")
-)
+DATABASE_URL = config_file.get("DATABASE_URL", "") or os.getenv("DATABASE_URL", "")
 
 if DATABASE_URL:
     try:
@@ -98,8 +95,12 @@ if DATABASE_URL:
         db = conn.luna
         config_dict = db.settings.config.find_one({"_id": BOT_ID})
         if config_dict is not None:
-            config_file["UPSTREAM_REPO"] = config_dict.get("UPSTREAM_REPO", config_file.get("UPSTREAM_REPO"))
-            config_file["UPSTREAM_BRANCH"] = config_dict.get("UPSTREAM_BRANCH", config_file.get("UPSTREAM_BRANCH"))
+            config_file["UPSTREAM_REPO"] = config_dict.get(
+                "UPSTREAM_REPO", config_file.get("UPSTREAM_REPO")
+            )
+            config_file["UPSTREAM_BRANCH"] = config_dict.get(
+                "UPSTREAM_BRANCH", config_file.get("UPSTREAM_BRANCH")
+            )
         conn.close()
     except Exception as e:
         log_error(f"Database ERROR: {e}")

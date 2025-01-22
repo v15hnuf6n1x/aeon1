@@ -1,8 +1,5 @@
-import contextlib
 from html import escape
 from urllib.parse import quote
-
-from httpx import AsyncClient
 
 from bot import LOGGER, xnox_client
 from bot.helper.ext_utils.bot_utils import new_task, sync_to_async
@@ -153,7 +150,7 @@ async def plugin_buttons(user_id):
 @new_task
 async def torrent_search(_, message):
     user_id = message.from_user.id
-    buttons = ButtonMaker()
+    ButtonMaker()
     key = message.text.split()
     if len(key) == 1:
         await send_message(message, "Send a search key along with command")
@@ -180,9 +177,9 @@ async def torrent_search_update(_, query):
         site = data[2]
         method = data[3]
         await edit_message(
-                message,
-                f"<b>Searching for <i>{key}</i>\nTorrent Site:- <i>{site.capitalize()}</i></b>",
-            )
+            message,
+            f"<b>Searching for <i>{key}</i>\nTorrent Site:- <i>{site.capitalize()}</i></b>",
+        )
         await search(key, site, message, method)
     else:
         await query.answer()
