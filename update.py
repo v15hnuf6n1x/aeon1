@@ -70,7 +70,6 @@ try:
     config_file = {
         key: value.strip() if isinstance(value, str) else value
         for key, value in vars(settings).items()
-        if not key.startswith("__")
     }
 except ModuleNotFoundError:
     log_error(
@@ -112,7 +111,7 @@ UPSTREAM_REPO = config_file.get(
     "https://github.com/AeonOrg/Aeon-MLTB",
 )
 
-UPSTREAM_BRANCH = config_file.get("UPSTREAM_BRANCH", "") or "beta"
+UPSTREAM_BRANCH = config_file.get("UPSTREAM_BRANCH", "") or "main"
 
 if UPSTREAM_REPO:
     if path.exists(".git"):
