@@ -5,7 +5,6 @@ from urllib.parse import quote
 from httpx import AsyncClient
 
 from bot import LOGGER, xnox_client
-from bot.core.config_manager import Config
 from bot.helper.ext_utils.bot_utils import new_task, sync_to_async
 from bot.helper.ext_utils.status_utils import get_readable_file_size
 from bot.helper.ext_utils.telegraph_helper import telegraph
@@ -13,123 +12,76 @@ from bot.helper.telegram_helper.button_build import ButtonMaker
 from bot.helper.telegram_helper.message_utils import edit_message, send_message
 
 PLUGINS = []
-SITES = None
 TELEGRAPH_LIMIT = 300
+SEARCH_PLUGINS = [
+    "https://raw.githubusercontent.com/qbittorrent/search-plugins/master/nova3/engines/piratebay.py",
+    "https://raw.githubusercontent.com/qbittorrent/search-plugins/master/nova3/engines/limetorrents.py",
+    "https://raw.githubusercontent.com/qbittorrent/search-plugins/master/nova3/engines/torlock.py",
+    "https://raw.githubusercontent.com/qbittorrent/search-plugins/master/nova3/engines/torrentscsv.py",
+    "https://raw.githubusercontent.com/qbittorrent/search-plugins/master/nova3/engines/eztv.py",
+    "https://raw.githubusercontent.com/qbittorrent/search-plugins/master/nova3/engines/torrentproject.py",
+    "https://raw.githubusercontent.com/MaurizioRicci/qBittorrent_search_engines/master/kickass_torrent.py",
+    "https://raw.githubusercontent.com/MaurizioRicci/qBittorrent_search_engines/master/yts_am.py",
+    "https://raw.githubusercontent.com/MadeOfMagicAndWires/qBit-plugins/master/engines/linuxtracker.py",
+    "https://raw.githubusercontent.com/MadeOfMagicAndWires/qBit-plugins/master/engines/nyaasi.py",
+    "https://raw.githubusercontent.com/LightDestory/qBittorrent-Search-Plugins/master/src/engines/ettv.py",
+    "https://raw.githubusercontent.com/LightDestory/qBittorrent-Search-Plugins/master/src/engines/glotorrents.py",
+    "https://raw.githubusercontent.com/LightDestory/qBittorrent-Search-Plugins/master/src/engines/thepiratebay.py",
+    "https://raw.githubusercontent.com/v1k45/1337x-qBittorrent-search-plugin/master/leetx.py",
+    "https://raw.githubusercontent.com/nindogo/qbtSearchScripts/master/magnetdl.py",
+    "https://raw.githubusercontent.com/msagca/qbittorrent_plugins/main/uniondht.py",
+    "https://raw.githubusercontent.com/khensolomon/leyts/master/yts.py",
+]
 
 
 async def initiate_search_tools():
     qb_plugins = await sync_to_async(xnox_client.search_plugins)
-    if Config.SEARCH_PLUGINS:
-        globals()["PLUGINS"] = []
-        if qb_plugins:
-            names = [plugin["name"] for plugin in qb_plugins]
-            await sync_to_async(
-                xnox_client.search_uninstall_plugin,
-                names=names,
-            )
+    globals()["PLUGINS"] = []
+    if qb_plugins:
+        names = [plugin["name"] for plugin in qb_plugins]
         await sync_to_async(
-            xnox_client.search_install_plugin,
-            Config.SEARCH_PLUGINS,
+            xnox_client.search_uninstall_plugin,
+            names=names,
         )
-    elif qb_plugins:
-        for plugin in qb_plugins:
-            await sync_to_async(
-                xnox_client.search_uninstall_plugin,
-                names=plugin["name"],
-            )
-        globals()["PLUGINS"] = []
-
-    if Config.SEARCH_API_LINK:
-        global SITES
-        try:
-            async with AsyncClient() as client:
-                response = await client.get(f"{Config.SEARCH_API_LINK}/api/v1/sites")
-                data = response.json()
-            SITES = {
-                str(site): str(site).capitalize() for site in data["supported_sites"]
-            }
-            SITES["all"] = "All"
-        except Exception as e:
-            LOGGER.error(
-                f"{e} Can't fetching sites from SEARCH_API_LINK make sure use latest version of API",
-            )
-            SITES = None
+    await sync_to_async(
+        xnox_client.search_install_plugin,
+        SEARCH_PLUGINS,
+    )
 
 
 async def search(key, site, message, method):
-    if method.startswith("api"):
-        if method == "apisearch":
-            LOGGER.info(f"API Searching: {key} from {site}")
-            if site == "all":
-                api = f"{Config.SEARCH_API_LINK}/api/v1/all/search?query={key}&limit={Config.SEARCH_LIMIT}"
-            else:
-                api = f"{Config.SEARCH_API_LINK}/api/v1/search?site={site}&query={key}&limit={Config.SEARCH_LIMIT}"
-        elif method == "apitrend":
-            LOGGER.info(f"API Trending from {site}")
-            if site == "all":
-                api = f"{Config.SEARCH_API_LINK}/api/v1/all/trending?limit={Config.SEARCH_LIMIT}"
-            else:
-                api = f"{Config.SEARCH_API_LINK}/api/v1/trending?site={site}&limit={Config.SEARCH_LIMIT}"
-        elif method == "apirecent":
-            LOGGER.info(f"API Recent from {site}")
-            if site == "all":
-                api = f"{Config.SEARCH_API_LINK}/api/v1/all/recent?limit={Config.SEARCH_LIMIT}"
-            else:
-                api = f"{Config.SEARCH_API_LINK}/api/v1/recent?site={site}&limit={Config.SEARCH_LIMIT}"
-        try:
-            async with AsyncClient() as client:
-                response = await client.get(api)
-                search_results = response.json()
-            if "error" in search_results or search_results["total"] == 0:
-                await edit_message(
-                    message,
-                    f"No result found for <i>{key}</i>\nTorrent Site:- <i>{SITES.get(site)}</i>",
-                )
-                return
-            msg = f"<b>Found {min(search_results['total'], TELEGRAPH_LIMIT)}</b>"
-            if method == "apitrend":
-                msg += f" <b>trending result(s)\nTorrent Site:- <i>{SITES.get(site)}</i></b>"
-            elif method == "apirecent":
-                msg += f" <b>recent result(s)\nTorrent Site:- <i>{SITES.get(site)}</i></b>"
-            else:
-                msg += f" <b>result(s) for <i>{key}</i>\nTorrent Site:- <i>{SITES.get(site)}</i></b>"
-            search_results = search_results["data"]
-        except Exception as e:
-            await edit_message(message, str(e))
-            return
-    else:
-        LOGGER.info(f"PLUGINS Searching: {key} from {site}")
-        search = await sync_to_async(
-            xnox_client.search_start,
-            pattern=key,
-            plugins=site,
-            category="all",
-        )
-        search_id = search.id
-        while True:
-            result_status = await sync_to_async(
-                xnox_client.search_status,
-                search_id=search_id,
-            )
-            status = result_status[0].status
-            if status != "Running":
-                break
-        dict_search_results = await sync_to_async(
-            xnox_client.search_results,
+    LOGGER.info(f"PLUGINS Searching: {key} from {site}")
+    search = await sync_to_async(
+        xnox_client.search_start,
+        pattern=key,
+        plugins=site,
+        category="all",
+    )
+    search_id = search.id
+    while True:
+        result_status = await sync_to_async(
+            xnox_client.search_status,
             search_id=search_id,
-            limit=TELEGRAPH_LIMIT,
         )
-        search_results = dict_search_results.results
-        total_results = dict_search_results.total
-        if total_results == 0:
-            await edit_message(
-                message,
-                f"No result found for <i>{key}</i>\nTorrent Site:- <i>{site.capitalize()}</i>",
-            )
-            return
-        msg = f"<b>Found {min(total_results, TELEGRAPH_LIMIT)}</b>"
-        msg += f" <b>result(s) for <i>{key}</i>\nTorrent Site:- <i>{site.capitalize()}</i></b>"
-        await sync_to_async(xnox_client.search_delete, search_id=search_id)
+        status = result_status[0].status
+        if status != "Running":
+            break
+    dict_search_results = await sync_to_async(
+        xnox_client.search_results,
+        search_id=search_id,
+        limit=TELEGRAPH_LIMIT,
+    )
+    search_results = dict_search_results.results
+    total_results = dict_search_results.total
+    if total_results == 0:
+        await edit_message(
+            message,
+            f"No result found for <i>{key}</i>\nTorrent Site:- <i>{site.capitalize()}</i>",
+        )
+        return
+    msg = f"<b>Found {min(total_results, TELEGRAPH_LIMIT)}</b>"
+    msg += f" <b>result(s) for <i>{key}</i>\nTorrent Site:- <i>{site.capitalize()}</i></b>"
+    await sync_to_async(xnox_client.search_delete, search_id=search_id)
     link = await get_result(search_results, key, message, method)
     buttons = ButtonMaker()
     buttons.url_button("🔎 VIEW", link)
@@ -139,62 +91,23 @@ async def search(key, site, message, method):
 
 async def get_result(search_results, key, message, method):
     telegraph_content = []
-    if method == "apirecent":
-        msg = "<h4>API Recent Results</h4>"
-    elif method == "apisearch":
-        msg = f"<h4>API Search Result(s) For {key}</h4>"
-    elif method == "apitrend":
-        msg = "<h4>API Trending Results</h4>"
-    else:
-        msg = f"<h4>PLUGINS Search Result(s) For {key}</h4>"
+    msg = f"<h4>PLUGINS Search Result(s) For {key}</h4>"
     for index, result in enumerate(search_results, start=1):
-        if method.startswith("api"):
-            try:
-                if "name" in result:
-                    msg += f"<code><a href='{result['url']}'>{escape(result['name'])}</a></code><br>"
-                if "torrents" in result:
-                    for subres in result["torrents"]:
-                        msg += f"<b>Quality: </b>{subres['quality']} | <b>Type: </b>{subres['type']} | "
-                        msg += f"<b>Size: </b>{subres['size']}<br>"
-                        if "torrent" in subres:
-                            msg += (
-                                f"<a href='{subres['torrent']}'>Direct Link</a><br>"
-                            )
-                        elif "magnet" in subres:
-                            msg += "<b>Share Magnet to</b> "
-                            msg += f"<a href='http://t.me/share/url?url={subres['magnet']}'>Telegram</a><br>"
-                    msg += "<br>"
-                else:
-                    msg += f"<b>Size: </b>{result['size']}<br>"
-                    with contextlib.suppress(Exception):
-                        msg += f"<b>Seeders: </b>{result['seeders']} | <b>Leechers: </b>{result['leechers']}<br>"
-                    if "torrent" in result:
-                        msg += (
-                            f"<a href='{result['torrent']}'>Direct Link</a><br><br>"
-                        )
-                    elif "magnet" in result:
-                        msg += "<b>Share Magnet to</b> "
-                        msg += f"<a href='http://t.me/share/url?url={quote(result['magnet'])}'>Telegram</a><br><br>"
-                    else:
-                        msg += "<br>"
-            except Exception:
-                continue
+        msg += f"<a href='{result.descrLink}'>{escape(result.fileName)}</a><br>"
+        msg += f"<b>Size: </b>{get_readable_file_size(result.fileSize)}<br>"
+        msg += f"<b>Seeders: </b>{result.nbSeeders} | <b>Leechers: </b>{result.nbLeechers}<br>"
+        link = result.fileUrl
+        if link.startswith("magnet:"):
+            msg += f"<b>Share Magnet to</b> <a href='http://t.me/share/url?url={quote(link)}'>Telegram</a><br><br>"
         else:
-            msg += f"<a href='{result.descrLink}'>{escape(result.fileName)}</a><br>"
-            msg += f"<b>Size: </b>{get_readable_file_size(result.fileSize)}<br>"
-            msg += f"<b>Seeders: </b>{result.nbSeeders} | <b>Leechers: </b>{result.nbLeechers}<br>"
-            link = result.fileUrl
-            if link.startswith("magnet:"):
-                msg += f"<b>Share Magnet to</b> <a href='http://t.me/share/url?url={quote(link)}'>Telegram</a><br><br>"
-            else:
-                msg += f"<a href='{link}'>Direct Link</a><br><br>"
+            msg += f"<a href='{link}'>Direct Link</a><br><br>"
 
-        if len(msg.encode("utf-8")) > 39000:
-            telegraph_content.append(msg)
-            msg = ""
+    if len(msg.encode("utf-8")) > 39000:
+        telegraph_content.append(msg)
+        msg = ""
 
-        if index == TELEGRAPH_LIMIT:
-            break
+    if index == TELEGRAPH_LIMIT:
+        break
 
     if msg != "":
         telegraph_content.append(msg)
@@ -221,14 +134,6 @@ async def get_result(search_results, key, message, method):
     return f"https://telegra.ph/{path[0]}"
 
 
-def api_buttons(user_id, method):
-    buttons = ButtonMaker()
-    for data, name in SITES.items():
-        buttons.data_button(name, f"torser {user_id} {data} {method}")
-    buttons.data_button("Cancel", f"torser {user_id} cancel")
-    return buttons.build_menu(2)
-
-
 async def plugin_buttons(user_id):
     buttons = ButtonMaker()
     if not PLUGINS:
@@ -250,28 +155,8 @@ async def torrent_search(_, message):
     user_id = message.from_user.id
     buttons = ButtonMaker()
     key = message.text.split()
-    if SITES is None and not Config.SEARCH_PLUGINS:
-        await send_message(
-            message,
-            "No API link or search PLUGINS added for this function",
-        )
-    elif len(key) == 1 and SITES is None:
+    if len(key) == 1:
         await send_message(message, "Send a search key along with command")
-    elif len(key) == 1:
-        buttons.data_button("Trending", f"torser {user_id} apitrend")
-        buttons.data_button("Recent", f"torser {user_id} apirecent")
-        buttons.data_button("Cancel", f"torser {user_id} cancel")
-        button = buttons.build_menu(2)
-        await send_message(message, "Send a search key along with command", button)
-    elif SITES is not None and Config.SEARCH_PLUGINS:
-        buttons.data_button("Api", f"torser {user_id} apisearch")
-        buttons.data_button("Plugins", f"torser {user_id} plugin")
-        buttons.data_button("Cancel", f"torser {user_id} cancel")
-        button = buttons.build_menu(2)
-        await send_message(message, "Choose tool to search:", button)
-    elif SITES is not None:
-        button = api_buttons(user_id, "apisearch")
-        await send_message(message, "Choose site to search | API:", button)
     else:
         button = await plugin_buttons(user_id)
         await send_message(message, "Choose site to search | Plugins:", button)
@@ -286,10 +171,6 @@ async def torrent_search_update(_, query):
     data = query.data.split()
     if user_id != int(data[1]):
         await query.answer("Not Yours!", show_alert=True)
-    elif data[2].startswith("api"):
-        await query.answer()
-        button = api_buttons(user_id, data[2])
-        await edit_message(message, "Choose site:", button)
     elif data[2] == "plugin":
         await query.answer()
         button = await plugin_buttons(user_id)
@@ -298,23 +179,7 @@ async def torrent_search_update(_, query):
         await query.answer()
         site = data[2]
         method = data[3]
-        if method.startswith("api"):
-            if key is None:
-                if method == "apirecent":
-                    endpoint = "Recent"
-                elif method == "apitrend":
-                    endpoint = "Trending"
-                await edit_message(
-                    message,
-                    f"<b>Listing {endpoint} Items...\nTorrent Site:- <i>{SITES.get(site)}</i></b>",
-                )
-            else:
-                await edit_message(
-                    message,
-                    f"<b>Searching for <i>{key}</i>\nTorrent Site:- <i>{SITES.get(site)}</i></b>",
-                )
-        else:
-            await edit_message(
+        await edit_message(
                 message,
                 f"<b>Searching for <i>{key}</i>\nTorrent Site:- <i>{site.capitalize()}</i></b>",
             )

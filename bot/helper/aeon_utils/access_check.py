@@ -19,7 +19,8 @@ from bot.helper.telegram_helper.button_build import ButtonMaker
 
 async def error_check(message):
     msg, button = [], None
-    user_id = message.from_user.id
+    user = message.from_user or message.sender_chat
+    user_id = user.id
     token_timeout = Config.TOKEN_TIMEOUT
 
     if message.chat.type != message.chat.type.BOT:
@@ -67,7 +68,7 @@ async def error_check(message):
 
     if user_id not in {
         Config.OWNER_ID,
-        1781717085,
+        Config.RSS_CHAT,
         user_data.get(user_id, {}).get("is_sudo"),
     }:
         token_msg, button = await token_check(user_id, button)

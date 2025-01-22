@@ -24,7 +24,7 @@ from bot import (
 )
 from bot.core.aeon_client import TgClient
 from bot.core.config_manager import Config
-from bot.helper.aeon_utils.metadata_editor import get_metadata_cmd, get_watermark_cmd
+from bot.helper.aeon_utils.metadata_editor import get_metadata_cmd, get_watermark_cmd, get_embed_thumb_cmd
 
 from .ext_utils.bot_utils import get_size_bytes, new_task, sync_to_async
 from .ext_utils.bulk_links import extract_bulk_links
@@ -601,18 +601,14 @@ class TaskConfig:
                     if not self.is_file:
                         self.subname = file_
                     code = await sevenz.extract(f_path, t_path, pswd)
-                    if code == 0:
+            if code == 0:
+                for file_ in files:
+                    if is_archive_split(file_) or is_archive(file_):
+                        del_path = ospath.join(dirpath, file_)
                         try:
-                            await remove(f_path)
+                            await remove(del_path)
                         except Exception:
                             self.is_cancelled = True
-            for file_ in files:
-                if is_archive_split(file_):
-                    del_path = ospath.join(dirpath, file_)
-                    try:
-                        await remove(del_path)
-                    except Exception:
-                        self.is_cancelled = True
         return t_path if self.is_file and code == 0 else dl_path
 
     async def proceed_ffmpeg(self, dl_path, gid):
@@ -1182,6 +1178,69 @@ class TaskConfig:
                                         ffmpeg,
                                         gid,
                                         "Watermark",
+                                    )
+                                self.progress = False
+                                await cpu_eater_lock.acquire()
+                                self.progress = True
+                            LOGGER.info(f"Running cmd for: {file_path}")
+                            self.subsize = await aiopath.getsize(file_path)
+                            self.subname = file_
+                            res = await ffmpeg.metadata_watermark_cmds(
+                                cmd,
+                                file_path,
+                            )
+                            if res:
+                                os.replace(temp_file, file_path)
+        if checked:
+            cpu_eater_lock.release()
+        return dl_path
+
+    async def proceed_embed_thumb(self, dl_path, gid):
+        thumb = self.e_thumb
+        ffmpeg = FFMpeg(self)
+        checked = False
+        if self.is_file:
+            if is_mkv(dl_path):
+                cmd, temp_file = await get_embed_thumb_cmd(dl_path, thumb)
+                if cmd:
+                    if not checked:
+                        checked = True
+                        async with task_dict_lock:
+                            task_dict[self.mid] = FFmpegStatus(
+                                self,
+                                ffmpeg,
+                                gid,
+                                "E_thumb",
+                            )
+                        self.progress = False
+                        await cpu_eater_lock.acquire()
+                        self.progress = True
+                    self.subsize = self.size
+                    res = await ffmpeg.metadata_watermark_cmds(cmd, dl_path)
+                    if res:
+                        os.replace(temp_file, dl_path)
+        else:
+            for dirpath, _, files in await sync_to_async(
+                walk,
+                dl_path,
+                topdown=False,
+            ):
+                for file_ in files:
+                    file_path = ospath.join(dirpath, file_)
+                    if self.is_cancelled:
+                        cpu_eater_lock.release()
+                        return ""
+                    if is_mkv(file_path):
+                        cmd, temp_file = await get_embed_thumb_cmd(file_path, thumb)
+                        if cmd:
+                            if not checked:
+                                checked = True
+                                async with task_dict_lock:
+                                    task_dict[self.mid] = FFmpegStatus(
+                                        self,
+                                        ffmpeg,
+                                        gid,
+                                        "E_thumb",
                                     )
                                 self.progress = False
                                 await cpu_eater_lock.acquire()

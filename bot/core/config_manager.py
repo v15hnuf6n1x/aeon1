@@ -41,9 +41,6 @@ class Config:
     RSS_CHAT = ""
     RSS_DELAY = 600
     RSS_SIZE_LIMIT = 0
-    SEARCH_API_LINK = ""
-    SEARCH_LIMIT = 0
-    SEARCH_PLUGINS: ClassVar[list[str]] = []
     STOP_DUPLICATE = False
     STREAMWISH_API = ""
     SUDO_USERS = ""

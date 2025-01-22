@@ -47,6 +47,8 @@ class FFmpegStatus:
             return MirrorStatus.STATUS_METADATA
         if self._cstatus == "Watermark":
             return MirrorStatus.STATUS_WATERMARK
+        if self._cstatus == "E_thumb":
+            return MirrorStatus.STATUS_ETHUMB
         return MirrorStatus.STATUS_FFMPEG
 
     def task(self):

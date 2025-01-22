@@ -65,9 +65,9 @@ async def send_message(
             parse_mode=parse_mode,
         )
     except FloodWait as f:
+        LOGGER.warning(str(f))
         if not block:
             return message
-        LOGGER.warning(str(f))
         await sleep(f.value * 1.2)
         return await send_message(message, text, buttons, photo, markdown)
     except Exception as e:
@@ -104,9 +104,9 @@ async def edit_message(
             parse_mode=parse_mode,
         )
     except FloodWait as f:
+        LOGGER.warning(str(f))
         if not block:
             return message
-        LOGGER.warning(str(f))
         await sleep(f.value * 1.2)
         return await edit_message(message, text, buttons, photo, markdown)
     except (MessageNotModified, MessageEmpty):
@@ -375,14 +375,14 @@ async def send_status_message(msg, user_id=0):
                     obj.cancel()
                     del intervals["status"][sid]
                 return
-            message = status_dict[sid]["message"]
-            await delete_message(message)
+            old_message = status_dict[sid]["message"]
             message = await send_message(msg, text, buttons, block=False)
             if isinstance(message, str):
                 LOGGER.error(
                     f"Status with id: {sid} haven't been sent. Error: {message}",
                 )
                 return
+            await delete_message(old_message)
             message.text = text
             status_dict[sid].update({"message": message, "time": time()})
         else:

@@ -31,6 +31,7 @@ class MirrorStatus:
     STATUS_FFMPEG = "FFmpeg"
     STATUS_METADATA = "Metadata"
     STATUS_WATERMARK = "Watermark"
+    STATUS_ETHUMB = "Embed Thumb"
 
 
 STATUSES = {
@@ -199,9 +200,9 @@ async def get_readable_message(sid, is_user, page_no=1, status="All", page_step=
     ):
         tstatus = await sync_to_async(task.status) if status == "All" else status
         if task.listener.is_super_chat:
-            msg += f"<b>{index + start_position}.<a href='{task.listener.message.link}'>{tstatus}</a>: </b>"
+            msg += f"<b>{index + start_position}. <a href='{task.listener.message.link}'>{tstatus}</a>: </b>"
         else:
-            msg += f"<b>{index + start_position}.{tstatus}: </b>"
+            msg += f"<b>{index + start_position}. {tstatus}: </b>"
         msg += f"<code>{escape(f'{task.name()}')}</code>"
         if task.listener.subname:
             msg += f"\n<i>{task.listener.subname}</i>"

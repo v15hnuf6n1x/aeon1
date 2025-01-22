@@ -159,11 +159,8 @@ async def get_metadata_cmd(file_path, key):
 
 
 # later
-async def add_attachment(file, attachment_path):
-    LOGGER.info(f"Adding photo attachment to file: {file}")
-
+async def get_embed_thumb_cmd(file, attachment_path):
     temp_file = f"{file}.temp.mkv"
-
     attachment_ext = attachment_path.split(".")[-1].lower()
     mime_type = "application/octet-stream"
     if attachment_ext in ["jpg", "jpeg"]:
@@ -173,7 +170,11 @@ async def add_attachment(file, attachment_path):
 
     cmd = [
         "xtra",
-        "-y",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-progress",
+        "pipe:1",
         "-i",
         file,
         "-attach",
@@ -184,18 +185,9 @@ async def add_attachment(file, attachment_path):
         "copy",
         "-map",
         "0",
+        "-threads",
+        f"{max(1, os.cpu_count() // 2)}",
         temp_file,
     ]
 
-    process = await create_subprocess_exec(*cmd, stderr=PIPE, stdout=PIPE)
-    stdout, stderr = await process.communicate()
-
-    if process.returncode != 0:
-        err = stderr.decode().strip()
-        LOGGER.error(err)
-        LOGGER.error(f"Error adding photo attachment to file: {file}")
-        return
-
-    os.replace(temp_file, file)
-    LOGGER.info(f"Photo attachment added successfully to file: {file}")
-    return
+    return cmd, temp_file
