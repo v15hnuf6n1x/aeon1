@@ -1,1 +1,2 @@
-python3 update.py && python3 -m bot
+/usr/bin/python3.14 update.py
+/usr/bin/python3.14 -m bot
