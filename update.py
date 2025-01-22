@@ -96,10 +96,12 @@ if DATABASE_URL:
         config_dict = db.settings.config.find_one({"_id": BOT_ID})
         if config_dict is not None:
             config_file["UPSTREAM_REPO"] = config_dict.get(
-                "UPSTREAM_REPO", config_file.get("UPSTREAM_REPO")
+                "UPSTREAM_REPO",
+                config_file.get("UPSTREAM_REPO"),
             )
             config_file["UPSTREAM_BRANCH"] = config_dict.get(
-                "UPSTREAM_BRANCH", config_file.get("UPSTREAM_BRANCH")
+                "UPSTREAM_BRANCH",
+                config_file.get("UPSTREAM_BRANCH"),
             )
         conn.close()
     except Exception as e:

@@ -102,7 +102,7 @@ async def get_result(search_results, key, message):
         if len(msg.encode("utf-8")) > 39000:
             telegraph_content.append(msg)
             msg = ""
-    
+
         if index == TELEGRAPH_LIMIT:
             break
 
