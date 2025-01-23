@@ -38,8 +38,6 @@ qbittorrent-api
 requests
 speedtest-cli
 telegraph
-tenacity
 uv
 uvloop
-xattr
 yt-dlp[default,curl-cffi]
