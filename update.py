@@ -111,7 +111,11 @@ UPSTREAM_REPO = config_file.get(
     "https://github.com/AeonOrg/Aeon-MLTB",
 ) or os.getenv("UPSTREAM_REPO", "")
 
-UPSTREAM_BRANCH = config_file.get("UPSTREAM_BRANCH", "") or os.getenv("UPSTREAM_BRANCH", "") or "main"
+UPSTREAM_BRANCH = (
+    config_file.get("UPSTREAM_BRANCH", "")
+    or os.getenv("UPSTREAM_BRANCH", "")
+    or "main"
+)
 
 if UPSTREAM_REPO:
     if path.exists(".git"):
