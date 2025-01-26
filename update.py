@@ -106,7 +106,11 @@ if DATABASE_URL:
     except Exception as e:
         log_error(f"Database ERROR: {e}")
 
-UPSTREAM_REPO = config_file.get("UPSTREAM_REPO", "") or os.getenv("UPSTREAM_REPO", "") or "https://github.com/AeonOrg/Aeon-MLTB"
+UPSTREAM_REPO = (
+    config_file.get("UPSTREAM_REPO", "")
+    or os.getenv("UPSTREAM_REPO", "")
+    or "https://github.com/AeonOrg/Aeon-MLTB"
+)
 
 UPSTREAM_BRANCH = (
     config_file.get("UPSTREAM_BRANCH", "")
