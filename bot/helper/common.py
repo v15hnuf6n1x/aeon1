@@ -91,6 +91,7 @@ class TaskConfig:
         self.subsize = 0
         self.proceed_count = 0
         self.is_leech = False
+        self.is_jd = False
         self.is_qbit = False
         self.is_clone = False
         self.is_ytdlp = False
@@ -182,13 +183,14 @@ class TaskConfig:
             else ["aria2", "!qB"]
         )
         if self.link not in ["rcl", "gdl"]:
-            if is_rclone_path(self.link):
-                if not self.link.startswith("mrcc:") and self.user_dict.get(
-                    "user_tokens",
-                    False,
-                ):
-                    self.link = f"mrcc:{self.link}"
-                await self.is_token_exists(self.link, "dl")
+            if not self.is_jd:
+                if is_rclone_path(self.link):
+                    if not self.link.startswith("mrcc:") and self.user_dict.get(
+                        "user_tokens",
+                        False,
+                    ):
+                        self.link = f"mrcc:{self.link}"
+                    await self.is_token_exists(self.link, "dl")
             elif is_gdrive_link(self.link):
                 if not self.link.startswith(
                     ("mtp:", "tp:", "sa:"),
@@ -196,11 +198,11 @@ class TaskConfig:
                     self.link = f"mtp:{self.link}"
                 await self.is_token_exists(self.link, "dl")
         elif self.link == "rcl":
-            if not self.is_ytdlp:
+            if not self.is_ytdlp and not self.is_jd:
                 self.link = await RcloneList(self).get_rclone_path("rcd")
                 if not is_rclone_path(self.link):
                     raise ValueError(self.link)
-        elif self.link == "gdl" and not self.is_ytdlp:
+        elif self.link == "gdl" and not self.is_ytdlp and not self.is_jd:
             self.link = await GoogleDriveList(self).get_target_id("gdd")
             if not is_gdrive_id(self.link):
                 raise ValueError(self.link)
@@ -441,7 +443,7 @@ class TaskConfig:
             )
 
             if self.thumb != "none" and is_telegram_link(self.thumb):
-                msg = (await get_tg_link_message(self.thumb))[0]
+                msg, _ = (await get_tg_link_message(self.thumb))[0]
                 self.thumb = (
                     await create_thumb(msg) if msg.photo or msg.document else ""
                 )
@@ -521,6 +523,7 @@ class TaskConfig:
             nextmsg,
             self.is_qbit,
             self.is_leech,
+            self.is_jd,
             self.same_dir,
             self.bulk,
             self.multi_tag,
@@ -559,6 +562,7 @@ class TaskConfig:
                 nextmsg,
                 self.is_qbit,
                 self.is_leech,
+                self.is_jd,
                 self.same_dir,
                 self.bulk,
                 self.multi_tag,
@@ -1071,7 +1075,6 @@ class TaskConfig:
             return None
         return None
 
-    # change according sync
     async def proceed_metadata(self, dl_path, gid):
         key = self.metadata
         ffmpeg = FFMpeg(self)
@@ -1096,6 +1099,8 @@ class TaskConfig:
                     res = await ffmpeg.metadata_watermark_cmds(cmd, dl_path)
                     if res:
                         os.replace(temp_file, dl_path)
+                    else:
+                        os.remove(temp_file)
         else:
             for dirpath, _, files in await sync_to_async(
                 walk,
@@ -1132,6 +1137,8 @@ class TaskConfig:
                             )
                             if res:
                                 os.replace(temp_file, file_path)
+                            else:
+                                os.remove(temp_file)
         if checked:
             cpu_eater_lock.release()
         return dl_path
@@ -1160,6 +1167,8 @@ class TaskConfig:
                     res = await ffmpeg.metadata_watermark_cmds(cmd, dl_path)
                     if res:
                         os.replace(temp_file, dl_path)
+                    else:
+                        os.remove(temp_file)
         else:
             for dirpath, _, files in await sync_to_async(
                 walk,
@@ -1195,6 +1204,8 @@ class TaskConfig:
                             )
                             if res:
                                 os.replace(temp_file, file_path)
+                            else:
+                                os.remove(temp_file)
         if checked:
             cpu_eater_lock.release()
         return dl_path
@@ -1223,6 +1234,8 @@ class TaskConfig:
                     res = await ffmpeg.metadata_watermark_cmds(cmd, dl_path)
                     if res:
                         os.replace(temp_file, dl_path)
+                    else:
+                        os.remove(temp_file)
         else:
             for dirpath, _, files in await sync_to_async(
                 walk,
@@ -1258,6 +1271,8 @@ class TaskConfig:
                             )
                             if res:
                                 os.replace(temp_file, file_path)
+                            else:
+                                os.remove(temp_file)
         if checked:
             cpu_eater_lock.release()
         return dl_path

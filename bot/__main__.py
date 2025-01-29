@@ -25,11 +25,11 @@ from .core.startup import (
 
 bot_loop.run_until_complete(load_settings())
 
-
 from .core.aeon_client import TgClient
 from .core.handlers import add_handlers
 from .helper.ext_utils.bot_utils import create_help_buttons, new_task, sync_to_async
 from .helper.ext_utils.files_utils import clean_all, exit_clean_up
+from .helper.ext_utils.jdownloader_booter import jdownloader
 from .helper.ext_utils.telegraph_helper import telegraph
 from .helper.listeners.aria2_listener import start_aria2_listener
 from .helper.mirror_leech_utils.rclone_utils.serve import rclone_serve_booter
@@ -50,6 +50,8 @@ from .modules import (
 COMMANDS = {
     "MirrorCommand": "- Start mirroring",
     "LeechCommand": "- Start leeching",
+    "JdMirrorCommand": "- Mirror using Jdownloader",
+    "JdLeechCommand": "- Leech using jdownloader",
     "YtdlCommand": "- Mirror yt-dlp supported link",
     "YtdlLeechCommand": "- Leech through yt-dlp supported link",
     "CloneCommand": "- Copy file/folder to Drive",
@@ -120,6 +122,7 @@ async def main():
         sync_to_async(update_qb_options),
         sync_to_async(update_aria2_options),
         set_commands(),
+        jdownloader.boot(),
     )
     await gather(
         save_settings(),

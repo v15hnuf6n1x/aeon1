@@ -115,6 +115,8 @@ async def confirm_restart(_, query):
             scheduler.shutdown(wait=False)
         if qb := intervals["qb"]:
             qb.cancel()
+        if jd := intervals["jd"]:
+            jd.cancel()
         if st := intervals["status"]:
             for intvl in list(st.values()):
                 intvl.cancel()
@@ -123,7 +125,7 @@ async def confirm_restart(_, query):
             "pkill",
             "-9",
             "-f",
-            "gunicorn|xria|xnox|xtra|xone|7z|split",
+            "gunicorn|xria|xnox|xtra|xone|java|7z|split",
         )
         proc2 = await create_subprocess_exec("python3", "update.py")
         proc3 = await create_subprocess_exec(

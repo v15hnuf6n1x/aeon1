@@ -95,9 +95,19 @@ def add_handlers():
             BotCommands.MirrorCommand,
             CustomFilters.authorized,
         ),
+        "jd_mirror": (
+            jd_mirror,
+            BotCommands.JdMirrorCommand,
+            CustomFilters.authorized,
+        ),
         "leech": (
             leech,
             BotCommands.LeechCommand,
+            CustomFilters.authorized,
+        ),
+        "jd_leech": (
+            jd_leech,
+            BotCommands.JdLeechCommand,
             CustomFilters.authorized,
         ),
         "get_rss_menu": (

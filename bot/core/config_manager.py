@@ -19,14 +19,14 @@ class Config:
     GDRIVE_ID = ""
     INCOMPLETE_TASK_NOTIFIER = False
     INDEX_URL = ""
+    JD_EMAIL = ""
+    JD_PASS = ""
     IS_TEAM_DRIVE = False
     LEECH_DUMP_CHAT = ""
     LEECH_FILENAME_PREFIX = ""
     LEECH_SPLIT_SIZE = 2097152000
     MEDIA_GROUP = False
     MIXED_LEECH = False
-    MEGA_EMAIL = ""
-    MEGA_PASSWORD = ""
     NAME_SUBSTITUTE = ""
     OWNER_ID = 0
     QUEUE_ALL = 0

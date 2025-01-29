@@ -156,7 +156,7 @@ def exit_clean_up(_, __):
         LOGGER.info("Please wait! Bot clean up and stop the running downloads...")
         clean_all()
         srun(
-            ["pkill", "-9", "-f", "gunicorn|xria|xnox|xtra|xone|7z|split"],
+            ["pkill", "-9", "-f", "gunicorn|xria|xnox|xtra|xone|java|7z|split"],
             check=False,
         )
         exit(0)

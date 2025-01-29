@@ -12,6 +12,8 @@ from .gd_search import gdrive_search, select_type
 from .help import arg_usage, bot_help
 from .mediainfo import mediainfo
 from .mirror_leech import (
+    jd_leech,
+    jd_mirror,
     leech,
     mirror,
 )
@@ -61,6 +63,8 @@ __all__ = [
     "get_rss_menu",
     "get_users_settings",
     "initiate_search_tools",
+    "jd_leech",
+    "jd_mirror",
     "leech",
     "log",
     "log_callback",

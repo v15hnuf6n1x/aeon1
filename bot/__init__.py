@@ -74,7 +74,7 @@ basicConfig(handlers=[file_handler, stream_handler], level=INFO)
 
 LOGGER = getLogger(__name__)
 
-intervals = {"status": {}, "qb": "", "stopAll": False}
+intervals = {"status": {}, "qb": "", "jd": "", "stopAll": False}
 qb_torrents = {}
 user_data = {}
 aria2_options = {}
@@ -83,6 +83,7 @@ queued_dl = {}
 queued_up = {}
 status_dict = {}
 task_dict = {}
+jd_downloads = {}
 rss_dict = {}
 non_queued_dl = set()
 non_queued_up = set()
@@ -92,6 +93,7 @@ queue_dict_lock = Lock()
 qb_listener_lock = Lock()
 cpu_eater_lock = Lock()
 same_directory_lock = Lock()
+jd_listener_lock = Lock()
 extension_filter = ["aria2", "!qB"]
 drives_names = []
 drives_ids = []
@@ -128,15 +130,6 @@ with open("a2c.conf", "a+") as a:
     a.write("bt-stop-timeout=600\n")
     a.write(f"bt-tracker=[{trackers}]")
 subprocess.run(["xria", "--conf-path=/usr/src/app/a2c.conf"], check=False)
-
-
-if os.path.exists("shorteners.txt"):
-    with open("shorteners.txt", "r+") as f:
-        lines = f.readlines()
-        for line in lines:
-            temp = line.strip().split()
-            if len(temp) == 2:
-                shorteners_list.append({"domain": temp[0], "api_key": temp[1]})
 
 
 scheduler = AsyncIOScheduler(timezone=str(get_localzone()), event_loop=bot_loop)

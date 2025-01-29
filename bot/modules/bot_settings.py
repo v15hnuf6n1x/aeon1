@@ -25,6 +25,7 @@ from bot import (
     extension_filter,
     index_urls,
     intervals,
+    jd_listener_lock,
     task_dict,
 )
 from bot.core.aeon_client import TgClient
@@ -32,6 +33,7 @@ from bot.core.config_manager import Config
 from bot.core.startup import update_variables
 from bot.helper.ext_utils.bot_utils import SetInterval, new_task, sync_to_async
 from bot.helper.ext_utils.db_handler import database
+from bot.helper.ext_utils.jdownloader_booter import jdownloader
 from bot.helper.ext_utils.task_manager import start_from_queued
 from bot.helper.mirror_leech_utils.rclone_utils.serve import rclone_serve_booter
 from bot.helper.telegram_helper.button_build import ButtonMaker
@@ -44,7 +46,6 @@ from bot.helper.telegram_helper.message_utils import (
 )
 
 from .rss import add_job
-from .search import initiate_search_tools
 
 start = 0
 state = "view"
@@ -61,8 +62,9 @@ DEFAULT_VALUES = {
 async def get_buttons(key=None, edit_type=None):
     buttons = ButtonMaker()
     if key is None:
-        buttons.data_button("Config Variables", "botset var")
-        buttons.data_button("Private Files", "botset private")
+        buttons.data_button("Config", "botset var")
+        buttons.data_button("Pvt Files", "botset private")
+        buttons.data_button("JD Sync", "botset syncjd")
         buttons.data_button("Close", "botset close")
         msg = "Bot Settings:"
     elif edit_type is not None:
@@ -212,8 +214,23 @@ async def edit_variable(_, message, pre_message, key):
         "RCLONE_SERVE_PASS",
     ]:
         await rclone_serve_booter()
+    elif key in ["JD_EMAIL", "JD_PASS"]:
+        await jdownloader.boot()
     elif key == "RSS_DELAY":
         add_job()
+
+
+async def sync_jdownloader():
+    async with jd_listener_lock:
+        if not Config.DATABASE_URL or not jdownloader.is_connected:
+            return
+        await jdownloader.device.system.exit_jd()
+    if await aiopath.exists("cfg.zip"):
+        await remove("cfg.zip")
+    await (
+        await create_subprocess_exec("7z", "a", "cfg.zip", "/JDownloader/cfg")
+    ).wait()
+    await database.update_private_file("cfg.zip")
 
 
 @new_task
@@ -336,6 +353,18 @@ async def edit_bot_settings(client, query):
         await query.answer()
         globals()["start"] = 0
         await update_buttons(message, None)
+    elif data[1] == "syncjd":
+        if not Config.JD_EMAIL or not Config.JD_PASS:
+            await query.answer(
+                "No Email or Password provided!",
+                show_alert=True,
+            )
+            return
+        await query.answer(
+            "Syncronization Started. JDownloader will get restarted. It takes up to 10 sec!",
+            show_alert=True,
+        )
+        await sync_jdownloader()
     elif data[1] == "var":
         await query.answer()
         await update_buttons(message, data[1])
@@ -384,6 +413,8 @@ async def edit_bot_settings(client, query):
                 index_urls[0] = ""
         elif data[2] == "INCOMPLETE_TASK_NOTIFIER":
             await database.trunc_table("tasks")
+        elif data[2] in ["JD_EMAIL", "JD_PASS"]:
+            await create_subprocess_exec("pkill", "-9", "-f", "java")
         Config.set(data[2], value)
         await update_buttons(message, "var")
         if data[2] == "DATABASE_URL":
@@ -506,5 +537,5 @@ async def load_config():
         await database.update_config(config_dict)
     else:
         await database.disconnect()
-    await gather(initiate_search_tools(), start_from_queued(), rclone_serve_booter())
+    await gather(start_from_queued(), rclone_serve_booter())
     add_job()
