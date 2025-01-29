@@ -11,12 +11,12 @@ from bot import (
     aria2,
     aria2_options,
     drives_ids,
-    shorteners_list,
     drives_names,
     extension_filter,
     index_urls,
     qbit_options,
     rss_dict,
+    shorteners_list,
     user_data,
     xnox_client,
 )
@@ -232,13 +232,12 @@ async def load_configurations():
         await remove("cfg.zip")
 
     if await aiopath.exists("shorteners.txt"):
-        async with aiopen("shorteners.txt", "r") as f:
+        async with aiopen("shorteners.txt") as f:
             lines = await f.readlines()
             for line in lines:
                 temp = line.strip().split()
                 if len(temp) == 2:
                     shorteners_list.append({"domain": temp[0], "api_key": temp[1]})
-
 
     if await aiopath.exists("accounts.zip"):
         if await aiopath.exists("accounts"):
