@@ -1,6 +1,6 @@
 from asyncio import Lock, sleep
-from time import time
 from secrets import token_hex
+from time import time
 
 from pyrogram.errors import FloodPremiumWait, FloodWait
 
