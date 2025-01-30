@@ -1,7 +1,7 @@
 from asyncio import Event, sleep, wait_for
 from base64 import b64encode
 from functools import partial
-from secrets import token_urlsafe
+from secrets import token_hex
 from time import time
 
 from aiofiles import open as aiopen
@@ -121,7 +121,7 @@ async def get_jd_download_directory():
 async def add_jd_download(listener, path):
     try:
         async with jd_listener_lock:
-            gid = token_urlsafe(12)
+            gid = token_hex(4)
             if not jdownloader.is_connected:
                 raise MYJDException(jdownloader.error)
 

@@ -1,5 +1,6 @@
 from asyncio import Lock, sleep
 from time import time
+from secrets import token_hex
 
 from pyrogram.errors import FloodPremiumWait, FloodWait
 
@@ -122,7 +123,8 @@ class TelegramDownloadHelper:
                 else:
                     path = path + self._listener.name
                 self._listener.size = media.file_size
-                gid = media.file_unique_id
+                gid = token_hex(4)  # media.file_unique_id
+                # test token_hex as gid
 
                 msg, button = await stop_duplicate_check(self._listener)
                 if msg:

@@ -177,6 +177,14 @@ def get_progress_bar_string(pct):
     return p_str
 
 
+def source(self):
+    return (
+        sender_chat.title
+        if (sender_chat := self.message.sender_chat)
+        else self.message.from_user.username or self.message.from_user.id
+    )
+
+
 async def get_readable_message(sid, is_user, page_no=1, status="All", page_step=1):
     msg = ""
     button = None
@@ -206,6 +214,7 @@ async def get_readable_message(sid, is_user, page_no=1, status="All", page_step=
         msg += f"<code>{escape(f'{task.name()}')}</code>"
         if task.listener.subname:
             msg += f"\n<i>{task.listener.subname}</i>"
+        msg += f"\nby: {source(task.listener)}"
         if (
             tstatus not in [MirrorStatus.STATUS_SEED, MirrorStatus.STATUS_QUEUEUP]
             and task.listener.progress
@@ -238,7 +247,7 @@ async def get_readable_message(sid, is_user, page_no=1, status="All", page_step=
             msg += f" | <b>Time: </b>{task.seeding_time()}"
         else:
             msg += f"\n<b>Size: </b>{task.size()}"
-        msg += f"\n/stop_{task.gid()}\n\n"
+        msg += f"\n/stop_{task.gid()[:8]}\n\n"
 
     if len(msg) == 0:
         if status == "All":
