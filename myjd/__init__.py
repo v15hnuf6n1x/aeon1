@@ -37,7 +37,6 @@ from .myjdapi import MyJdApi
 __version__ = "1.1.7"
 
 __all__ = [
-    "MyJdApi",
     "MYJDApiCommandNotFoundException",
     "MYJDApiException",
     "MYJDApiInterfaceNotFoundException",
@@ -70,5 +69,6 @@ __all__ = [
     "MYJDTokenInvalidException",
     "MYJDTooManyRequestsException",
     "MYJDUnknownException",
+    "MyJdApi",
     "Myjdapi",
 ]
