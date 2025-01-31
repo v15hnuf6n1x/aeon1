@@ -31,7 +31,7 @@ def _get_combined_info(result, old_info):
                 time() - old_info.get("last_update", 0)
             )
         eta = (bytesTotal - bytesLoaded) / speed
-    except:
+    except Exception:
         eta = 0
     return {
         "name": name,
@@ -64,7 +64,7 @@ async def get_download(gid, old_info):
             ],
         )
         return _get_combined_info(result, old_info) if len(result) > 1 else result[0]
-    except:
+    except Exception:
         return old_info
 
 
@@ -80,7 +80,7 @@ class JDownloaderStatus:
     def progress(self):
         try:
             return f"{round((self._info.get('bytesLoaded', 0) / self._info.get('bytesTotal', 0)) * 100, 2)}%"
-        except:
+        except Exception:
             return "0%"
 
     def processed_bytes(self):

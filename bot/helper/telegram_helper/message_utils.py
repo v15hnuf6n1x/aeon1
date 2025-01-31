@@ -286,7 +286,7 @@ async def get_tg_link_message(link, user_id=""):
             raise TgLinkException("We don't have access to this chat!") from e
         if not user_message.empty:
             return (links, user_session) if links else (user_message, user_session)
-        return None
+        return None, None
     raise TgLinkException("Private: Please report!")
 
 
