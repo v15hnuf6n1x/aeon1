@@ -94,10 +94,10 @@ class TelegramDownloadHelper:
 
     async def add_download(self, message, path, session):
         self.session = session
-        message = await self.session.get_messages(
+        """message = await self.session.get_messages(
             chat_id=message.chat.id,
             message_ids=message.id,
-        )
+        )"""
 
         media = (
             message.document
