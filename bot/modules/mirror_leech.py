@@ -1,5 +1,5 @@
 # ruff: noqa: RUF006
-from asyncio import create_task
+from asyncio import create_task, sleep
 from base64 import b64encode
 from re import match as re_match
 
@@ -381,6 +381,7 @@ class Mirror(TaskListener):
                     session,
                 ),
             )
+            await sleep(1.2)
         elif isinstance(self.link, dict):
             create_task(add_direct_download(self, path))
         elif self.is_jd:
