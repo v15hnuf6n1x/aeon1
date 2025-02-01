@@ -53,17 +53,17 @@ def add_handlers():
         "aioexecute": (
             aioexecute,
             BotCommands.AExecCommand,
-            CustomFilters.owner,
+            CustomFilters.sudo,
         ),
         "execute": (
             execute,
             BotCommands.ExecCommand,
-            CustomFilters.owner,
+            CustomFilters.sudo,
         ),
         "clear": (
             clear,
             BotCommands.ClearLocalsCommand,
-            CustomFilters.owner,
+            CustomFilters.sudo,
         ),
         "select": (
             select,
