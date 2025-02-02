@@ -64,7 +64,7 @@ async def error_check(message):
             except Exception:
                 button = button or ButtonMaker()
                 button.data_button("Start", f"aeon {user_id} private", "header")
-                msg.append("You haven't initiated the bot in a private message!")
+                msg.append("<b>You haven't initiated the bot in a private message!</b>")
 
     if user_id not in {
         Config.OWNER_ID,
@@ -187,9 +187,9 @@ async def token_check(user_id, button=None):
             f"https://telegram.me/{TgClient.NAME}?start={token}",
         )
         button.url_button("Collect token", short_link)
-        msg = "Your token has expired, please collect a new token"
+        msg = "<b>Your token has expired, please collect a new token</b>"
         if Config.PAID_CHANNEL_ID and Config.PAID_CHANNEL_LINK:
-            msg += " or subscribe to the paid channel for no token."
+            msg += "<b> or subscribe to the paid channel for no token.</b>"
             button.url_button("Subscribe", Config.PAID_CHANNEL_LINK)
 
         return (msg + f"\n<b>It will expire after {time_str}</b>!"), button

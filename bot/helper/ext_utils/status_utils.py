@@ -214,7 +214,7 @@ async def get_readable_message(sid, is_user, page_no=1, status="All", page_step=
         msg += f"<code>{escape(f'{task.name()}')}</code>"
         if task.listener.subname:
             msg += f"\n<i>{task.listener.subname}</i>"
-        msg += f"\nby: {source(task.listener)}"
+        msg += f"\n<b>by: {source(task.listener)}</b>"
         if (
             tstatus not in [MirrorStatus.STATUS_SEED, MirrorStatus.STATUS_QUEUEUP]
             and task.listener.progress
@@ -232,27 +232,27 @@ async def get_readable_message(sid, is_user, page_no=1, status="All", page_step=
             else:
                 subsize = ""
                 count = ""
-            msg += f"\n<b>Processed:</b> {task.processed_bytes()}{subsize} {count}"
-            msg += f"\n<b>Size:</b> {task.size()}"
-            msg += f"\n<b>Speed:</b> {task.speed()}"
-            msg += f"\n<b>ETA:</b> {task.eta()}"
+            msg += f"\n<b>🧿Processed:</b> {task.processed_bytes()}{subsize} {count}"
+            msg += f"\n<b>🗂Size:</b> {task.size()}"
+            msg += f"\n<b>🚀Speed:</b> {task.speed()}"
+            msg += f"\n<b>⌛ETA:</b> {task.eta()}"
             if hasattr(task, "seeders_num"):
                 with contextlib.suppress(Exception):
-                    msg += f"\n<b>Seeders:</b> {task.seeders_num()} | <b>Leechers:</b> {task.leechers_num()}"
+                    msg += f"\n<b>🎛Seeders:</b> {task.seeders_num()} | <b>🎛Leechers:</b> {task.leechers_num()}"
         elif tstatus == MirrorStatus.STATUS_SEED:
-            msg += f"\n<b>Size: </b>{task.size()}"
-            msg += f"\n<b>Speed: </b>{task.seed_speed()}"
-            msg += f" | <b>Uploaded: </b>{task.uploaded_bytes()}"
-            msg += f"\n<b>Ratio: </b>{task.ratio()}"
-            msg += f" | <b>Time: </b>{task.seeding_time()}"
+            msg += f"\n<b>🗂Size: </b>{task.size()}"
+            msg += f"\n<b>🚀Speed: </b>{task.seed_speed()}"
+            msg += f" | <b>📤Uploaded: </b>{task.uploaded_bytes()}"
+            msg += f"\n<b>🔧Ratio: </b>{task.ratio()}"
+            msg += f" | <b>🕰Time: </b>{task.seeding_time()}"
         else:
-            msg += f"\n<b>Size: </b>{task.size()}"
+            msg += f"\n<b>🗂Size: </b>{task.size()}"
         msg += f"\n/stop_{task.gid()[:8]}\n\n"
 
     if len(msg) == 0:
         if status == "All":
             return None, None
-        msg = f"No Active {status} Tasks!\n\n"
+        msg = f"b>No Active {status} Tasks!</b>\n\n"
     buttons = None
     if len(tasks) > STATUS_LIMIT:
         buttons = ButtonMaker()
@@ -269,6 +269,6 @@ async def get_readable_message(sid, is_user, page_no=1, status="All", page_step=
                     buttons = ButtonMaker()
                 buttons.data_button(label, f"status {sid} st {status_value}")
     button = buttons.build_menu(8) if buttons else None
-    msg += f"<b>CPU:</b> {cpu_percent()}% | <b>FREE:</b> {get_readable_file_size(disk_usage(Config.DOWNLOAD_DIR).free)}"
-    msg += f"\n<b>RAM:</b> {virtual_memory().percent}% | <b>UPTIME:</b> {get_readable_time(time() - bot_start_time)}"
+    msg += f"<blockquote><b>CPU:</b> {cpu_percent()}% | <b>FREE:</b> {get_readable_file_size(disk_usage(Config.DOWNLOAD_DIR).free)}</blockquote>"
+    msg += f"<blockquote>\n<b>RAM:</b> {virtual_memory().percent}% | <b>UPTIME:</b> {get_readable_time(time() - bot_start_time)}</blockquote>"
     return msg, button
