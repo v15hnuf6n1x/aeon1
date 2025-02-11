@@ -121,6 +121,7 @@ def direct_link_generator(link):
         return streamtape(link)
     if any(x in domain for x in ["wetransfer.com", "we.tl"]):
         return wetransfer(link)
+    """
     if any(
         x in domain
         for x in [
@@ -142,6 +143,7 @@ def direct_link_generator(link):
         ]
     ):
         return terabox(link)
+    """
     if any(
         x in domain
         for x in [
