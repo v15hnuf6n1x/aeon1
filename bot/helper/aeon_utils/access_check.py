@@ -65,7 +65,7 @@ async def error_check(message):
                 button = button or ButtonMaker()
                 button.data_button("Start", f"aeon {user_id} private", "header")
                 msg.append(
-                    "<b>You haven't initiated the bot in a private message!</b>"
+                    "<b>You haven't initiated the bot in a private message!</b>",
                 )
 
     if user_id not in {
