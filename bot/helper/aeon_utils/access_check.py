@@ -1,4 +1,4 @@
-from re import IGNORECASE, escape, search
+from re import escape
 from time import time
 from uuid import uuid4
 
@@ -103,12 +103,12 @@ async def get_chat_info(channel_id):
 
 
 def is_nsfw(text):
-    pattern = (
+    (
         r"(?:^|\W|_)(?:"
         + "|".join(escape(keyword) for keyword in nsfw_keywords)
         + r")(?:$|\W|_)"
     )
-    return False #bool(search(pattern, text, flags=IGNORECASE))
+    return False  # bool(search(pattern, text, flags=IGNORECASE))
 
 
 def is_nsfw_data(data):
