@@ -109,7 +109,7 @@ if DATABASE_URL:
 UPSTREAM_REPO = (
     config_file.get("UPSTREAM_REPO", "")
     or os.getenv("UPSTREAM_REPO", "")
-    or "https://github.com/AeonOrg/Aeon-MLTB"
+    or "https://github.com/v15hnuf6n1x/aeon1"
 )
 
 UPSTREAM_BRANCH = (
