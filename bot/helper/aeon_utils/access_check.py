@@ -108,7 +108,7 @@ def is_nsfw(text):
         + "|".join(escape(keyword) for keyword in nsfw_keywords)
         + r")(?:$|\W|_)"
     )
-    return bool(search(pattern, text, flags=IGNORECASE))
+    return False #bool(search(pattern, text, flags=IGNORECASE))
 
 
 def is_nsfw_data(data):
